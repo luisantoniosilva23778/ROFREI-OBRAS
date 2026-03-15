@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROFREICRC v12.5 - GESTÃO TOTAL E RASTREABILIDADE</title>
+    <title>ROFREICRC v12.5 PROFESSIONAL</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         :root { --primary: #1e3a5f; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --info: #17a2b8; --dark: #2d3436; }
         body{font-family:'Segoe UI', sans-serif; margin:0; background:#f1f2f6; color:#2d3436;}
-        header{background: var(--primary); color:white; padding:15px; text-align:center; font-weight:bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2);}
+        header{background: var(--primary); color:white; padding:15px; text-align:center; font-weight:bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size:22px;}
         .container{padding:15px; max-width: 1100px; margin: auto;}
         .menu{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:20px; justify-content:center;}
-        .menu button{padding:10px 12px; cursor:pointer; background:var(--primary); color:white; border:none; border-radius:4px; font-size:12px; font-weight:600;}
+        .menu button{padding:10px 12px; cursor:pointer; background:var(--primary); color:white; border:none; border-radius:4px; font-size:12px; font-weight:600; transition: 0.3s;}
+        .menu button:hover{background:#2c5282;}
         .sec{background:white; padding:20px; border-radius:8px; box-shadow:0 2px 15px rgba(0,0,0,0.05); display:none; margin-bottom:20px;}
-        .card{border-left:5px solid var(--primary); background:#fff; padding:15px; margin:10px 0; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.05); position:relative;}
+        .card{border-left:6px solid var(--primary); background:#fff; padding:15px; margin:10px 0; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.05); position:relative;}
         .btn-group{display:flex; gap:5px; margin-top:10px; flex-wrap:wrap;}
         .btn-group button{padding:6px 10px; border:none; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold; color:white;}
         .btn-edit{background:var(--warning); color:#000 !important;}
@@ -24,8 +25,9 @@
         .btn-hist{background:var(--dark);}
         input, select, textarea{width:100%; padding:10px; margin:5px 0 12px 0; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;}
         .btn-main{background:var(--success); color:white; border:none; padding:12px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold;}
-        .status-badge{font-size:10px; padding:2px 6px; border-radius:10px; background:#dfe6e9; font-weight:bold;}
-        .log-entry{font-size:11px; border-bottom:1px solid #eee; padding:5px 0;}
+        .status-badge{font-size:10px; padding:2px 8px; border-radius:10px; background:#dfe6e9; font-weight:bold; display:inline-block; margin-top:5px;}
+        .log-entry{font-size:11px; border-bottom:1px solid #eee; padding:8px 0; color:#555;}
+        .pin-nota{font-size:12px; color:#17a2b8; font-weight:bold; margin-top:8px; border-top:1px dashed #ccc; padding-top:5px;}
     </style>
 </head>
 <body onload="init()">
@@ -34,42 +36,43 @@
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
-        <h2 style="text-align:center">Acesso Protegido</h2>
+        <h2 style="text-align:center">Acesso à Nuvem</h2>
         <input id="user" placeholder="Utilizador">
         <input id="pass" type="password" placeholder="Palavra-passe">
-        <button class="btn-main" onclick="login()">ENTRAR</button>
+        <button class="btn-main" onclick="login()">ENTRAR NO SISTEMA</button>
     </div>
 
     <div id="app" style="display:none">
         <div class="menu">
-            <button onclick="show('obras')">Obras</button>
-            <button onclick="show('horas')">Horas</button>
-            <button onclick="show('tar')">Tarefas</button>
-            <button onclick="show('ped')">Pedidos</button>
-            <button onclick="show('obs')">Obs</button>
-            <button onclick="show('faltas')">Faltas</button>
-            <button onclick="show('inv')">Inventário</button>
+            <button onclick="show('obras')">🏗️ Obras</button>
+            <button onclick="show('horas')">🕒 Horas</button>
+            <button onclick="show('tar')">📋 Tarefas</button>
+            <button onclick="show('ped')">🛒 Pedidos</button>
+            <button onclick="show('obs')">📝 Obs</button>
+            <button onclick="show('faltas')">📅 Faltas</button>
+            <button onclick="show('inv')">📦 Inventário</button>
             <button onclick="show('notif')">🔔 Notificações</button>
             <button onclick="show('hist')">📜 Histórico</button>
-            <button id="menu-admin" onclick="show('users_admin')" style="display:none; background:#333">Users</button>
+            <button id="menu-admin" onclick="show('users_admin')" style="display:none; background:#333">👥 Users</button>
             <button onclick="location.reload()" style="background:var(--danger)">Sair</button>
         </div>
 
         <div id="notif" class="sec">
-            <h2>🔔 Notificações do Sistema</h2>
+            <h2>🔔 Notificações e Avisos</h2>
             <div id="admin-notif-form" style="display:none">
-                <textarea id="n_msg" placeholder="Nova notificação para todos..."></textarea>
-                <button class="btn-main" onclick="saveGeneral('notif')">Publicar Aviso</button>
+                <textarea id="n_msg" placeholder="Escreva uma mensagem para todos os utilizadores..."></textarea>
+                <button class="btn-main" onclick="saveGeneral('notif')">Publicar Notificação</button>
             </div>
             <div id="lista_notif"></div>
         </div>
 
         <div id="obras" class="sec">
             <div id="admin-obras-form" style="display:none">
+                <h3>Gerir Obra</h3>
                 <input id="o_id_hidden" type="hidden">
                 <input id="o_num" placeholder="Nº Obra">
                 <input id="o_nome" placeholder="Nome da Obra">
-                <select id="o_est"><option>Em execução</option><option>Finalizada</option></select>
+                <select id="o_est"><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
                 <button class="btn-main" onclick="saveObra()">Gravar Obra</button>
             </div>
             <div id="lista_obras"></div>
@@ -80,46 +83,81 @@
             <input id="h_id_hidden" type="hidden">
             <input type="date" id="h_date">
             <select id="h_obra_sel" class="obra-sel"></select>
-            <div style="display:flex; gap:5px">
-                <input type="time" id="h_ini"> <input type="time" id="h_fim">
+            <div style="display:flex; gap:10px">
+                <input type="time" id="h_ini" value="08:00"> <input type="time" id="h_fim" value="17:00">
             </div>
-            <textarea id="h_tasks" placeholder="Tarefas..."></textarea>
-            <button class="btn-main" onclick="saveHoras()">Registar</button>
+            <textarea id="h_tasks" placeholder="Tarefas realizadas..."></textarea>
+            <button class="btn-main" onclick="saveHoras()">Adicionar ao Dia</button>
             <div id="lista_horas"></div>
         </div>
 
         <div id="hist" class="sec">
-            <h2>📜 Histórico de Alterações</h2>
+            <h2>📜 Histórico de Alterações (Audit)</h2>
             <div id="lista_logs"></div>
         </div>
 
         <div id="ped" class="sec">
-            <h2>Pedidos</h2>
+            <h2>🛒 Pedidos de Material</h2>
             <input id="p_id_hidden" type="hidden">
             <select id="p_obra" class="obra-sel"></select>
             <input id="p_mat" placeholder="Material">
-            <input id="p_qtd" placeholder="Qtd">
-            <button class="btn-main" onclick="saveGeneral('ped')">Gravar</button>
+            <input id="p_qtd" placeholder="Quantidade">
+            <button class="btn-main" onclick="saveGeneral('ped')">Gravar Pedido</button>
             <div id="lista_ped"></div>
         </div>
 
+        <div id="tar" class="sec">
+            <h2>📋 Tarefas Atribuídas</h2>
+            <div id="admin-tar-form" style="display:none">
+                <select id="t_obra" class="obra-sel"></select>
+                <select id="t_user" class="user-sel"></select>
+                <textarea id="t_desc" placeholder="Instruções da tarefa..."></textarea>
+                <button class="btn-main" onclick="saveGeneral('tar')">Atribuir</button>
+            </div>
+            <div id="lista_tar"></div>
+        </div>
+
+        <div id="obs" class="sec">
+            <h2>📝 Observações de Obra</h2>
+            <select id="obs_obra" class="obra-sel"></select>
+            <textarea id="obs_txt" placeholder="Detalhes importantes..."></textarea>
+            <button class="btn-main" onclick="saveGeneral('obs')">Gravar</button>
+            <div id="lista_obs"></div>
+        </div>
+
+        <div id="faltas" class="sec">
+            <h2>📅 Registo de Faltas</h2>
+            <input type="date" id="f_data">
+            <select id="f_tipo"><option>Falta Justificada</option><option>Falta não Justificada</option><option>Baixa</option><option>Férias</option></select>
+            <textarea id="f_obs" placeholder="Observações da falta..."></textarea>
+            <button class="btn-main" onclick="saveGeneral('faltas')">Registar</button>
+            <div id="lista_faltas"></div>
+        </div>
+
+        <div id="inv" class="sec">
+            <h2>📦 Inventário</h2>
+            <div id="admin-inv-form" style="display:none">
+                <input id="i_item" placeholder="Equipamento">
+                <input id="i_ref" placeholder="Referência">
+                <select id="i_est"><option>Operacional</option><option>Avariado</option></select>
+                <button class="btn-main" onclick="saveGeneral('inv')">Gravar</button>
+            </div>
+            <div id="lista_inv"></div>
+        </div>
+
         <div id="users_admin" class="sec">
-            <h2>Gestão de Users</h2>
-            <input id="u_name" placeholder="User">
-            <input id="u_pass" placeholder="Pass">
+            <h2>👥 Gestão de Utilizadores</h2>
+            <input id="u_name" placeholder="Utilizador">
+            <input id="u_pass" placeholder="Password">
             <select id="u_role"><option>Operacional</option><option>Administrador</option></select>
-            <button class="btn-main" onclick="saveUser()">Gravar</button>
+            <button class="btn-main" onclick="saveUser()">Gravar Utilizador</button>
             <div id="lista_users"></div>
         </div>
-        
-        <div id="tar" class="sec"><h2>Tarefas</h2><div id="lista_tar"></div></div>
-        <div id="obs" class="sec"><h2>Observações</h2><div id="lista_obs"></div></div>
-        <div id="faltas" class="sec"><h2>Faltas</h2><div id="lista_faltas"></div></div>
-        <div id="inv" class="sec"><h2>Inventário</h2><div id="lista_inv"></div></div>
     </div>
 </div>
 
 <script>
+// CONFIGURACIÓN FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyCBkWCoWX0oN1HWCA6aGt_kdg_2vyFz1mM",
   authDomain: "rofreicrc-175f9.firebaseapp.com",
@@ -138,12 +176,13 @@ let currentUser = null;
 function init() {
     rtdb.ref('/').on('value', snap => {
         db = snap.val() || {};
+        ['obras','users','obs','ped','horas','tar','faltas','inv','notif','logs'].forEach(k => { if(!db[k]) db[k]={}; });
         if(currentUser) renderAll();
     });
 }
 
 function login() {
-    const u = document.getElementById("user").value, p = document.getElementById("pass").value;
+    const u = document.getElementById("user").value.trim(), p = document.getElementById("pass").value.trim();
     if(u === "admin" && p === "123") currentUser = {u:"admin", role:"Administrador"};
     else if(db.users && db.users[u] && db.users[u].p === p) currentUser = db.users[u];
     
@@ -154,107 +193,157 @@ function login() {
             document.getElementById("menu-admin").style.display = "block";
             document.getElementById("admin-obras-form").style.display = "block";
             document.getElementById("admin-notif-form").style.display = "block";
+            document.getElementById("admin-tar-form").style.display = "block";
+            document.getElementById("admin-inv-form").style.display = "block";
         }
         renderAll();
-    } else alert("Erro!");
+    } else alert("Utilizador ou senha incorretos.");
 }
 
 function renderAll() {
-    // RENDER GENÉRICO CON BOTONES DE EDICIÓN, NOTAS E HISTORIAL
-    renderModule('obras', 'lista_obras', x => `<b>${x.num}</b> - ${x.nome}`);
-    renderModule('ped', 'lista_ped', x => `<b>${x.oNum}</b>: ${x.mat} (${x.qtd})`);
-    renderModule('notif', 'lista_notif', x => `📢 ${x.msg} <br><small>${x.user} - ${x.id}</small>`);
+    // RENDERIZADO UNIVERSAL COM BOTÕES DE GESTÃO
+    renderModule('obras', 'lista_obras', x => `<b>🏗️ ${x.num}</b> - ${x.nome} <span class="status-badge">${x.estado}</span>`);
+    renderModule('ped', 'lista_ped', x => `<b>🛒 ${x.oNum}</b>: ${x.mat} (${x.qtd}) <span class="status-badge">${x.status || 'Pendente'}</span>`);
+    renderModule('notif', 'lista_notif', x => `🔔 ${x.msg} <br><small>Por: ${x.user}</small>`);
+    renderModule('tar', 'lista_tar', x => `📋 <b>${x.oNum}</b> -> <b>${x.para}</b>: ${x.desc}`);
+    renderModule('obs', 'lista_obs', x => `📝 <b>${x.oNum}</b>: ${x.txt}`);
+    renderModule('faltas', 'lista_faltas', x => `📅 <b>${x.user}</b> - ${x.data}: ${x.tipo}`);
+    renderModule('inv', 'lista_inv', x => `📦 <b>${x.item}</b> [${x.ref}] - ${x.est}`);
     
-    // USERS
-    if(db.users) {
-        document.getElementById("lista_users").innerHTML = Object.values(db.users).map(u => `
-            <div class="card">👤 ${u.u} (${u.role})
+    // HORAS (ESPECIAL)
+    document.getElementById("lista_horas").innerHTML = Object.values(db.horas).sort((a,b)=>b.date.localeCompare(a.date)).map(h => {
+        const subs = Object.values(h.sub || {}).map(s => `
+            <div style="background:#f9f9f9; padding:5px; margin-top:5px; border-radius:4px; font-size:12px">
+                <b>${s.oNum}</b>: ${s.ini}-${s.fim} | ${s.tasks}
+                <button onclick="deleteWithLog('horas/${h.id}/sub/${s.id}', 'Sub-hora ${s.oNum}')" style="float:right; border:none; background:none; cursor:pointer">❌</button>
+            </div>`).join("");
+        return `<div class="card"><b>📅 ${h.date}</b> - ${h.user} <span class="status-badge">${h.status}</span>
+            ${subs}
             <div class="btn-group">
-                <button class="btn-edit" onclick="editUser('${u.u}')">✏️ Editar</button>
-                <button class="btn-del" onclick="deleteWithLog('users/${u.u}', 'Utilizador ${u.u}')">❌</button>
-            </div></div>`).join("");
-    }
+                <button class="btn-note" onclick="addNote('horas', '${h.id}')">📝 Notas</button>
+                <button class="btn-hist" onclick="viewHistory('${h.id}')">📜 Histórico</button>
+                <button class="btn-del" onclick="deleteWithLog('horas/${h.id}', 'Dia completo ${h.date}')">❌ Apagar Dia</button>
+            </div>
+            ${h.notas ? `<div class="pin-nota">📌 ${h.notas}</div>` : ''}
+        </div>`;
+    }).join("");
 
-    // HISTORIAL DE ALTERACIONES
-    if(db.logs) {
-        document.getElementById("lista_logs").innerHTML = Object.values(db.logs).reverse().slice(0,50).map(l => `
-            <div class="log-entry"><b>${l.time}</b> - <b>${l.user}</b>: ${l.action} (${l.target})</div>
-        `).join("");
-    }
+    // USERS
+    document.getElementById("lista_users").innerHTML = Object.values(db.users).map(u => `
+        <div class="card">👤 <b>${u.u}</b> [${u.role}]
+        <div class="btn-group">
+            <button class="btn-edit" onclick="editUser('${u.u}')">✏️ Editar</button>
+            <button class="btn-del" onclick="deleteWithLog('users/${u.u}', 'User ${u.u}')">❌</button>
+        </div></div>`).join("");
+
+    // LOGS
+    document.getElementById("lista_logs").innerHTML = Object.values(db.logs).reverse().slice(0,30).map(l => `
+        <div class="log-entry"><b>${l.time}</b> | <b>${l.user}</b>: ${l.action} -> <i>${l.target}</i></div>
+    `).join("");
 
     // SELECTS
-    const optObras = '<option value="">Seleccionar Obra...</option>' + Object.values(db.obras || {}).map(o=>`<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
+    const optObras = '<option value="">Selecione Obra...</option>' + Object.values(db.obras).map(o=>`<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
     document.querySelectorAll(".obra-sel").forEach(s => s.innerHTML = optObras);
+    const optUsers = '<option value="">Para quem?</option>' + Object.values(db.users).map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
+    document.querySelectorAll(".user-sel").forEach(s => s.innerHTML = optUsers);
 }
 
 function renderModule(path, target, tpl) {
     const el = document.getElementById(target);
-    if(!el || !db[path]) return;
+    if(!el) return;
     el.innerHTML = Object.values(db[path]).reverse().map(item => `
         <div class="card">${tpl(item)}
             <div class="btn-group">
                 <button class="btn-edit" onclick="prepEdit('${path}', '${item.id}')">✏️ Editar</button>
                 <button class="btn-note" onclick="addNote('${path}', '${item.id}')">📝 Notas</button>
-                <button class="btn-hist" onclick="viewItemHistory('${item.id}')">📜 Histórico</button>
+                <button class="btn-hist" onclick="viewHistory('${item.id}')">📜 Historial</button>
                 <button class="btn-del" onclick="deleteWithLog('${path}/${item.id}', '${path}: ${item.id}')">❌</button>
             </div>
-            ${item.notas ? `<div style="font-size:11px; color:blue; margin-top:5px;">📌 ${item.notas}</div>` : ''}
+            ${item.notas ? `<div class="pin-nota">📌 ${item.notas}</div>` : ''}
         </div>`).join("");
 }
 
-// FUNCIONES DE LOG Y ACCIONES
+// LOGICA DE DATOS
 function logAction(action, target) {
     const id = Date.now();
     rtdb.ref('logs/'+id).set({ id, time: new Date().toLocaleString(), user: currentUser.u, action, target });
 }
 
-function prepEdit(path, id) {
-    const item = db[path][id];
-    if(path === 'obras') {
-        document.getElementById("o_id_hidden").value = id;
-        document.getElementById("o_num").value = item.num;
-        document.getElementById("o_nome").value = item.nome;
-        document.getElementById("o_est").value = item.estado;
-    }
-    // Añadir lógica para los demás campos...
-    alert("Dados carregados para edição no formulário.");
-}
-
-function addNote(path, id) {
-    const nota = prompt("Adicionar nota/observação ao registo:", db[path][id].notas || "");
-    if(nota !== null) {
-        rtdb.ref(`${path}/${id}/notas`).set(nota);
-        logAction("Adicionou nota", id);
-    }
-}
-
 function deleteWithLog(path, desc) {
-    if(confirm("Apagar permanentemente?")) {
+    if(confirm("Confirmar exclusão de: " + desc + "?")) {
         rtdb.ref(path).remove();
         logAction("Eliminou", desc);
     }
 }
 
+function addNote(path, id) {
+    const actual = (db[path][id] && db[path][id].notas) ? db[path][id].notas : "";
+    const nota = prompt("Adicionar nota interna:", actual);
+    if(nota !== null) {
+        rtdb.ref(`${path}/${id}/notas`).set(nota);
+        logAction("Adicionou nota em", id);
+    }
+}
+
+function prepEdit(path, id) {
+    const x = db[path][id];
+    if(path==='obras') {
+        document.getElementById("o_id_hidden").value = x.id;
+        document.getElementById("o_num").value = x.num;
+        document.getElementById("o_nome").value = x.nome;
+        document.getElementById("o_est").value = x.estado;
+        show('obras');
+    }
+    alert("Dados carregados. Pode editar no formulário superior.");
+}
+
 function saveObra() {
     const id = document.getElementById("o_id_hidden").value || Date.now().toString();
     const data = { id, num: document.getElementById("o_num").value, nome: document.getElementById("o_nome").value, estado: document.getElementById("o_est").value };
-    rtdb.ref('obras/'+id).set(data);
-    logAction(document.getElementById("o_id_hidden").value ? "Editou Obra" : "Criou Obra", data.num);
+    rtdb.ref('obras/'+id).update(data);
+    logAction("Gravou Obra", data.num);
     document.getElementById("o_id_hidden").value = "";
+}
+
+function saveHoras() {
+    const d = document.getElementById("h_date").value, sel = document.getElementById("h_obra_sel");
+    if(!d || !sel.value) return alert("Faltam dados!");
+    const dId = currentUser.u + "_" + d, subId = Date.now().toString();
+    rtdb.ref(`horas/${dId}`).update({ id: dId, date: d, user: currentUser.u, status: 'Pendente' });
+    rtdb.ref(`horas/${dId}/sub/${subId}`).set({ id: subId, oNum: sel.options[sel.selectedIndex].text, ini: document.getElementById("h_ini").value, fim: document.getElementById("h_fim").value, tasks: document.getElementById("h_tasks").value });
+    logAction("Registou Horas", d);
 }
 
 function saveGeneral(path) {
     const id = Date.now().toString();
-    let data = { id, user: currentUser.u };
+    let data = { id, user: currentUser.u, time: id };
     if(path==='notif') data.msg = document.getElementById("n_msg").value;
-    if(path==='ped') {
-        const o = document.getElementById("p_obra");
-        data.oNum = o.options[o.selectedIndex].text;
-        data.mat = document.getElementById("p_mat").value;
-        data.qtd = document.getElementById("p_qtd").value;
-    }
+    if(path==='tar') { const o = document.getElementById("t_obra"); data.oNum = o.options[o.selectedIndex].text; data.para = document.getElementById("t_user").value; data.desc = document.getElementById("t_desc").value; }
+    if(path==='ped') { const o = document.getElementById("p_obra"); data.oNum = o.options[o.selectedIndex].text; data.mat = document.getElementById("p_mat").value; data.qtd = document.getElementById("p_qtd").value; data.status = 'Pendente'; }
+    if(path==='obs') { const o = document.getElementById("obs_obra"); data.oNum = o.options[o.selectedIndex].text; data.txt = document.getElementById("obs_txt").value; }
+    if(path==='faltas') { data.data = document.getElementById("f_data").value; data.tipo = document.getElementById("f_tipo").value; data.obs = document.getElementById("f_obs").value; data.user = currentUser.u; }
+    if(path==='inv') { data.item = document.getElementById("i_item").value; data.ref = document.getElementById("i_ref").value; data.est = document.getElementById("i_est").value; }
     rtdb.ref(path+'/'+id).set(data);
     logAction("Criou "+path, id);
+}
+
+function saveUser() {
+    const u = document.getElementById("u_name").value.trim();
+    if(!u) return;
+    rtdb.ref('users/'+u).set({ u, p: document.getElementById("u_pass").value, role: document.getElementById("u_role").value, status: 'Ativo' });
+    logAction("Geriu Utilizador", u);
+}
+
+function viewHistory(id) {
+    const hits = Object.values(db.logs).filter(l => l.target.includes(id));
+    if(hits.length === 0) alert("Sem histórico para este registo.");
+    else alert("Histórico:\n" + hits.map(l => `${l.time}: ${l.user} - ${l.action}`).join("\n"));
+}
+
+function editUser(u) {
+    const user = db.users[u];
+    document.getElementById("u_name").value = user.u; document.getElementById("u_pass").value = user.p;
+    document.getElementById("u_role").value = user.role;
 }
 
 function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
