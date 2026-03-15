@@ -3,42 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROFREICRC v13.0 - SISTEMA TOTAL</title>
+    <title>ROFREICRC v10.0 - RESTAURADA</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #1e3a5f; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --info: #17a2b8; --dark: #2d3436; }
-        body{font-family:'Segoe UI', sans-serif; margin:0; background:#f1f2f6; color:#2d3436;}
-        header{background: var(--primary); color:white; padding:15px; text-align:center; font-weight:bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size:22px;}
-        .container{padding:15px; max-width: 1100px; margin: auto;}
-        .menu{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:20px; justify-content:center;}
-        .menu button{padding:10px 12px; cursor:pointer; background:var(--primary); color:white; border:none; border-radius:4px; font-size:12px; font-weight:600;}
-        .sec{background:white; padding:20px; border-radius:8px; box-shadow:0 2px 15px rgba(0,0,0,0.05); display:none; margin-bottom:20px;}
-        .filter-box{background:#e9ecef; padding:12px; border-radius:6px; margin-bottom:15px; display:flex; flex-wrap:wrap; gap:8px;}
-        .filter-box input, .filter-box select{flex:1; min-width:120px; padding:8px; border:1px solid #ccc; border-radius:4px; margin:0;}
-        .card{border-left:6px solid var(--primary); background:#fff; padding:15px; margin:10px 0; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.05); position:relative;}
-        .btn-group{display:flex; gap:5px; margin-top:10px; flex-wrap:wrap;}
-        .btn-group button{padding:6px 10px; border:none; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold; color:white;}
-        .btn-edit{background:var(--warning); color:#000 !important;}
-        .btn-del{background:var(--danger);}
-        .btn-note{background:var(--info);}
-        .btn-hist{background:var(--dark);}
-        input, select, textarea{width:100%; padding:10px; margin:5px 0 12px 0; border:1px solid #ddd; border-radius:4px; box-sizing:border-box;}
+        :root { --primary: #1e3a5f; --success: #28a745; --danger: #dc3545; --dark: #2d3436; }
+        body{font-family:'Segoe UI', sans-serif; margin:0; background:#f4f7f6; color:#333;}
+        header{background: var(--primary); color:white; padding:15px; text-align:center; font-weight:bold; font-size:20px;}
+        .container{padding:10px; max-width: 800px; margin: auto;}
+        .menu{display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px; justify-content:center;}
+        .menu button{padding:10px; cursor:pointer; background:var(--primary); color:white; border:none; border-radius:4px; font-size:12px;}
+        .sec{background:white; padding:15px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); display:none; margin-bottom:15px;}
+        .card{border-left:5px solid var(--primary); background:#fff; padding:10px; margin:8px 0; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.1); position:relative;}
+        input, select, textarea{width:100%; padding:10px; margin:5px 0 10px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;}
         .btn-main{background:var(--success); color:white; border:none; padding:12px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold;}
-        .status-badge{font-size:10px; padding:2px 8px; border-radius:10px; background:#dfe6e9; font-weight:bold;}
-        .pin-nota{font-size:12px; color:#17a2b8; font-weight:bold; margin-top:8px; border-top:1px dashed #ccc; padding-top:5px;}
+        .btn-del{background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer; font-size:10px; float:right;}
+        .btn-excel{background:#107c41; color:white; border:none; padding:10px; border-radius:4px; cursor:pointer; width:100%; margin-top:10px;}
     </style>
 </head>
 <body onload="init()">
 
-<header>ROFREICRC v13.0 PROFESSIONAL</header>
+<header>ROFREICRC v10.0</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
-        <h2 style="text-align:center">Painel de Controlo</h2>
+        <h2 style="text-align:center">Login</h2>
         <input id="user" placeholder="Utilizador">
-        <input id="pass" type="password" placeholder="Palavra-passe">
+        <input id="pass" type="password" placeholder="Password">
         <button class="btn-main" onclick="login()">ENTRAR</button>
     </div>
 
@@ -46,66 +38,63 @@
         <div class="menu">
             <button onclick="show('obras')">Obras</button>
             <button onclick="show('horas')">Horas</button>
-            <button onclick="show('tar')">Tarefas</button>
-            <button onclick="show('ped')">Pedidos</button>
+            <button onclick="show('pedidos')">Pedidos</button>
+            <button onclick="show('tarefas')">Tarefas</button>
             <button onclick="show('obs')">Obs</button>
             <button onclick="show('faltas')">Faltas</button>
-            <button onclick="show('inv')">Inventário</button>
-            <button onclick="show('notif')">Notificações</button>
-            <button onclick="show('hist')">Histórico</button>
-            <button id="menu-admin" onclick="show('users_admin')" style="display:none; background:#333">Users</button>
+            <button onclick="show('inventario')">Inventário</button>
+            <button id="m-admin" onclick="show('admin')" style="display:none; background:#333">Admin</button>
             <button onclick="location.reload()" style="background:var(--danger)">Sair</button>
         </div>
 
         <div id="obras" class="sec">
-            <div id="admin-obras-form" style="display:none">
-                <input id="o_id_hidden" type="hidden">
-                <input id="o_num" placeholder="Nº Obra">
-                <input id="o_nome" placeholder="Nome da Obra">
-                <select id="o_est"><option>Em execução</option><option>Finalizada</option></select>
-                <button class="btn-main" onclick="saveObra()">Gravar Obra</button>
-            </div>
-            <div class="filter-box">
-                <input id="f_o_num" placeholder="Filtrar Nº..." oninput="renderAll()">
-                <input id="f_o_nom" placeholder="Filtrar Nome..." oninput="renderAll()">
-            </div>
+            <h3>Obras Ativas</h3>
             <div id="lista_obras"></div>
         </div>
 
         <div id="horas" class="sec">
-            <h2>Registo de Horas</h2>
-            <input type="date" id="h_date">
-            <select id="h_obra_sel" class="obra-sel"></select>
-            <div style="display:flex; gap:10px"><input type="time" id="h_ini" value="08:00"><input type="time" id="h_fim" value="17:00"></div>
-            <textarea id="h_tasks" placeholder="Tarefas..."></textarea>
-            <button class="btn-main" onclick="saveHoras()">Registar</button>
-            <div class="filter-box">
-                <input id="f_h_usr" placeholder="Utilizador..." oninput="renderAll()">
-                <input id="f_h_dia" type="date" oninput="renderAll()">
-                <button id="btn-exp" class="btn-main" style="display:none; background:#107c41; margin:0" onclick="exportExcel()">Excel</button>
+            <h3>Registo de Horas</h3>
+            <input type="date" id="h_data">
+            <select id="h_obra" class="sel-obras"></select>
+            <div style="display:flex; gap:5px">
+                <input type="time" id="h_ini" value="08:00">
+                <input type="time" id="h_fim" value="17:00">
             </div>
-            <div id="lista_horas"></div>
+            <textarea id="h_obs" placeholder="O que foi feito?"></textarea>
+            <button class="btn-main" onclick="saveHora()">Gravar Horas</button>
+            <div id="lista_horas" style="margin-top:15px"></div>
         </div>
 
-        <div id="ped" class="sec">
-            <h2>Pedidos de Material</h2>
-            <select id="p_obra" class="obra-sel"></select>
-            <input id="p_mat" placeholder="Material">
-            <input id="p_qtd" placeholder="Qtd">
-            <button class="btn-main" onclick="saveGeneral('ped')">Enviar</button>
-            <div class="filter-box">
-                <select id="f_p_est" onchange="renderAll()"><option value="">Todos os Estados</option><option>Pendente</option><option>Concluido</option></select>
-            </div>
-            <div id="lista_ped"></div>
+        <div id="pedidos" class="sec">
+            <h3>Pedidos de Material</h3>
+            <select id="p_obra" class="sel-obras"></select>
+            <input id="p_mat" placeholder="Material / Ferramenta">
+            <button class="btn-main" onclick="savePedido()">Enviar Pedido</button>
+            <div id="lista_pedidos"></div>
         </div>
 
-        <div id="tar" class="sec"><h2>Tarefas</h2><div id="admin-tar-form" style="display:none"><select id="t_obra" class="obra-sel"></select><select id="t_user" class="user-sel"></select><textarea id="t_desc"></textarea><button class="btn-main" onclick="saveGeneral('tar')">Atribuir</button></div><div id="lista_tar"></div></div>
-        <div id="obs" class="sec"><h2>Obs</h2><select id="obs_obra" class="obra-sel"></select><textarea id="obs_txt"></textarea><button class="btn-main" onclick="saveGeneral('obs')">Gravar</button><div id="lista_obs"></div></div>
-        <div id="faltas" class="sec"><h2>Faltas</h2><input type="date" id="f_data"><select id="f_tipo"><option>Baixa</option><option>Férias</option><option>Falta</option></select><button class="btn-main" onclick="saveGeneral('faltas')">Registar</button><div id="lista_faltas"></div></div>
-        <div id="inv" class="sec"><h2>Inventário</h2><div id="admin-inv-form" style="display:none"><input id="i_item"><input id="i_ref"><button class="btn-main" onclick="saveGeneral('inv')">Gravar</button></div><div id="lista_inv"></div></div>
-        <div id="notif" class="sec"><h2>Notificações</h2><div id="admin-notif-form" style="display:none"><textarea id="n_msg"></textarea><button class="btn-main" onclick="saveGeneral('notif')">Publicar</button></div><div id="lista_notif"></div></div>
-        <div id="hist" class="sec"><h2>Histórico</h2><div id="lista_logs"></div></div>
-        <div id="users_admin" class="sec"><h2>Users</h2><input id="u_name"><input id="u_pass"><select id="u_role"><option>Operacional</option><option>Administrador</option></select><button class="btn-main" onclick="saveUser()">Gravar</button><div id="lista_users"></div></div>
+        <div id="admin" class="sec">
+            <h3>Painel Administrativo</h3>
+            <div style="border:1px solid #ddd; padding:10px; margin-bottom:10px;">
+                <h4>Nova Obra</h4>
+                <input id="adm_o_num" placeholder="Nº Obra">
+                <input id="adm_o_nome" placeholder="Nome da Obra">
+                <button class="btn-main" onclick="addObra()">Criar Obra</button>
+            </div>
+            <div style="border:1px solid #ddd; padding:10px;">
+                <h4>Novo Utilizador</h4>
+                <input id="adm_u_nome" placeholder="Nome">
+                <input id="adm_u_pass" placeholder="Password">
+                <select id="adm_u_tipo"><option>Operacional</option><option>Administrador</option></select>
+                <button class="btn-main" onclick="addUser()">Criar User</button>
+            </div>
+            <button class="btn-excel" onclick="exportExcel()">Exportar Horas para Excel</button>
+        </div>
+
+        <div id="tarefas" class="sec"><h3>Tarefas</h3><div id="lista_tarefas"></div></div>
+        <div id="obs" class="sec"><h3>Observações</h3><div id="lista_obs"></div></div>
+        <div id="faltas" class="sec"><h3>Faltas</h3><div id="lista_faltas"></div></div>
+        <div id="inventario" class="sec"><h3>Inventário</h3><div id="lista_inventario"></div></div>
     </div>
 </div>
 
@@ -121,140 +110,107 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const rtdb = firebase.database();
-let db = {};
-let currentUser = null;
+const db = firebase.database();
+let data = {};
+let user = null;
 
 function init() {
-    rtdb.ref('/').on('value', snap => {
-        db = snap.val() || {};
-        ['obras','users','obs','ped','horas','tar','faltas','inv','notif','logs'].forEach(k => { if(!db[k]) db[k]={}; });
-        if(currentUser) renderAll();
+    db.ref('/').on('value', snap => {
+        data = snap.val() || {};
+        if(user) render();
     });
 }
 
 function login() {
-    const u = document.getElementById("user").value.trim(), p = document.getElementById("pass").value.trim();
-    if(u === "admin" && p === "123") currentUser = {u:"admin", role:"Administrador"};
-    else if(db.users && db.users[u] && db.users[u].p === p) currentUser = db.users[u];
+    const u = document.getElementById("user").value, p = document.getElementById("pass").value;
+    if(u === "admin" && p === "123") { user = {n:"admin", t:"Administrador"}; }
+    else if(data.users && data.users[u] && data.users[u].p === p) { user = {n:u, t:data.users[u].t}; }
     
-    if(currentUser) {
+    if(user) {
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
-        if(currentUser.role === "Administrador") {
-            document.getElementById("menu-admin").style.display = "block";
-            document.getElementById("admin-obras-form").style.display = "block";
-            document.getElementById("admin-notif-form").style.display = "block";
-            document.getElementById("admin-tar-form").style.display = "block";
-            document.getElementById("admin-inv-form").style.display = "block";
-            document.getElementById("btn-exp").style.display = "block";
-        }
-        renderAll();
-    } else alert("Acesso negado.");
+        if(user.t === "Administrador") document.getElementById("m-admin").style.display = "block";
+        render();
+    } else alert("Erro!");
 }
 
-function renderAll() {
-    // FILTROS OBRAS
-    const fOn = document.getElementById("f_o_num").value.toLowerCase();
-    const fOm = document.getElementById("f_o_nom").value.toLowerCase();
-    renderModule('obras', 'lista_obras', x => `<b>🏗️ ${x.num}</b> - ${x.nome}`, x => x.num.toLowerCase().includes(fOn) && x.nome.toLowerCase().includes(fOm));
-
-    // FILTROS PEDIDOS
-    const fPe = document.getElementById("f_p_est").value;
-    renderModule('ped', 'lista_ped', x => `<b>🛒 ${x.oNum}</b>: ${x.mat} (${x.qtd}) <span class="status-badge">${x.status}</span>`, x => !fPe || x.status === fPe);
-
-    // FILTROS HORAS
-    const fHu = document.getElementById("f_h_usr").value.toLowerCase();
-    const fHd = document.getElementById("f_h_dia").value;
-    document.getElementById("lista_horas").innerHTML = Object.values(db.horas)
-        .filter(h => (currentUser.role==='Administrador' || h.user === currentUser.u) && (!fHu || h.user.toLowerCase().includes(fHu)) && (!fHd || h.date === fHd))
-        .sort((a,b)=>b.date.localeCompare(a.date)).map(h => {
-            const subs = Object.values(h.sub || {}).map(s => `<div style="background:#f9f9f9; padding:5px; margin-top:5px; border-radius:4px; font-size:12px"><b>${s.oNum}</b>: ${s.ini}-${s.fim} | ${s.tasks} <button onclick="deleteWithLog('horas/${h.id}/sub/${s.id}', 'Sub-hora')" style="float:right; border:none; background:none; cursor:pointer">❌</button></div>`).join("");
-            return `<div class="card"><b>📅 ${h.date}</b> - ${h.user} <span class="status-badge">${h.status}</span>${subs}<div class="btn-group"><button class="btn-note" onclick="addNote('horas', '${h.id}')">📝 Notas</button><button class="btn-hist" onclick="viewHistory('${h.id}')">📜 Historial</button><button class="btn-del" onclick="deleteWithLog('horas/${h.id}', 'Dia')">❌</button></div>${h.notas ? `<div class="pin-nota">📌 ${h.notas}</div>` : ''}</div>`;
-        }).join("");
-
-    // OTROS
-    renderModule('tar', 'lista_tar', x => `📋 <b>${x.oNum}</b> -> ${x.para}: ${x.desc}`);
-    renderModule('obs', 'lista_obs', x => `📝 <b>${x.oNum}</b>: ${x.txt}`);
-    renderModule('notif', 'lista_notif', x => `🔔 ${x.msg}`);
-    renderModule('faltas', 'lista_faltas', x => `📅 ${x.user}: ${x.tipo}`);
-    renderModule('inv', 'lista_inv', x => `📦 ${x.item} - ${x.est}`);
+function render() {
+    // Lista Obras
+    const obrasArr = Object.values(data.obras || {});
+    document.getElementById("lista_obras").innerHTML = obrasArr.map(o => `<div class="card"><b>${o.id}</b> - ${o.n}</div>`).join("");
     
-    // USERS Y LOGS
-    document.getElementById("lista_users").innerHTML = Object.values(db.users).map(u => `<div class="card">👤 <b>${u.u}</b> [${u.role}]<div class="btn-group"><button class="btn-edit" onclick="editUser('${u.u}')">✏️</button><button class="btn-del" onclick="deleteWithLog('users/${u.u}', 'User')">❌</button></div></div>`).join("");
-    document.getElementById("lista_logs").innerHTML = Object.values(db.logs).reverse().slice(0,20).map(l => `<div class="log-entry">${l.time} | ${l.user}: ${l.action}</div>`).join("");
+    const selHtml = '<option value="">Selecione a Obra...</option>' + obrasArr.map(o => `<option value="${o.id}">${o.id} - ${o.n}</option>`).join("");
+    document.querySelectorAll(".sel-obras").forEach(s => s.innerHTML = selHtml);
 
-    // SELECTS
-    const optO = '<option value="">Obra...</option>' + Object.values(db.obras).filter(o=>o.estado==='Em execução').map(o=>`<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
-    document.querySelectorAll(".obra-sel").forEach(s => s.innerHTML = optO);
-    const optU = '<option value="">Para quem?</option>' + Object.values(db.users).map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
-    document.querySelectorAll(".user-sel").forEach(s => s.innerHTML = optU);
+    // Lista Horas
+    const horasArr = Object.values(data.horas || {}).filter(h => user.t === "Administrador" || h.u === user.n);
+    document.getElementById("lista_horas").innerHTML = horasArr.reverse().map(h => `
+        <div class="card">
+            ${user.t === "Administrador" ? `<button class="btn-del" onclick="del('horas/${h.key}')">❌</button>` : ""}
+            <b>${h.d}</b> - ${h.u}<br>
+            <small>${h.o} | ${h.i} - ${h.f}</small><br>
+            <i>${h.txt}</i>
+        </div>`).join("");
+
+    // Lista Pedidos
+    const pedArr = Object.values(data.pedidos || {});
+    document.getElementById("lista_pedidos").innerHTML = pedArr.reverse().map(p => `<div class="card"><b>${p.o}</b>: ${p.m} <br><small>Por: ${p.u}</small></div>`).join("");
 }
 
-function renderModule(path, target, tpl, filterFn = x => true) {
-    const el = document.getElementById(target);
-    if(!el || !db[path]) return;
-    el.innerHTML = Object.values(db[path]).filter(filterFn).reverse().map(item => `
-        <div class="card">${tpl(item)}<div class="btn-group"><button class="btn-edit" onclick="prepEdit('${path}', '${item.id}')">✏️</button><button class="btn-note" onclick="addNote('${path}', '${item.id}')">📝</button><button class="btn-hist" onclick="viewHistory('${item.id}')">📜</button><button class="btn-del" onclick="deleteWithLog('${path}/${item.id}', '${path}')">❌</button></div>${item.notas ? `<div class="pin-nota">📌 ${item.notas}</div>` : ''}</div>`).join("");
+function saveHora() {
+    const key = db.ref('horas').push().key;
+    const obj = {
+        key: key,
+        u: user.n,
+        d: document.getElementById("h_data").value,
+        o: document.getElementById("h_obra").value,
+        i: document.getElementById("h_ini").value,
+        f: document.getElementById("h_fim").value,
+        txt: document.getElementById("h_obs").value
+    };
+    if(!obj.d || !obj.o) return alert("Preencha Data e Obra!");
+    db.ref('horas/' + key).set(obj);
+    alert("Gravado!");
 }
 
-function logAction(action, target) { rtdb.ref('logs/'+Date.now()).set({ time: new Date().toLocaleString(), user: currentUser.u, action, target }); }
-function deleteWithLog(path, desc) { if(confirm("Apagar?")) { rtdb.ref(path).remove(); logAction("Eliminou", desc); } }
-function addNote(path, id) { const n = prompt("Nota:", db[path][id].notas || ""); if(n!==null) { rtdb.ref(`${path}/${id}/notas`).set(n); logAction("Nota", id); } }
-
-function prepEdit(path, id) {
-    const x = db[path][id];
-    if(path==='obras') { document.getElementById("o_id_hidden").value=x.id; document.getElementById("o_num").value=x.num; document.getElementById("o_nome").value=x.nome; document.getElementById("o_est").value=x.estado; }
-    alert("Carregado para editar no formulário.");
+function savePedido() {
+    const key = db.ref('pedidos').push().key;
+    db.ref('pedidos/' + key).set({
+        u: user.n,
+        o: document.getElementById("p_obra").value,
+        m: document.getElementById("p_mat").value
+    });
+    alert("Enviado!");
 }
 
-function saveObra() {
-    const id = document.getElementById("o_id_hidden").value || Date.now().toString();
-    rtdb.ref('obras/'+id).update({ id, num: document.getElementById("o_num").value, nome: document.getElementById("o_nome").value, estado: document.getElementById("o_est").value });
-    logAction("Gravou Obra", id); document.getElementById("o_id_hidden").value="";
+function addObra() {
+    const id = document.getElementById("adm_o_num").value;
+    const n = document.getElementById("adm_o_nome").value;
+    if(id) db.ref('obras/' + id).set({id, n});
 }
 
-function saveHoras() {
-    const d = document.getElementById("h_date").value, s = document.getElementById("h_obra_sel");
-    if(!d || !s.value) return alert("Erro");
-    const dId = currentUser.u+"_"+d;
-    rtdb.ref(`horas/${dId}`).update({ id: dId, date: d, user: currentUser.u, status: 'Pendente' });
-    rtdb.ref(`horas/${dId}/sub/`+Date.now()).set({ id: Date.now().toString(), oNum: s.options[s.selectedIndex].text, ini: document.getElementById("h_ini").value, fim: document.getElementById("h_fim").value, tasks: document.getElementById("h_tasks").value });
-    logAction("Horas", d);
+function addUser() {
+    const n = document.getElementById("adm_u_nome").value;
+    const p = document.getElementById("adm_u_pass").value;
+    const t = document.getElementById("adm_u_tipo").value;
+    if(n) db.ref('users/' + n).set({n, p, t});
 }
 
-function saveGeneral(path) {
-    const id = Date.now().toString();
-    let data = { id, user: currentUser.u };
-    if(path==='ped') { const o = document.getElementById("p_obra"); data.oNum = o.options[o.selectedIndex].text; data.mat = document.getElementById("p_mat").value; data.qtd = document.getElementById("p_qtd").value; data.status = 'Pendente'; }
-    if(path==='notif') data.msg = document.getElementById("n_msg").value;
-    if(path==='tar') { const o = document.getElementById("t_obra"); data.oNum = o.options[o.selectedIndex].text; data.para = document.getElementById("t_user").value; data.desc = document.getElementById("t_desc").value; }
-    if(path==='obs') { const o = document.getElementById("obs_obra"); data.oNum = o.options[o.selectedIndex].text; data.txt = document.getElementById("obs_txt").value; }
-    if(path==='faltas') { data.data = document.getElementById("f_data").value; data.tipo = document.getElementById("f_tipo").value; }
-    if(path==='inv') { data.item = document.getElementById("i_item").value; data.ref = document.getElementById("i_ref").value; data.est = "Operacional"; }
-    rtdb.ref(path+'/'+id).set(data); logAction("Criou "+path, id);
-}
+function del(path) { if(confirm("Apagar?")) db.ref(path).remove(); }
 
-function saveUser() {
-    const u = document.getElementById("u_name").value.trim();
-    rtdb.ref('users/'+u).set({ u, p: document.getElementById("u_pass").value, role: document.getElementById("u_role").value });
+function show(id) {
+    document.querySelectorAll(".sec").forEach(s => s.style.display = "none");
+    document.getElementById(id).style.display = "block";
 }
-
-function viewHistory(id) {
-    const h = Object.values(db.logs).filter(l => l.target && l.target.includes(id));
-    alert(h.length ? h.map(l => `${l.time}: ${l.action}`).join("\n") : "Sem histórico.");
-}
-
-function editUser(u) { const x = db.users[u]; document.getElementById("u_name").value=x.u; document.getElementById("u_pass").value=x.p; document.getElementById("u_role").value=x.role; }
-function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
 
 function exportExcel() {
-    let rows = []; 
-    Object.values(db.horas).forEach(h => { Object.values(h.sub || {}).forEach(s => { rows.push({ Data: h.date, User: h.user, Obra: s.oNum, Ini: s.ini, Fim: s.fim, Tarefas: s.tasks }); }); });
-    const ws = XLSX.utils.json_to_sheet(rows), wb = XLSX.utils.book_new();
+    const rows = Object.values(data.horas || {}).map(h => ({ Data: h.d, Nome: h.u, Obra: h.o, Inicio: h.i, Fim: h.f, Descricao: h.txt }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Horas");
-    XLSX.writeFile(wb, "Relatorio.xlsx");
+    XLSX.writeFile(wb, "Horas_Rofreicrc.xlsx");
 }
 </script>
 </body>
-</html>
+                </html>
+    
