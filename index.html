@@ -67,13 +67,13 @@
             <div id="form-obra-admin" style="display:none">
                 <input id="obra_num" placeholder="Nº Obra">
                 <input id="obra_nome" placeholder="Nome">
-                <select id="obra_estado_input"><option>Em execução</option><option>Sem efeito</option><option>Finalizada</option></select>
+                <select id="obra_estado_input"><option>Em ejecución</option><option>Sem efeito</option><option>Finalizada</option></select>
                 <button class="btn-main" id="btn-save-obras" onclick="guardarRegistro('obras')">Gravar Obra</button>
             </div>
             <div class="filter-box">
                 <input id="f_o_num" placeholder="Nº Obra..." oninput="renderAll()">
                 <input id="f_o_nom" placeholder="Nome..." oninput="renderAll()">
-                <select id="f_o_est" onchange="renderAll()"><option value="">Estado...</option><option>Em execução</option><option>Sem efeito</option><option>Finalizada</option></select>
+                <select id="f_o_est" onchange="renderAll()"><option value="">Estado...</option><option>Em ejecución</option><option>Sem efeito</option><option>Finalizada</option></select>
             </div>
             <div id="lista_obras"></div>
         </div>
@@ -173,7 +173,7 @@ function syncCloud() {
         db.users = Object.values(data.users || []);
         db.notas = data.notas || {};
         db.historial = data.historial || {};
-       
+        
         const allNotifs = Object.entries(data.notifications || {}).map(([id, val]) => ({id, ...val})).reverse();
         renderNotificaciones(allNotifs);
         updateSelects();
@@ -202,7 +202,7 @@ function login() {
 function guardarRegistro(modulo) {
     const id = editId || Date.now().toString();
     let newData = { id };
-   
+    
     if(modulo === 'obras') {
         newData.num = document.getElementById("obra_num").value;
         newData.nome = document.getElementById("obra_nome").value;
@@ -234,22 +234,18 @@ function guardarRegistro(modulo) {
 }
 
 function renderAll() {
-    // FILTROS OBRAS
     const oN = document.getElementById("f_o_num").value.toLowerCase(), oM = document.getElementById("f_o_nom").value.toLowerCase(), oE = document.getElementById("f_o_est").value;
     renderModulo('obras', 'lista_obras', o => `<b>${o.num} - ${o.nome}</b><br><span class="status-badge">${o.estado}</span>`, o => (!oE || o.estado==oE) && o.num.toLowerCase().includes(oN) && o.nome.toLowerCase().includes(oM));
-   
-    // FILTROS OBS
+    
     const obN = document.getElementById("f_obs_num").value.toLowerCase(), obM = document.getElementById("f_obs_nom").value.toLowerCase(), obE = document.getElementById("f_obs_est").value;
     renderModulo('obs', 'lista_obs', o => `<b>Obra ${o.obraNum} - ${o.obraNome}</b><br>${o.desc}<br><span class="status-badge">${o.estado}</span>`, o => (!obE || o.estado==obE) && o.obraNum.toLowerCase().includes(obN) && o.obraNome.toLowerCase().includes(obM));
 
-    // FILTROS PED
     const pN = document.getElementById("f_ped_num").value.toLowerCase(), pM = document.getElementById("f_ped_nom").value.toLowerCase(), pE = document.getElementById("f_ped_est").value;
     renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum} - ${o.obraNome}</b><br>${o.mat} (${o.qtd})<br><span class="status-badge">${o.estado}</span>`, o => (!pE || o.estado==pE) && o.obraNum.toLowerCase().includes(pN) && o.obraNome.toLowerCase().includes(pM));
 
-    // FILTROS TAR
     const tN = document.getElementById("f_tar_num").value.toLowerCase(), tM = document.getElementById("f_tar_nom").value.toLowerCase(), tE = document.getElementById("f_tar_est").value;
     renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum} - ${o.obraNome}</b><br>${o.tit}<br><span class="status-badge">${o.estado} (${o.para})</span>`, o => (!tE || o.estado==tE) && o.obraNum.toLowerCase().includes(tN) && o.obraNome.toLowerCase().includes(tM));
-   
+    
     document.getElementById("lista_users").innerHTML = db.users.map(u => `<div class="card"><b>${u.u}</b> [${u.role}] - ${u.status}<div class="btn-group"><button class="btn-edit" onclick="editarUser('${u.u}')">✏️</button><button class="btn-del" onclick="eliminarUsuario('${u.u}')">❌</button></div></div>`).join("");
 }
 
@@ -301,4 +297,34 @@ function renderNotificaciones(notifs) {
     badge.innerText = noLeidas; badge.style.display = noLeidas > 0 ? "block" : "none";
 }
 
-function toggleLeida(id) { leidas = leidas.includes(id) ? leidas.filter(i=>i!==id) : [
+function toggleLeida(id) { leidas = leidas.includes(id) ? leidas.filter(i=>i!==id) : [...leidas, id]; localStorage.setItem('notif_leidas', JSON.stringify(leidas)); syncCloud(); }
+function marcarTodasComoLidas() { leidas = db.notifications.map(n => n.id); localStorage.setItem('notif_leidas', JSON.stringify(leidas)); syncCloud(); }
+
+function updateSelects() {
+    const opt = '<option value="">Obra...</option>' + db.obras.filter(o=>o.estado==='Em ejecución').map(o=>`<option value="${o.id}" data-num="${o.num}" data-nome="${o.nome}">${o.num}</option>`).join("");
+    ['obs_obra','ped_obra','tar_obra'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
+    if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
+    if(document.getElementById('ped_estado')) document.getElementById('ped_estado').innerHTML = currentUser.role==='Administrador' ? '<option>Solicitado</option><option>Aprovado</option><option>Entregue</option>' : '<option>Solicitado</option>';
+}
+
+function guardarUsuario() {
+    const u = document.getElementById("u_name").value.trim(), p = document.getElementById("u_pass").value, r = document.getElementById("u_role").value, s = document.getElementById("u_status").value;
+    if(!u || !p) return alert("Preencha User e Pass");
+    rtdb.ref(`users/${u}`).set({ u, p, role: r, status: s }).then(() => alert("Utilizador guardado!"));
+}
+function editarUser(u) {
+    const user = db.users.find(x => x.u === u);
+    document.getElementById("u_name").value = user.u; document.getElementById("u_pass").value = user.p; document.getElementById("u_role").value = user.role; document.getElementById("u_status").value = user.status;
+}
+function eliminarUsuario(u) { if(u!=='admin' && confirm("Eliminar utilizador?")) rtdb.ref(`users/${u}`).remove(); }
+function cancelarEdicao() { editId = null; document.querySelectorAll('button[id^="btn-save-"]').forEach(b => b.innerText = "Gravar"); document.querySelectorAll('input, textarea').forEach(i => i.value = ""); }
+function eliminar(mod, id) { if(confirm("Eliminar da Nuvem?")) rtdb.ref(`${mod}/${id}`).remove(); }
+function logout() { location.reload(); }
+function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = "none"); currentRef = null; }
+function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); }
+</script>
+</body>
+</html>
