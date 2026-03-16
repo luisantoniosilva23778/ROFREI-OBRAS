@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v11.3 - UNIVERSAL STATUS</title>
+    <title>ROFREICRC v11.4 - LOGISTICS CONTROL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -34,7 +34,7 @@
 <body onload="syncCloud()">
 
 <div id="toast">Operação concluída! ✅</div>
-<header>ROFREICRC v11.3 - CONTROLO TOTAL</header>
+<header>ROFREICRC v11.4 - LOGISTICS CONTROL</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -92,11 +92,13 @@
             <input id="ped_mat" placeholder="Material">
             <input id="ped_qtd" placeholder="Quantidade">
             <input id="ped_enc" placeholder="Nº Nota de Encomenda (Opcional)">
+            <input id="ped_guia" placeholder="Nº Guia de Encomenda (Obrigatório se Entregue)">
             <select id="ped_estado"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
             <button class="btn-main" onclick="guardarRegistro('ped')">Gravar Pedido</button>
             <div class="filter-box">
                 <input id="f_ped_num" placeholder="Nº Obra..." oninput="renderAll()">
                 <input id="f_ped_enc" placeholder="Nota Enc..." oninput="renderAll()">
+                <input id="f_ped_guia" placeholder="Guia..." oninput="renderAll()">
                 <select id="f_ped_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_ped"></div>
@@ -111,7 +113,7 @@
             <button class="btn-main" onclick="guardarRegistro('tar')">Atribuir Tarefa</button>
             <div class="filter-box">
                 <input id="f_tar_num" placeholder="Nº Obra..." oninput="renderAll()">
-                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Por Executar</option><option>Executada</option><option>Sem efecto</option></select>
+                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_tar"></div>
         </div>
@@ -200,10 +202,20 @@ function guardarRegistro(mod) {
 
         if(mod==='obs'){ newData.desc=document.getElementById("obs_desc").value; newData.estado=document.getElementById("obs_estado").value; summary=`Obs na Obra ${newData.obraNum}`; }
         if(mod==='ped'){ 
+            const est = document.getElementById("ped_estado").value;
+            const guia = document.getElementById("ped_guia").value.trim();
+            
+            // Validação Obrigatória: Se Entregue, precisa de Guia
+            if(est === "Entregue" && !guia) {
+                alert("ERRO: Para marcar como 'Entregue' é obrigatório inserir o Nº da Guia!");
+                return;
+            }
+
             newData.mat=document.getElementById("ped_mat").value; 
             newData.qtd=document.getElementById("ped_qtd").value; 
             newData.enc=document.getElementById("ped_enc").value; 
-            newData.estado=document.getElementById("ped_estado").value; 
+            newData.guia=guia;
+            newData.estado=est; 
             summary=`Pedido na Obra ${newData.obraNum}`; 
         }
         if(mod==='tar'){ newData.tit=document.getElementById("tar_tit").value; newData.para=Array.from(document.getElementById("tar_para").selectedOptions).map(x=>x.value); newData.estado=document.getElementById("tar_estado").value; summary=`Tarefa na Obra ${newData.obraNum}`; }
@@ -233,8 +245,8 @@ function renderAll() {
     const obN = document.getElementById("f_obs_num").value.toLowerCase(), obE = document.getElementById("f_obs_est").value;
     renderModulo('obs', 'lista_obs', o => `<b>Obra ${o.obraNum}</b>: ${o.desc}<br><small>${o.estado}</small>`, o => (!obE || o.estado==obE) && o.obraNum.toLowerCase().includes(obN));
 
-    const pN = document.getElementById("f_ped_num").value.toLowerCase(), pE = document.getElementById("f_ped_est").value, pEnc = document.getElementById("f_ped_enc").value.toLowerCase();
-    renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum}</b>: ${o.mat} (${o.qtd})<br>Nota Enc: ${o.enc || '---'}<br><small>${o.estado}</small>`, o => (!pE || o.estado==pE) && o.obraNum.toLowerCase().includes(pN) && (o.enc || "").toLowerCase().includes(pEnc));
+    const pN = document.getElementById("f_ped_num").value.toLowerCase(), pE = document.getElementById("f_ped_est").value, pEnc = document.getElementById("f_ped_enc").value.toLowerCase(), pGuia = document.getElementById("f_ped_guia").value.toLowerCase();
+    renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum}</b>: ${o.mat} (${o.qtd})<br><small>Enc: ${o.enc || '---'} | Guia: ${o.guia || '---'}</small><br><small><b>${o.estado}</b></small>`, o => (!pE || o.estado==pE) && o.obraNum.toLowerCase().includes(pN) && (o.enc || "").toLowerCase().includes(pEnc) && (o.guia || "").toLowerCase().includes(pGuia));
 
     const tN = document.getElementById("f_tar_num").value.toLowerCase(), tE = document.getElementById("f_tar_est").value;
     renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum}</b>: ${o.tit} <br><small>Para: ${o.para} | ${o.estado}</small>`, o => (!tE || o.estado==tE) && o.obraNum.toLowerCase().includes(tN));
@@ -270,6 +282,7 @@ function prepararEdicao(mod, id) {
         document.getElementById("ped_mat").value=item.mat; 
         document.getElementById("ped_qtd").value=item.qtd; 
         document.getElementById("ped_enc").value=item.enc || "";
+        document.getElementById("ped_guia").value=item.guia || "";
         document.getElementById("ped_estado").value=item.estado; 
     }
     if(mod==='tar'){ document.getElementById("tar_obra").value=item.obraId; document.getElementById("tar_tit").value=item.tit; document.getElementById("tar_estado").value=item.estado; }
