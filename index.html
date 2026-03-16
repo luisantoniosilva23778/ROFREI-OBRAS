@@ -188,13 +188,20 @@ let leidas = JSON.parse(localStorage.getItem('notif_leidas') || '[]');
 function syncCloud() {
     rtdb.ref('/').on('value', (snapshot) => {
         const data = snapshot.val() || {};
-        db.obras = Object.values(data.obras || {});
-        db.obs = Object.values(data.obs || {});
-        db.ped = Object.values(data.ped || {});
-        db.tar = Object.values(data.tar || {});
+        db.obras = data.obras ? Object.values(data.obras) : [];
+        db.obs = data.obs ? Object.values(data.obs) : [];
+        db.ped = data.ped ? Object.values(data.ped) : [];
+        db.tar = data.tar ? Object.values(data.tar) : [];
         
-        // Corrigido: Mapear utilizadores mantendo a chave se necessário
-        db.users = data.users ? Object.values(data.users) : [];
+        // Versão reforçada para garantir leitura de utilizadores
+        if (data.users) {
+            db.users = Object.entries(data.users).map(([key, val]) => ({
+                ...val,
+                u: val.u || key // Caso o nome de utilizador seja a chave do objeto
+            }));
+        } else {
+            db.users = [];
+        }
         
         db.notas = data.notas || {};
         db.historial = data.historial || {};
@@ -243,17 +250,9 @@ function guardarRegistro(modulo) {
         if(modulo==='tar'){ newData.para=Array.from(document.getElementById("tar_para").selectedOptions).map(x=>x.value); newData.estado=document.getElementById("tar_estado").value; newData.tit=document.getElementById("tar_tit").value; }
     }
 
-    let detalle = "criou registo";
-    if(editId) {
-        const ant = db[modulo].find(x => x.id == editId);
-        let cambios = [];
-        for(let k in newData) { if(newData[k] !== ant[k] && k!=='id' && k!=='obraId') cambios.push(`${k}: ${ant[k]}->${newData[k]}`); }
-        detalle = cambios.length > 0 ? "editou: " + cambios.join(" | ") : "editou registo";
-    }
-
+    let detalle = editId ? "editou registo" : "criou registo";
     rtdb.ref(`${modulo}/${id}`).set(newData);
     rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: new Date().toLocaleString('pt-PT'), detalles: detalle });
-    rtdb.ref('notifications').push({ user: currentUser.u, msg: `em ${modulo} (${newData.num || newData.obraNum || ''}): ${detalle}`, time: Date.now() });
     cancelarEdicao();
     showToast();
 }
@@ -271,7 +270,6 @@ function renderAll() {
     const tN = document.getElementById("f_tar_num").value.toLowerCase(), tM = document.getElementById("f_tar_nom").value.toLowerCase(), tE = document.getElementById("f_tar_est").value;
     renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum} - ${o.obraNome}</b><br>${o.tit}<br><span class="status-badge">${o.estado} (${o.para})</span>`, o => (!tE || o.estado==tE) && o.obraNum.toLowerCase().includes(tN) && o.obraNome.toLowerCase().includes(tM));
     
-    // RENDER UTILIZADORES (CORRIGIDO)
     const lu = document.getElementById("lista_users");
     if(lu) {
         lu.innerHTML = db.users.map(u => `
@@ -281,7 +279,7 @@ function renderAll() {
                     <button class="btn-edit" onclick="editarUser('${u.u}')">✏️</button>
                     <button class="btn-del" onclick="eliminarUsuario('${u.u}')">❌</button>
                 </div>
-            </div>`).join("");
+            </div>`).join("") || "Nenhum utilizador encontrado.";
     }
 }
 
@@ -300,9 +298,7 @@ function guardarUsuario() {
     const r = document.getElementById("u_role").value;
     const s = document.getElementById("u_status").value;
     if(!u || !p) return alert("Preencha Utilizador e Palavra-passe");
-    
-    rtdb.ref(`users/${u}`).set({ u, p, role: r, status: s })
-    .then(() => {
+    rtdb.ref(`users/${u}`).set({ u, p, role: r, status: s }).then(() => {
         alert("Utilizador guardado!");
         document.getElementById("u_name").value = "";
         document.getElementById("u_pass").value = "";
@@ -322,9 +318,7 @@ function editarUser(uName) {
 
 function eliminarUsuario(uName) {
     if(uName === 'admin') return alert("Não pode apagar o admin.");
-    if(confirm(`Eliminar utilizador ${uName}?`)) {
-        rtdb.ref(`users/${uName}`).remove();
-    }
+    if(confirm(`Eliminar utilizador ${uName}?`)) rtdb.ref(`users/${uName}`).remove();
 }
 
 function prepararEdicao(mod, id) {
