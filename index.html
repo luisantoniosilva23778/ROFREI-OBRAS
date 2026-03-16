@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v12.2 - REPAIRED</title>
+    <title>ROFREICRC v12.3 - FIXED & FULL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -21,9 +21,11 @@
         input, select, textarea { width:100%; padding:12px; margin:5px 0 12px 0; border:1px solid #ccc; border-radius:5px; box-sizing: border-box; }
         .btn-main{ background: var(--success); color:white; border:none; padding:15px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold; }
         .btn-group { display: flex; gap: 4px; margin-top: 10px; }
-        .btn-group button { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 11px; font-weight: bold;}
+        .btn-group button { flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 11px; font-weight: bold;}
         .btn-edit { background: var(--warning); color: black !important; }
         .btn-del { background: var(--danger); }
+        .btn-note { background: var(--secondary); }
+        .btn-hist { background: var(--info); }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
         .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); }
         .modal-content { background:white; margin:5% auto; padding:20px; width:90%; max-width:600px; border-radius:10px; max-height: 85vh; overflow-y: auto; }
@@ -33,7 +35,7 @@
 <body onload="syncCloud()">
 
 <div id="toast">Operação concluída! ✅</div>
-<header>ROFREICRC v12.2 - TIME & LOGISTICS</header>
+<header>ROFREICRC v12.3 - GESTÃO INTEGRAL</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -55,15 +57,11 @@
         </div>
 
         <div id="obras" class="sec">
-            <h2 id="title-obras">🏗️ Gestão de Obras</h2>
+            <h2 id="title-obras">🏗️ Obras</h2>
             <div id="form-obra-admin" style="display:none">
-                <input id="obra_num" placeholder="Nº da Obra">
+                <input id="obra_num" placeholder="Nº Obra">
                 <input id="obra_nome" placeholder="Nome da Obra">
-                <select id="obra_estado_input">
-                    <option>Em execução</option>
-                    <option>Finalizada</option>
-                    <option>Sem efeito</option>
-                </select>
+                <select id="obra_estado_input"><option>Em execução</option><option>Finalizada</option></select>
                 <button class="btn-main" onclick="guardarRegistro('obras')">Gravar Obra</button>
             </div>
             <div class="filter-box">
@@ -76,34 +74,24 @@
         <div id="hrs" class="sec">
             <h2 id="title-hrs">🕒 Registo de Horas</h2>
             <div id="form-horas">
-                <label>Data:</label><input type="date" id="hrs_data">
-                <label>Obra:</label><select id="hrs_obra"></select>
+                <input type="date" id="hrs_data">
+                <select id="hrs_obra"></select>
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1"><label>Início:</label><input type="time" id="hrs_inicio"></div>
                     <div style="flex:1"><label>Fim:</label><input type="time" id="hrs_fim"></div>
                 </div>
-                <label>Tarefas:</label><textarea id="hrs_tarefas" placeholder="O que fez nesta obra?"></textarea>
-                
-                <div id="admin-status-area" style="display:none; background:#f0f2f5; padding:10px; border-radius:5px; margin-bottom:10px; border:1px solid #ccc;">
-                    <label><b>Estado da Aprovação (Admin):</b></label>
-                    <select id="hrs_estado_admin">
-                        <option>Por aprobar</option>
-                        <option>Aprovado</option>
-                        <option>Solicita alteração</option>
-                    </select>
+                <textarea id="hrs_tarefas" placeholder="Tarefas realizadas..."></textarea>
+                <div id="admin-status-area" style="display:none; background:#eee; padding:10px; border-radius:5px; margin-bottom:10px;">
+                    <label>Estado (Admin):</label>
+                    <select id="hrs_estado_admin"><option>Por aprobar</option><option>Aprovado</option><option>Solicita alteração</option></select>
                 </div>
-                <button class="btn-main" onclick="guardarHoras()">Gravar Intervenção</button>
+                <button class="btn-main" onclick="guardarHoras()">Adicionar Registo</button>
             </div>
-
             <div class="filter-box">
                 <input type="date" id="f_hrs_dia" oninput="renderAll()">
                 <input id="f_hrs_user" placeholder="Trabalhador..." oninput="renderAll()">
-                <select id="f_hrs_est" onchange="renderAll()">
-                    <option value="">Todos os Estados</option>
-                    <option>Por aprobar</option>
-                    <option>Aprovado</option>
-                    <option>Solicita alteração</option>
-                </select>
+                <input id="f_hrs_obra" placeholder="Nº/Nome Obra..." oninput="renderAll()">
+                <select id="f_hrs_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Por aprobar</option><option>Aprovado</option><option>Solicita alteração</option></select>
             </div>
             <div id="lista_horas"></div>
         </div>
@@ -111,45 +99,48 @@
         <div id="obs" class="sec">
             <h2 id="title-obs">📝 Observações</h2>
             <select id="obs_obra"></select>
-            <textarea id="obs_desc" placeholder="Descreva a observação..."></textarea>
-            <select id="obs_estado"><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar Observação</button>
+            <textarea id="obs_desc" placeholder="Detalhes..."></textarea>
+            <select id="obs_estado"><option>Por Resolver</option><option>Resolvido</option></select>
+            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar</button>
+            <div class="filter-box"><input id="f_obs_txt" placeholder="Procurar..." oninput="renderAll()"></div>
             <div id="lista_obs"></div>
         </div>
 
         <div id="ped" class="sec">
             <h2 id="title-ped">🛒 Pedidos</h2>
             <select id="ped_obra"></select>
-            <input id="ped_mat" placeholder="Material"><input id="ped_qtd" placeholder="Qtd">
-            <input id="ped_enc" placeholder="Nota Enc.">
-            <input id="ped_guia" placeholder="Guia (Obrigatório se Entregue)">
-            <select id="ped_estado"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('ped')">Gravar Pedido</button>
+            <input id="ped_mat" placeholder="Material">
+            <input id="ped_qtd" placeholder="Qtd">
+            <input id="ped_guia" placeholder="Guia (se entregue)">
+            <select id="ped_estado"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option></select>
+            <button class="btn-main" onclick="guardarRegistro('ped')">Gravar</button>
+            <div class="filter-box"><input id="f_ped_txt" placeholder="Material/Obra..." oninput="renderAll()"></div>
             <div id="lista_ped"></div>
         </div>
 
         <div id="tar" class="sec">
             <h2 id="title-tar">✅ Tarefas</h2>
             <select id="tar_obra"></select>
-            <input id="tar_tit" placeholder="Título da tarefa">
+            <input id="tar_tit" placeholder="Título">
             <select id="tar_para" multiple></select>
-            <select id="tar_estado"><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('tar')">Gravar Tarefa</button>
+            <select id="tar_estado"><option>Por Executar</option><option>Executada</option></select>
+            <button class="btn-main" onclick="guardarRegistro('tar')">Gravar</button>
+            <div class="filter-box"><input id="f_tar_txt" placeholder="Tarefa/Obra..." oninput="renderAll()"></div>
             <div id="lista_tar"></div>
         </div>
 
         <div id="users_admin" class="sec">
-            <h2>👥 Gestão de Utilizadores</h2>
+            <h2>👥 Utilizadores</h2>
             <input id="u_name" placeholder="Utilizador"><input id="u_pass" placeholder="Password">
             <select id="u_role"><option>Operacional</option><option>Administrador</option></select>
-            <button class="btn-main" onclick="guardarUsuario()">Criar Utilizador</button>
+            <button class="btn-main" onclick="guardarUsuario()">Criar</button>
             <div id="lista_users"></div>
         </div>
     </div>
 </div>
 
-<div id="modal-notas" class="modal"><div class="modal-content"><h3>💬 Notas</h3><div id="lista-notas-content"></div><textarea id="nota-texto"></textarea><button class="btn-main" onclick="addNota()">Adicionar Nota</button><button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button></div></div>
-<div id="modal-hist" class="modal"><div class="modal-content"><h3>📜 Histórico</h3><div id="lista-hist-content"></div><button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button></div></div>
+<div id="modal-notas" class="modal"><div class="modal-content"><h3>💬 Notas</h3><div id="lista-notas-content"></div><textarea id="nota-texto"></textarea><button class="btn-main" onclick="addNota()">Add</button><button onclick="closeModals()">Fechar</button></div></div>
+<div id="modal-hist" class="modal"><div class="modal-content"><h3>📜 Histórico</h3><div id="lista-hist-content"></div><button onclick="closeModals()">Fechar</button></div></div>
 
 <script>
 const firebaseConfig = {
@@ -186,9 +177,8 @@ function syncCloud() {
 function login() {
     const u = document.getElementById("user").value.trim();
     const p = document.getElementById("pass").value.trim();
-    if(u === "admin" && p === "23778478") { currentUser = {u: "admin", role: "Administrador", status: "Ativo"}; }
+    if(u === "admin" && p === "23778478") { currentUser = {u: "admin", role: "Administrador"}; }
     else { currentUser = db.users.find(x => x.u === u && x.p === p); }
-    
     if(currentUser) {
         document.getElementById("login").style.display="none";
         document.getElementById("app").style.display="block";
@@ -197,157 +187,119 @@ function login() {
             document.getElementById("menu-admin").style.display="block";
             document.getElementById("admin-status-area").style.display="block";
         }
-    } else { alert("Acesso negado."); }
+    } else alert("Login falhou.");
 }
 
-// --- FUNÇÃO PARA OBRAS, OBS, PEDIDOS, TAREFAS ---
+// --- GRAVAÇÃO REPARADA ---
 function guardarRegistro(mod) {
     const id = editId || Date.now().toString();
-    const isEdit = !!editId;
-    let data = { id, updatedAt: new Date().toLocaleString() };
+    const now = new Date().toLocaleString();
+    let data = { id, updatedAt: now };
 
     if (mod === 'obras') {
-        data.num = document.getElementById("obra_num").value.trim();
-        data.nome = document.getElementById("obra_nome").value.trim();
+        data.num = document.getElementById("obra_num").value;
+        data.nome = document.getElementById("obra_nome").value;
         data.estado = document.getElementById("obra_estado_input").value;
-        if(!data.num || !data.nome) return alert("Preencha Nº e Nome da Obra!");
+        if(!data.num || !data.nome) return alert("Falta Nº ou Nome!");
     } else {
         const oId = document.getElementById(`${mod}_obra`).value;
         const obra = db.obras.find(o => o.id === oId);
         if(!obra) return alert("Selecione uma obra!");
-        data.obraId = obra.id; data.obraNum = obra.num;
-
-        if(mod === 'obs') { data.desc = document.getElementById("obs_desc").value; data.estado = document.getElementById("obs_estado").value; }
-        if(mod === 'ped') {
-            const est = document.getElementById("ped_estado").value;
-            const guia = document.getElementById("ped_guia").value.trim();
-            if(est === 'Entregue' && !guia) return alert("Erro: Nº de Guia obrigatório para estado 'Entregue'!");
-            data.mat = document.getElementById("ped_mat").value;
-            data.qtd = document.getElementById("ped_qtd").value;
-            data.enc = document.getElementById("ped_enc").value;
-            data.guia = guia;
-            data.estado = est;
+        data.obraId = oId; data.obraNum = obra.num;
+        if(mod==='obs'){ data.desc=document.getElementById("obs_desc").value; data.estado=document.getElementById("obs_estado").value; }
+        if(mod==='ped'){ 
+            if(document.getElementById("ped_estado").value==='Entregue' && !document.getElementById("ped_guia").value) return alert("Guia obrigatória!");
+            data.mat=document.getElementById("ped_mat").value; data.qtd=document.getElementById("ped_qtd").value; data.guia=document.getElementById("ped_guia").value; data.estado=document.getElementById("ped_estado").value;
         }
-        if(mod === 'tar') {
-            data.tit = document.getElementById("tar_tit").value;
-            data.para = Array.from(document.getElementById("tar_para").selectedOptions).map(o => o.value);
-            data.estado = document.getElementById("tar_estado").value;
-        }
+        if(mod==='tar'){ data.tit=document.getElementById("tar_tit").value; data.para=Array.from(document.getElementById("tar_para").selectedOptions).map(o=>o.value); data.estado=document.getElementById("tar_estado").value; }
     }
 
     rtdb.ref(`${mod}/${id}`).set(data).then(() => {
-        rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: data.updatedAt, info: isEdit ? "Editou" : "Criou" });
-        cancelarEdicao();
-        showToast();
+        rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: now, info: editId ? "Editou" : "Criou" });
+        cancelarEdicao(); showToast();
     });
 }
 
-// --- FUNÇÃO PARA REGISTO DE HORAS (MÓDULO + SUBMÓDULO) ---
 function guardarHoras() {
-    const dataTrabalho = document.getElementById("hrs_data").value;
-    const obraId = document.getElementById("hrs_obra").value;
-    const ini = document.getElementById("hrs_inicio").value;
-    const fim = document.getElementById("hrs_fim").value;
-    const t = document.getElementById("hrs_tarefas").value;
+    const d = document.getElementById("hrs_data").value;
+    const oId = document.getElementById("hrs_obra").value;
+    const ini = document.getElementById("hrs_inicio").value, fim = document.getElementById("hrs_fim").value;
+    if(!d || !oId || !ini || !fim) return alert("Campos incompletos!");
 
-    if(!dataTrabalho || !obraId || !ini || !fim) return alert("Preencha todos os campos das horas!");
+    const regId = editId || `${currentUser.u}_${d.replace(/-/g,'')}`;
+    let reg = db.horas.find(h => h.id === regId) || { id: regId, user: currentUser.u, data: d, estado: "Por aprobar", intervenciones: [] };
+    if(reg.estado === "Aprovado" && currentUser.role !== 'Administrador') return alert("Bloqueado: Já aprovado.");
 
-    // ID único por trabalhador e dia
-    const regId = editId || `${currentUser.u}_${dataTrabalho.replace(/-/g,'')}`;
-    let registro = db.horas.find(h => h.id === regId) || { 
-        id: regId, user: currentUser.u, data: dataTrabalho, estado: "Por aprobar", intervenciones: [] 
-    };
-
-    // Bloqueio se aprovado
-    if(registro.estado === 'Aprovado' && currentUser.role !== 'Administrador') return alert("Registo Aprovado. Não pode editar.");
-
-    const obra = db.obras.find(o => o.id === obraId);
+    const obra = db.obras.find(o => o.id === oId);
     const diff = (new Date(`1970-01-01T${fim}`) - new Date(`1970-01-01T${ini}`)) / 3600000;
+    const sub = { subId: editSubId || Date.now().toString(), obraId: oId, obraNum: obra.num, obraNome: obra.nome, inicio: ini, fim: fim, tareas: document.getElementById("hrs_tarefas").value, horas: diff };
 
-    const novaIntervencao = {
-        subId: editSubId || Date.now().toString(),
-        obraId, obraNum: obra.num, obraNome: obra.nome,
-        inicio: ini, fim: fim, tareas: t, horas: diff
-    };
+    if(editSubId) { const idx = reg.intervenciones.findIndex(i => i.subId === editSubId); reg.intervenciones[idx] = sub; }
+    else reg.intervenciones.push(sub);
 
-    if(editSubId) {
-        const idx = registro.intervenciones.findIndex(i => i.subId === editSubId);
-        registro.intervenciones[idx] = novaIntervencao;
-    } else {
-        registro.intervenciones.push(novaIntervencao);
-    }
-
-    if(currentUser.role === 'Administrador') registro.estado = document.getElementById("hrs_estado_admin").value;
-
-    rtdb.ref(`horas/${regId}`).set(registro).then(() => {
-        cancelarEdicao();
-        showToast();
-    });
+    if(currentUser.role === 'Administrador') reg.estado = document.getElementById("hrs_estado_admin").value;
+    rtdb.ref(`horas/${regId}`).set(reg).then(() => { cancelarEdicao(); showToast(); });
 }
 
+// --- RENDER COM FILTROS ATIVOS ---
 function renderAll() {
-    // Render Obras
-    const foN = document.getElementById("f_o_num").value.toLowerCase();
-    const foM = document.getElementById("f_o_nom").value.toLowerCase();
-    renderModulo('obras', 'lista_obras', o => `<b>${o.num} - ${o.nome}</b><br><small>${o.estado}</small>`, o => o.num.toLowerCase().includes(foN) && o.nome.toLowerCase().includes(foM));
+    // FILTROS OBRAS
+    const fOn = document.getElementById("f_o_num").value.toLowerCase();
+    const fOm = document.getElementById("f_o_nom").value.toLowerCase();
+    renderModulo('obras', 'lista_obras', o => `<b>${o.num} - ${o.nome}</b> (${o.estado})`, o => o.num.toLowerCase().includes(fOn) && o.nome.toLowerCase().includes(fOm));
 
-    // Render Horas
+    // FILTROS HORAS
     const fHd = document.getElementById("f_hrs_dia").value;
     const fHu = document.getElementById("f_hrs_user").value.toLowerCase();
+    const fHo = document.getElementById("f_hrs_obra").value.toLowerCase();
     const fHe = document.getElementById("f_hrs_est").value;
 
     let hList = db.horas.filter(h => 
-        (currentUser.role === 'Administrador' ? h.user.toLowerCase().includes(fHu) : h.user === currentUser.u) &&
-        (!fHd || h.data === fHd) && (!fHe || h.estado === fHe)
+        (currentUser.role==='Administrador' ? h.user.toLowerCase().includes(fHu) : h.user === currentUser.u) &&
+        (!fHd || h.data === fHd) && (!fHe || h.estado === fHe) &&
+        (!fHo || h.intervenciones.some(i => i.obraNum.toLowerCase().includes(fHo) || i.obraNome.toLowerCase().includes(fHo)))
     );
     hList.sort((a,b) => new Date(b.data) - new Date(a.data));
-
     document.getElementById("lista_horas").innerHTML = hList.map(h => {
-        const total = h.intervenciones.reduce((acc, i) => acc + i.horas, 0);
-        const lock = h.estado === 'Aprovado' && currentUser.role !== 'Administrador';
+        const total = h.intervenciones.reduce((a, b) => a + b.horas, 0);
+        const lock = h.estado === "Aprovado" && currentUser.role !== 'Administrador';
         return `<div class="card">
-            <div style="display:flex; justify-content:space-between">
-                <span><b>📅 ${h.data}</b> (${h.user})</span>
-                <b style="color:var(--primary)">${total.toFixed(2)}h Total</b>
-            </div>
-            <span class="badge" style="background:${h.estado==='Aprovado'?'green':'orange'}">${h.estado}</span>
+            <div style="display:flex; justify-content:space-between"><b>📅 ${h.data}</b> <span>${h.user}</span></div>
+            <div class="badge" style="background:${h.estado==='Aprovado'?'green':'orange'}">${h.estado}</div>
+            <b style="float:right; color:var(--primary)">${total.toFixed(2)}h Total</b>
             ${h.intervenciones.map(i => `
                 <div class="sub-card">
-                    <b>Obra ${i.obraNum}</b>: ${i.inicio} às ${i.fim} (${i.horas.toFixed(2)}h)<br><i>${i.tareas}</i>
-                    ${!lock ? `<div class="btn-group"><button class="btn-edit" onclick="prepararEdicaoHoras('${h.id}','${i.subId}')">✏️</button><button class="btn-del" onclick="eliminarSub('${h.id}','${i.subId}')">❌</button></div>`:''}
-                </div>
-            `).join("")}
+                    <b>Obra ${i.obraNum}</b>: ${i.inicio}-${i.fim} (${i.horas.toFixed(2)}h)<br><i>${i.tareas}</i>
+                    ${!lock ? `<div class="btn-group"><button class="btn-edit" onclick="prepararEdicaoHoras('${h.id}','${i.subId}')">✏️</button><button class="btn-del" onclick="eliminarSub('${h.id}','${i.subId}')">❌</button></div>` : ''}
+                </div>`).join("")}
             <div class="btn-group">
-                <button class="btn-edit" style="background:#6c757d; color:white!important" onclick="openNotas('${h.id}')">💬 Notas</button>
-                <button class="btn-edit" style="background:#17a2b8; color:white!important" onclick="openHistorial('${h.id}')">📜 Hist.</button>
+                <button class="btn-note" onclick="openNotas('${h.id}')">💬 Notas</button>
+                <button class="btn-hist" onclick="openHistorial('${h.id}')">📜 Hist.</button>
+                ${currentUser.role==='Administrador' ? `<button class="btn-del" onclick="eliminar('horas','${h.id}')">❌ Apagar Dia</button>`:''}
             </div>
         </div>`;
     }).join("");
 
-    // Outros renders
-    renderModulo('obs', 'lista_obs', o => `<b>Obra ${o.obraNum}</b>: ${o.desc}`, o => true);
-    renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum}</b>: ${o.mat} | Guia: ${o.guia || '---'}`, o => true);
-    renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum}</b>: ${o.tit} para ${o.para}`, o => true);
+    // FILTROS OTROS
+    const fObs = document.getElementById("f_obs_txt").value.toLowerCase();
+    renderModulo('obs', 'lista_obs', o => `<b>Obra ${o.obraNum}</b>: ${o.desc}`, o => o.desc.toLowerCase().includes(fObs) || o.obraNum.toLowerCase().includes(fObs));
+    
+    const fPed = document.getElementById("f_ped_txt").value.toLowerCase();
+    renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum}</b>: ${o.mat} (${o.qtd})`, o => o.mat.toLowerCase().includes(fPed) || o.obraNum.toLowerCase().includes(fPed));
+
+    const fTar = document.getElementById("f_tar_txt").value.toLowerCase();
+    renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum}</b>: ${o.tit}`, o => o.tit.toLowerCase().includes(fTar) || o.obraNum.toLowerCase().includes(fTar));
 }
 
 function renderModulo(mod, target, template, filterFn) {
-    const list = db[mod].filter(filterFn);
-    document.getElementById(target).innerHTML = list.reverse().map(i => `
+    document.getElementById(target).innerHTML = db[mod].filter(filterFn).reverse().map(i => `
         <div class="card">${template(i)}
             <div class="btn-group">
-                <button class="btn-edit" onclick="prepararEdicao('${mod}','${i.id}')">✏️</button>
-                <button class="btn-del" onclick="eliminar('${mod}','${i.id}')">❌</button>
+                <button class="btn-note" onclick="openNotas('${i.id}')">💬</button>
+                <button class="btn-hist" onclick="openHistorial('${i.id}')">📜</button>
+                ${currentUser.role==='Administrador' ? `<button class="btn-edit" onclick="prepararEdicao('${mod}','${i.id}')">✏️</button><button class="btn-del" onclick="eliminar('${mod}','${i.id}')">❌</button>` : ''}
             </div>
         </div>`).join("");
-}
-
-function prepararEdicao(mod, id) {
-    editId = id; show(mod);
-    const item = db[mod].find(x => x.id === id);
-    if(mod==='obras'){ document.getElementById("obra_num").value=item.num; document.getElementById("obra_nome").value=item.nome; document.getElementById("obra_estado_input").value=item.estado; }
-    if(mod==='obs'){ document.getElementById("obs_obra").value=item.obraId; document.getElementById("obs_desc").value=item.desc; }
-    if(mod==='ped'){ document.getElementById("ped_obra").value=item.obraId; document.getElementById("ped_mat").value=item.mat; document.getElementById("ped_guia").value=item.guia||''; }
-    document.getElementById(`title-${mod}`).innerText = "✏️ Editando...";
 }
 
 function prepararEdicaoHoras(id, subId) {
@@ -359,28 +311,35 @@ function prepararEdicaoHoras(id, subId) {
     document.getElementById("hrs_inicio").value = s.inicio;
     document.getElementById("hrs_fim").value = s.fim;
     document.getElementById("hrs_tarefas").value = s.tareas;
-    if(currentUser.role === 'Administrador') document.getElementById("hrs_estado_admin").value = h.estado;
+    if(currentUser.role==='Administrador') document.getElementById("hrs_estado_admin").value = h.estado;
 }
 
 function eliminarSub(id, subId) {
     const h = db.horas.find(x => x.id === id);
-    if(h.estado === 'Aprovado' && currentUser.role !== 'Administrador') return alert("Bloqueado");
-    if(confirm("Eliminar esta intervenção?")) {
+    if(h.estado==='Aprovado' && currentUser.role!=='Administrador') return;
+    if(confirm("Apagar intervenção?")) {
         h.intervenciones = h.intervenciones.filter(i => i.subId !== subId);
-        if(h.intervenciones.length === 0) rtdb.ref(`horas/${id}`).remove();
+        if(h.intervenciones.length===0) rtdb.ref(`horas/${id}`).remove();
         else rtdb.ref(`horas/${id}`).set(h);
     }
 }
 
+function prepararEdicao(mod, id) {
+    editId = id; show(mod);
+    const item = db[mod].find(x => x.id === id);
+    if(mod==='obras'){ document.getElementById("obra_num").value=item.num; document.getElementById("obra_nome").value=item.nome; }
+    if(mod==='obs'){ document.getElementById("obs_obra").value=item.obraId; document.getElementById("obs_desc").value=item.desc; }
+    if(mod==='ped'){ document.getElementById("ped_obra").value=item.obraId; document.getElementById("ped_mat").value=item.mat; document.getElementById("ped_guia").value=item.guia||''; }
+}
+
 function updateSelects() {
-    const active = db.obras.filter(o => o.estado === 'Em execução');
-    const opt = '<option value="">Selecionar Obra...</option>' + active.map(o => `<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
+    const opt = '<option value="">Obra...</option>' + db.obras.filter(o => o.estado === 'Em execução').map(o => `<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
     ['obs_obra','ped_obra','tar_obra','hrs_obra'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
     if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
 }
 
 function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
-function cancelarEdicao() { editId = null; editSubId = null; document.querySelectorAll('input, textarea').forEach(i=>i.value=""); document.querySelectorAll('h2').forEach(h => h.innerText = h.innerText.replace("✏️ Editando...", "")); }
+function cancelarEdicao() { editId = null; editSubId = null; document.querySelectorAll('input, textarea').forEach(i=>i.value=""); }
 function eliminar(path, id) { if(confirm("Apagar?")) rtdb.ref(`${path}/${id}`).remove(); }
 function logout() { location.reload(); }
 function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
@@ -388,7 +347,7 @@ function closeModals() { document.querySelectorAll(".modal").forEach(m=>m.style.
 function openNotas(id) { currentRef = id; document.getElementById("modal-notas").style.display="block"; renderNotas(); }
 function renderNotas() { const n = Object.values(db.notas[currentRef] || {}); document.getElementById("lista-notas-content").innerHTML = n.map(x => `<div><b>${x.u}:</b> ${x.t}</div>`).join(""); }
 function addNota() { const t = document.getElementById("nota-texto").value; if(t) rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t }).then(()=>document.getElementById("nota-texto").value=""); }
-function openHistorial(id) { document.getElementById("modal-hist").style.display="block"; const h = Object.values(db.historial[id] || {}); document.getElementById("lista-hist-content").innerHTML = h.reverse().map(x => `<div style="font-size:12px"><b>${x.quando}</b>: ${x.info} (${x.quem})</div>`).join(""); }
+function openHistorial(id) { document.getElementById("modal-hist").style.display="block"; const h = Object.values(db.historial[id] || {}); document.getElementById("lista-hist-content").innerHTML = h.reverse().map(x => `<div><small>${x.quando}</small>: ${x.info}</div>`).join(""); }
 </script>
 </body>
 </html>
