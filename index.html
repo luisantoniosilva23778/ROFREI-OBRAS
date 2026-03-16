@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v11.1 - LOGISTICS & TIMESTAMPS</title>
+    <title>ROFREICRC v11.2 - STANDARD STATUS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -34,7 +34,7 @@
 <body onload="syncCloud()">
 
 <div id="toast">Operação concluída! ✅</div>
-<header>ROFREICRC v11.1 - GESTÃO LOGÍSTICA</header>
+<header>ROFREICRC v11.2 - SISTEMA INTEGRADO</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -62,13 +62,13 @@
             <div id="form-obra-admin" style="display:none">
                 <input id="obra_num" placeholder="Nº Obra">
                 <input id="obra_nome" placeholder="Nome da Obra">
-                <select id="obra_estado_input"><option>Em execução</option><option>Sem efeito</option><option>Finalizada</option></select>
+                <select id="obra_estado_input"><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
                 <button class="btn-main" onclick="guardarRegistro('obras')">Gravar Obra</button>
             </div>
             <div class="filter-box">
                 <input id="f_o_num" placeholder="Nº Obra..." oninput="renderAll()">
                 <input id="f_o_nom" placeholder="Nome..." oninput="renderAll()">
-                <select id="f_o_est" onchange="renderAll()"><option value="">Estado...</option><option>Em execução</option><option>Sem efeito</option><option>Finalizada</option></select>
+                <select id="f_o_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_obras"></div>
         </div>
@@ -77,11 +77,11 @@
             <h2 id="title-obs">📝 Observações</h2>
             <select id="obs_obra"></select>
             <textarea id="obs_desc" placeholder="Detalhes..."></textarea>
-            <select id="obs_estado"><option>Por Resolver</option><option>Resolvido</option></select>
+            <select id="obs_estado"><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
             <button class="btn-main" onclick="guardarRegistro('obs')">Gravar</button>
             <div class="filter-box">
                 <input id="f_obs_num" placeholder="Nº Obra..." oninput="renderAll()">
-                <select id="f_obs_est" onchange="renderAll()"><option value="">Estado...</option><option>Por Resolver</option><option>Resolvido</option></select>
+                <select id="f_obs_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_obs"></div>
         </div>
@@ -92,12 +92,12 @@
             <input id="ped_mat" placeholder="Material">
             <input id="ped_qtd" placeholder="Quantidade">
             <input id="ped_enc" placeholder="Nº Nota de Encomenda (Opcional)">
-            <select id="ped_estado"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option></select>
+            <select id="ped_estado"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
             <button class="btn-main" onclick="guardarRegistro('ped')">Gravar Pedido</button>
             <div class="filter-box">
                 <input id="f_ped_num" placeholder="Nº Obra..." oninput="renderAll()">
-                <input id="f_ped_enc" placeholder="Filtrar Nota Enc..." oninput="renderAll()">
-                <select id="f_ped_est" onchange="renderAll()"><option value="">Estado...</option><option>Solicitado</option><option>Aprovado</option><option>Entregue</option></select>
+                <input id="f_ped_enc" placeholder="Nota Enc..." oninput="renderAll()">
+                <select id="f_ped_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_ped"></div>
         </div>
@@ -107,11 +107,11 @@
             <select id="tar_obra"></select>
             <input id="tar_tit" placeholder="Tarefa...">
             <select id="tar_para" multiple size="3"></select>
-            <select id="tar_estado"><option>Por Executar</option><option>Executada</option></select>
+            <select id="tar_estado"><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
             <button class="btn-main" onclick="guardarRegistro('tar')">Atribuir</button>
             <div class="filter-box">
                 <input id="f_tar_num" placeholder="Nº Obra..." oninput="renderAll()">
-                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado...</option><option>Por Executar</option><option>Executada</option></select>
+                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_tar"></div>
         </div>
@@ -283,13 +283,6 @@ function prepararEdicao(mod, id) {
     document.getElementById(`title-${mod}`).innerText = "✏️ Editando...";
 }
 
-function openHistorial(id) {
-    document.getElementById("modal-hist").style.display="block";
-    const h = Object.values(db.historial[id] || {});
-    document.getElementById("lista-hist-content").innerHTML = h.reverse().map(x => `
-        <div style="border-bottom:1px solid #eee; padding:10px; font-size:12px;"><b>${x.quando}</b> - ${x.quem}<br><div style="background:#fff3cd; padding:5px; margin-top:5px; border-radius:3px;">${x.info}</div></div>`).join("") || "Sem histórico.";
-}
-
 function updateSelects() {
     const activeObras = db.obras.filter(o => o.estado === 'Em execução');
     const opt = '<option value="">Selecionar Obra Ativa...</option>' + activeObras.map(o => `<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
@@ -297,6 +290,12 @@ function updateSelects() {
     if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
 }
 
+function openHistorial(id) {
+    document.getElementById("modal-hist").style.display="block";
+    const h = Object.values(db.historial[id] || {});
+    document.getElementById("lista-hist-content").innerHTML = h.reverse().map(x => `
+        <div style="border-bottom:1px solid #eee; padding:10px; font-size:12px;"><b>${x.quando}</b> - ${x.quem}<br><div style="background:#fff3cd; padding:5px; margin-top:5px; border-radius:3px;">${x.info}</div></div>`).join("") || "Sem histórico.";
+}
 function addNota() {
     const t = document.getElementById("nota-texto").value.trim(); if(!t) return;
     rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t, d: new Date().toLocaleString() }).then(()=>document.getElementById("nota-texto").value="");
