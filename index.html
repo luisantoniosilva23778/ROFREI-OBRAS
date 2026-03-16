@@ -67,13 +67,22 @@
             <div id="form-obra-admin" style="display:none">
                 <input id="obra_num" placeholder="Nº Obra">
                 <input id="obra_nome" placeholder="Nome">
-                <select id="obra_estado_input"><option>Em ejecución</option><option>Sem efeito</option><option>Finalizada</option></select>
+                <select id="obra_estado_input">
+                    <option>Em execução</option>
+                    <option>Sem efeito</option>
+                    <option>Finalizada</option>
+                </select>
                 <button class="btn-main" id="btn-save-obras" onclick="guardarRegistro('obras')">Gravar Obra</button>
             </div>
             <div class="filter-box">
                 <input id="f_o_num" placeholder="Nº Obra..." oninput="renderAll()">
                 <input id="f_o_nom" placeholder="Nome..." oninput="renderAll()">
-                <select id="f_o_est" onchange="renderAll()"><option value="">Estado...</option><option>Em ejecución</option><option>Sem efeito</option><option>Finalizada</option></select>
+                <select id="f_o_est" onchange="renderAll()">
+                    <option value="">Estado...</option>
+                    <option>Em execução</option>
+                    <option>Sem efeito</option>
+                    <option>Finalizada</option>
+                </select>
             </div>
             <div id="lista_obras"></div>
         </div>
@@ -87,7 +96,11 @@
             <div class="filter-box">
                 <input id="f_obs_num" placeholder="Nº Obra..." oninput="renderAll()">
                 <input id="f_obs_nom" placeholder="Nome..." oninput="renderAll()">
-                <select id="f_obs_est" onchange="renderAll()"><option value="">Estado...</option><option>Por Resolver</option><option>Resolvido</option></select>
+                <select id="f_obs_est" onchange="renderAll()">
+                    <option value="">Estado...</option>
+                    <option>Por Resolver</option>
+                    <option>Resolvido</option>
+                </select>
             </div>
             <div id="lista_obs"></div>
         </div>
@@ -102,7 +115,12 @@
             <div class="filter-box">
                 <input id="f_ped_num" placeholder="Nº Obra..." oninput="renderAll()">
                 <input id="f_ped_nom" placeholder="Nome..." oninput="renderAll()">
-                <select id="f_ped_est" onchange="renderAll()"><option value="">Estado...</option><option>Solicitado</option><option>Aprovado</option><option>Entregue</option></select>
+                <select id="f_ped_est" onchange="renderAll()">
+                    <option value="">Estado...</option>
+                    <option>Solicitado</option>
+                    <option>Aprovado</option>
+                    <option>Entregue</option>
+                </select>
             </div>
             <div id="lista_ped"></div>
         </div>
@@ -117,15 +135,19 @@
             <div class="filter-box">
                 <input id="f_tar_num" placeholder="Nº Obra..." oninput="renderAll()">
                 <input id="f_tar_nom" placeholder="Nome..." oninput="renderAll()">
-                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado...</option><option>Por Executar</option><option>Executada</option></select>
+                <select id="f_tar_est" onchange="renderAll()">
+                    <option value="">Estado...</option>
+                    <option>Por Executar</option>
+                    <option>Executada</option>
+                </select>
             </div>
             <div id="lista_tar"></div>
         </div>
 
         <div id="users_admin" class="sec">
-            <h2>👥 Utilizadores</h2>
-            <input id="u_name" placeholder="User">
-            <input id="u_pass" placeholder="Pass">
+            <h2>👥 Gestão de Utilizadores</h2>
+            <input id="u_name" placeholder="Utilizador">
+            <input id="u_pass" placeholder="Palavra-passe">
             <select id="u_role"><option>Operacional</option><option>Administrador</option></select>
             <select id="u_status"><option>Ativo</option><option>Suspenso</option></select>
             <button class="btn-main" onclick="guardarUsuario()">Gravar Utilizador</button>
@@ -170,7 +192,10 @@ function syncCloud() {
         db.obs = Object.values(data.obs || {});
         db.ped = Object.values(data.ped || {});
         db.tar = Object.values(data.tar || {});
-        db.users = Object.values(data.users || []);
+        
+        // Corrigido: Mapear utilizadores mantendo a chave se necessário
+        db.users = data.users ? Object.values(data.users) : [];
+        
         db.notas = data.notas || {};
         db.historial = data.historial || {};
         
@@ -196,7 +221,7 @@ function login() {
             document.getElementById("menu-admin").style.display="block";
         }
         syncCloud();
-    } else { alert("Acesso Negado."); }
+    } else { alert("Acesso Negado ou Conta Suspensa."); }
 }
 
 function guardarRegistro(modulo) {
@@ -209,7 +234,7 @@ function guardarRegistro(modulo) {
         newData.estado = document.getElementById("obra_estado_input").value;
     } else {
         const o = document.getElementById(`${modulo}_obra`);
-        if(!o.value && !editId) return alert("Selecione Obra");
+        if(!o.value && !editId) return alert("Selecione uma Obra");
         newData.obraId = o.value || db[modulo].find(x=>x.id==editId).obraId;
         newData.obraNum = o.options[o.selectedIndex]?.dataset.num || db[modulo].find(x=>x.id==editId).obraNum;
         newData.obraNome = o.options[o.selectedIndex]?.dataset.nome || db[modulo].find(x=>x.id==editId).obraNome;
@@ -218,16 +243,16 @@ function guardarRegistro(modulo) {
         if(modulo==='tar'){ newData.para=Array.from(document.getElementById("tar_para").selectedOptions).map(x=>x.value); newData.estado=document.getElementById("tar_estado").value; newData.tit=document.getElementById("tar_tit").value; }
     }
 
-    let detalle = "criou registro";
+    let detalle = "criou registo";
     if(editId) {
         const ant = db[modulo].find(x => x.id == editId);
         let cambios = [];
         for(let k in newData) { if(newData[k] !== ant[k] && k!=='id' && k!=='obraId') cambios.push(`${k}: ${ant[k]}->${newData[k]}`); }
-        detalle = cambios.length > 0 ? cambios.join(" | ") : "editou";
+        detalle = cambios.length > 0 ? "editou: " + cambios.join(" | ") : "editou registo";
     }
 
     rtdb.ref(`${modulo}/${id}`).set(newData);
-    rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: new Date().toLocaleString(), detalles: detalle });
+    rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: new Date().toLocaleString('pt-PT'), detalles: detalle });
     rtdb.ref('notifications').push({ user: currentUser.u, msg: `em ${modulo} (${newData.num || newData.obraNum || ''}): ${detalle}`, time: Date.now() });
     cancelarEdicao();
     showToast();
@@ -246,7 +271,18 @@ function renderAll() {
     const tN = document.getElementById("f_tar_num").value.toLowerCase(), tM = document.getElementById("f_tar_nom").value.toLowerCase(), tE = document.getElementById("f_tar_est").value;
     renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum} - ${o.obraNome}</b><br>${o.tit}<br><span class="status-badge">${o.estado} (${o.para})</span>`, o => (!tE || o.estado==tE) && o.obraNum.toLowerCase().includes(tN) && o.obraNome.toLowerCase().includes(tM));
     
-    document.getElementById("lista_users").innerHTML = db.users.map(u => `<div class="card"><b>${u.u}</b> [${u.role}] - ${u.status}<div class="btn-group"><button class="btn-edit" onclick="editarUser('${u.u}')">✏️</button><button class="btn-del" onclick="eliminarUsuario('${u.u}')">❌</button></div></div>`).join("");
+    // RENDER UTILIZADORES (CORRIGIDO)
+    const lu = document.getElementById("lista_users");
+    if(lu) {
+        lu.innerHTML = db.users.map(u => `
+            <div class="card" style="border-left-color: ${u.status === 'Suspenso' ? 'var(--danger)' : 'var(--success)'}">
+                <b>${u.u}</b> [${u.role}] - <b>${u.status}</b>
+                <div class="btn-group">
+                    <button class="btn-edit" onclick="editarUser('${u.u}')">✏️</button>
+                    <button class="btn-del" onclick="eliminarUsuario('${u.u}')">❌</button>
+                </div>
+            </div>`).join("");
+    }
 }
 
 function renderModulo(mod, target, template, filterFn) {
@@ -255,7 +291,40 @@ function renderModulo(mod, target, template, filterFn) {
             <button class="btn-note" onclick="openNotas('${item.id}')">💬</button>
             <button class="btn-hist" onclick="openHistorial('${item.id}')">📜</button>
             ${currentUser.role==='Administrador' ? `<button class="btn-edit" onclick="prepararEdicao('${mod}','${item.id}')">✏️</button><button class="btn-del" onclick="eliminar('${mod}','${item.id}')">❌</button>` : ''}
-        </div></div>`).join("") || "Sem resultados.";
+        </div></div>`).join("") || "Sem registos.";
+}
+
+function guardarUsuario() {
+    const u = document.getElementById("u_name").value.trim();
+    const p = document.getElementById("u_pass").value.trim();
+    const r = document.getElementById("u_role").value;
+    const s = document.getElementById("u_status").value;
+    if(!u || !p) return alert("Preencha Utilizador e Palavra-passe");
+    
+    rtdb.ref(`users/${u}`).set({ u, p, role: r, status: s })
+    .then(() => {
+        alert("Utilizador guardado!");
+        document.getElementById("u_name").value = "";
+        document.getElementById("u_pass").value = "";
+    });
+}
+
+function editarUser(uName) {
+    const user = db.users.find(x => x.u === uName);
+    if(user) {
+        document.getElementById("u_name").value = user.u;
+        document.getElementById("u_pass").value = user.p;
+        document.getElementById("u_role").value = user.role;
+        document.getElementById("u_status").value = user.status;
+        window.scrollTo(0,0);
+    }
+}
+
+function eliminarUsuario(uName) {
+    if(uName === 'admin') return alert("Não pode apagar o admin.");
+    if(confirm(`Eliminar utilizador ${uName}?`)) {
+        rtdb.ref(`users/${uName}`).remove();
+    }
 }
 
 function prepararEdicao(mod, id) {
@@ -284,7 +353,7 @@ function renderNotas() {
 }
 function addNota() {
     const t = document.getElementById("nota-texto").value.trim(); if(!t) return;
-    rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t, d: new Date().toLocaleString() });
+    rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t, d: new Date().toLocaleString('pt-PT') });
     document.getElementById("nota-texto").value = "";
 }
 
@@ -292,7 +361,7 @@ function renderNotificaciones(notifs) {
     const badge = document.getElementById("notif-count"); let noLeidas = 0;
     document.getElementById("lista_notificaciones").innerHTML = notifs.map(n => {
         const esLeida = leidas.includes(n.id); if(!esLeida) noLeidas++;
-        return `<div class="card" style="border-left: 6px solid ${esLeida ? '#ccc' : 'var(--secondary)'}; opacity:${esLeida ? 0.6 : 1}"><small>${new Date(n.time).toLocaleString()}</small><br><b>${n.user}</b> ${n.msg}<button onclick="toggleLeida('${n.id}')" style="font-size:10px; width:auto; padding:4px; margin-top:5px;">OK</button></div>`;
+        return `<div class="card" style="border-left: 6px solid ${esLeida ? '#ccc' : 'var(--secondary)'}; opacity:${esLeida ? 0.6 : 1}"><small>${new Date(n.time).toLocaleString('pt-PT')}</small><br><b>${n.user}</b> ${n.msg}<button onclick="toggleLeida('${n.id}')" style="font-size:10px; width:auto; padding:4px; margin-top:5px;">OK</button></div>`;
     }).join("");
     badge.innerText = noLeidas; badge.style.display = noLeidas > 0 ? "block" : "none";
 }
@@ -301,22 +370,12 @@ function toggleLeida(id) { leidas = leidas.includes(id) ? leidas.filter(i=>i!==i
 function marcarTodasComoLidas() { leidas = db.notifications.map(n => n.id); localStorage.setItem('notif_leidas', JSON.stringify(leidas)); syncCloud(); }
 
 function updateSelects() {
-    const opt = '<option value="">Obra...</option>' + db.obras.filter(o=>o.estado==='Em ejecución').map(o=>`<option value="${o.id}" data-num="${o.num}" data-nome="${o.nome}">${o.num}</option>`).join("");
+    const opt = '<option value="">Obra...</option>' + db.obras.filter(o=>o.estado==='Em execução').map(o=>`<option value="${o.id}" data-num="${o.num}" data-nome="${o.nome}">${o.num}</option>`).join("");
     ['obs_obra','ped_obra','tar_obra'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
     if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
     if(document.getElementById('ped_estado')) document.getElementById('ped_estado').innerHTML = currentUser.role==='Administrador' ? '<option>Solicitado</option><option>Aprovado</option><option>Entregue</option>' : '<option>Solicitado</option>';
 }
 
-function guardarUsuario() {
-    const u = document.getElementById("u_name").value.trim(), p = document.getElementById("u_pass").value, r = document.getElementById("u_role").value, s = document.getElementById("u_status").value;
-    if(!u || !p) return alert("Preencha User e Pass");
-    rtdb.ref(`users/${u}`).set({ u, p, role: r, status: s }).then(() => alert("Utilizador guardado!"));
-}
-function editarUser(u) {
-    const user = db.users.find(x => x.u === u);
-    document.getElementById("u_name").value = user.u; document.getElementById("u_pass").value = user.p; document.getElementById("u_role").value = user.role; document.getElementById("u_status").value = user.status;
-}
-function eliminarUsuario(u) { if(u!=='admin' && confirm("Eliminar utilizador?")) rtdb.ref(`users/${u}`).remove(); }
 function cancelarEdicao() { editId = null; document.querySelectorAll('button[id^="btn-save-"]').forEach(b => b.innerText = "Gravar"); document.querySelectorAll('input, textarea').forEach(i => i.value = ""); }
 function eliminar(mod, id) { if(confirm("Eliminar da Nuvem?")) rtdb.ref(`${mod}/${id}`).remove(); }
 function logout() { location.reload(); }
