@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v11.2 - STANDARD STATUS</title>
+    <title>ROFREICRC v11.3 - UNIVERSAL STATUS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -34,7 +34,7 @@
 <body onload="syncCloud()">
 
 <div id="toast">Operação concluída! ✅</div>
-<header>ROFREICRC v11.2 - SISTEMA INTEGRADO</header>
+<header>ROFREICRC v11.3 - CONTROLO TOTAL</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -78,7 +78,7 @@
             <select id="obs_obra"></select>
             <textarea id="obs_desc" placeholder="Detalhes..."></textarea>
             <select id="obs_estado"><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar</button>
+            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar Observação</button>
             <div class="filter-box">
                 <input id="f_obs_num" placeholder="Nº Obra..." oninput="renderAll()">
                 <select id="f_obs_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
@@ -108,10 +108,10 @@
             <input id="tar_tit" placeholder="Tarefa...">
             <select id="tar_para" multiple size="3"></select>
             <select id="tar_estado"><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('tar')">Atribuir</button>
+            <button class="btn-main" onclick="guardarRegistro('tar')">Atribuir Tarefa</button>
             <div class="filter-box">
                 <input id="f_tar_num" placeholder="Nº Obra..." oninput="renderAll()">
-                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
+                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Por Executar</option><option>Executada</option><option>Sem efecto</option></select>
             </div>
             <div id="lista_tar"></div>
         </div>
@@ -122,7 +122,7 @@
             <input id="u_pass" placeholder="Password">
             <select id="u_role"><option>Operacional</option><option>Administrador</option></select>
             <select id="u_status"><option>Ativo</option><option>Suspenso</option></select>
-            <button class="btn-main" onclick="guardarUsuario()">Gravar</button>
+            <button class="btn-main" onclick="guardarUsuario()">Gravar Utilizador</button>
             <div id="lista_users" style="margin-top:15px"></div>
         </div>
 
@@ -184,12 +184,7 @@ function guardarRegistro(mod) {
     const oldData = db[mod].find(x => x.id == id) || {};
     const now = new Date().toLocaleString();
     
-    let newData = { 
-        id, 
-        createdAt: isEdit ? (oldData.createdAt || now) : now,
-        updatedAt: now 
-    };
-    
+    let newData = { id, createdAt: isEdit ? (oldData.createdAt || now) : now, updatedAt: now };
     let summary = "";
     let changes = [];
 
@@ -223,7 +218,6 @@ function guardarRegistro(mod) {
     }
 
     const logInfo = isEdit ? `EDITOU ${summary}: ${changes.join(' | ')}` : `CRIOU ${summary}`;
-
     rtdb.ref(`${mod}/${id}`).set(newData).then(() => {
         rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: now, info: logInfo });
         rtdb.ref(`notifications`).push({ user: currentUser.u, msg: logInfo, time: Date.now() });
