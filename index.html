@@ -6,7 +6,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3a5f">
     <meta charset="UTF-8">
-    <title>ROFREICRC v10.3 - CLOUD FINAL</title>
+    <title>ROFREICRC v10.4 - START CLEAN</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -38,8 +38,8 @@
 </head>
 <body onload="syncCloud()">
 
-<div id="toast">Sincronizado! ✅</div>
-<header>ROFREICRC CLOUD v10.3</header>
+<div id="toast">Operação realizada! ✅</div>
+<header>ROFREICRC CLOUD v10.4</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -95,7 +95,6 @@
             <button class="btn-main" id="btn-save-obs" onclick="guardarRegistro('obs')">Gravar</button>
             <div class="filter-box">
                 <input id="f_obs_num" placeholder="Nº Obra..." oninput="renderAll()">
-                <input id="f_obs_nom" placeholder="Nome..." oninput="renderAll()">
                 <select id="f_obs_est" onchange="renderAll()">
                     <option value="">Estado...</option>
                     <option>Por Resolver</option>
@@ -114,7 +113,6 @@
             <button class="btn-main" id="btn-save-ped" onclick="guardarRegistro('ped')">Enviar</button>
             <div class="filter-box">
                 <input id="f_ped_num" placeholder="Nº Obra..." oninput="renderAll()">
-                <input id="f_ped_nom" placeholder="Nome..." oninput="renderAll()">
                 <select id="f_ped_est" onchange="renderAll()">
                     <option value="">Estado...</option>
                     <option>Solicitado</option>
@@ -134,7 +132,6 @@
             <button class="btn-main" id="btn-save-tar" onclick="guardarRegistro('tar')">Atribuir</button>
             <div class="filter-box">
                 <input id="f_tar_num" placeholder="Nº Obra..." oninput="renderAll()">
-                <input id="f_tar_nom" placeholder="Nome..." oninput="renderAll()">
                 <select id="f_tar_est" onchange="renderAll()">
                     <option value="">Estado...</option>
                     <option>Por Executar</option>
@@ -168,6 +165,7 @@
 <div id="modal-notas" class="modal"><div class="modal-content"><h3>💬 Notas</h3><div id="lista-notas-content" style="max-height:200px; overflow-y:auto; border:1px solid #eee; padding:10px; margin-bottom:10px;"></div><textarea id="nota-texto" placeholder="Nova nota..."></textarea><button class="btn-main" onclick="addNota()">Adicionar</button><button onclick="closeModals()" style="width:100%; margin-top:5px">Fechar</button></div></div>
 
 <script>
+// --- CONFIGURAÇÃO FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyCBkWCoWX0oN1HWCA6aGt_kdg_2vyFz1mM",
   authDomain: "rofreicrc-175f9.firebaseapp.com",
@@ -177,7 +175,6 @@ const firebaseConfig = {
   messagingSenderId: "597226985528",
   appId: "1:597226985528:web:c371ca51032301e51feecd"
 };
-
 firebase.initializeApp(firebaseConfig);
 const rtdb = firebase.database();
 
@@ -193,15 +190,11 @@ function syncCloud() {
         db.ped = data.ped ? Object.values(data.ped) : [];
         db.tar = data.tar ? Object.values(data.tar) : [];
         
-        // Versão reforçada para garantir leitura de utilizadores
         if (data.users) {
             db.users = Object.entries(data.users).map(([key, val]) => ({
-                ...val,
-                u: val.u || key // Caso o nome de utilizador seja a chave do objeto
+                ...val, u: val.u || key
             }));
-        } else {
-            db.users = [];
-        }
+        } else { db.users = []; }
         
         db.notas = data.notas || {};
         db.historial = data.historial || {};
@@ -210,7 +203,6 @@ function syncCloud() {
         renderNotificaciones(allNotifs);
         updateSelects();
         renderAll();
-        if(currentRef && document.getElementById("modal-notas").style.display === "block") renderNotas();
     });
 }
 
@@ -228,7 +220,7 @@ function login() {
             document.getElementById("menu-admin").style.display="block";
         }
         syncCloud();
-    } else { alert("Acesso Negado ou Conta Suspensa."); }
+    } else { alert("Acesso Negado."); }
 }
 
 function guardarRegistro(modulo) {
@@ -240,47 +232,55 @@ function guardarRegistro(modulo) {
         newData.nome = document.getElementById("obra_nome").value;
         newData.estado = document.getElementById("obra_estado_input").value;
     } else {
-        const o = document.getElementById(`${modulo}_obra`);
-        if(!o.value && !editId) return alert("Selecione uma Obra");
-        newData.obraId = o.value || db[modulo].find(x=>x.id==editId).obraId;
-        newData.obraNum = o.options[o.selectedIndex]?.dataset.num || db[modulo].find(x=>x.id==editId).obraNum;
-        newData.obraNome = o.options[o.selectedIndex]?.dataset.nome || db[modulo].find(x=>x.id==editId).obraNome;
+        const oEl = document.getElementById(`${modulo}_obra`);
+        const selObra = db.obras.find(x => x.id === oEl.value);
+        if(!selObra && !editId) return alert("Selecione uma Obra");
+        
+        // Se estamos a editar, mantemos os dados da obra se não mudar o select
+        newData.obraId = selObra ? selObra.id : db[modulo].find(x=>x.id==editId).obraId;
+        newData.obraNum = selObra ? selObra.num : db[modulo].find(x=>x.id==editId).obraNum;
+        newData.obraNome = selObra ? selObra.nome : db[modulo].find(x=>x.id==editId).obraNome;
+
         if(modulo==='obs'){ newData.estado=document.getElementById("obs_estado").value; newData.desc=document.getElementById("obs_desc").value; }
         if(modulo==='ped'){ newData.mat=document.getElementById("ped_mat").value; newData.qtd=document.getElementById("ped_qtd").value; newData.estado=document.getElementById("ped_estado").value; }
-        if(modulo==='tar'){ newData.para=Array.from(document.getElementById("tar_para").selectedOptions).map(x=>x.value); newData.estado=document.getElementById("tar_estado").value; newData.tit=document.getElementById("tar_tit").value; }
+        if(modulo==='tar'){ 
+            newData.para=Array.from(document.getElementById("tar_para").selectedOptions).map(x=>x.value); 
+            newData.estado=document.getElementById("tar_estado").value; 
+            newData.tit=document.getElementById("tar_tit").value; 
+        }
     }
 
-    let detalle = editId ? "editou registo" : "criou registo";
-    rtdb.ref(`${modulo}/${id}`).set(newData);
-    rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: new Date().toLocaleString('pt-PT'), detalles: detalle });
-    cancelarEdicao();
-    showToast();
+    rtdb.ref(`${modulo}/${id}`).set(newData).then(() => {
+        rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: new Date().toLocaleString('pt-PT'), detalles: editId ? "Editou" : "Criou" });
+        cancelarEdicao();
+        showToast();
+    });
 }
 
 function renderAll() {
+    // Render Obras com Filtros
     const oN = document.getElementById("f_o_num").value.toLowerCase(), oM = document.getElementById("f_o_nom").value.toLowerCase(), oE = document.getElementById("f_o_est").value;
     renderModulo('obras', 'lista_obras', o => `<b>${o.num} - ${o.nome}</b><br><span class="status-badge">${o.estado}</span>`, o => (!oE || o.estado==oE) && o.num.toLowerCase().includes(oN) && o.nome.toLowerCase().includes(oM));
     
-    const obN = document.getElementById("f_obs_num").value.toLowerCase(), obM = document.getElementById("f_obs_nom").value.toLowerCase(), obE = document.getElementById("f_obs_est").value;
-    renderModulo('obs', 'lista_obs', o => `<b>Obra ${o.obraNum} - ${o.obraNome}</b><br>${o.desc}<br><span class="status-badge">${o.estado}</span>`, o => (!obE || o.estado==obE) && o.obraNum.toLowerCase().includes(obN) && o.obraNome.toLowerCase().includes(obM));
+    // Render Outros com Filtros
+    const obN = document.getElementById("f_obs_num").value.toLowerCase(), obE = document.getElementById("f_obs_est").value;
+    renderModulo('obs', 'lista_obs', o => `<b>Obra ${o.obraNum}</b><br>${o.desc}<br><span class="status-badge">${o.estado}</span>`, o => (!obE || o.estado==obE) && o.obraNum.toLowerCase().includes(obN));
 
-    const pN = document.getElementById("f_ped_num").value.toLowerCase(), pM = document.getElementById("f_ped_nom").value.toLowerCase(), pE = document.getElementById("f_ped_est").value;
-    renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum} - ${o.obraNome}</b><br>${o.mat} (${o.qtd})<br><span class="status-badge">${o.estado}</span>`, o => (!pE || o.estado==pE) && o.obraNum.toLowerCase().includes(pN) && o.obraNome.toLowerCase().includes(pM));
+    const pN = document.getElementById("f_ped_num").value.toLowerCase(), pE = document.getElementById("f_ped_est").value;
+    renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum}</b><br>${o.mat} (${o.qtd})<br><span class="status-badge">${o.estado}</span>`, o => (!pE || o.estado==pE) && o.obraNum.toLowerCase().includes(pN));
 
-    const tN = document.getElementById("f_tar_num").value.toLowerCase(), tM = document.getElementById("f_tar_nom").value.toLowerCase(), tE = document.getElementById("f_tar_est").value;
-    renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum} - ${o.obraNome}</b><br>${o.tit}<br><span class="status-badge">${o.estado} (${o.para})</span>`, o => (!tE || o.estado==tE) && o.obraNum.toLowerCase().includes(tN) && o.obraNome.toLowerCase().includes(tM));
+    const tN = document.getElementById("f_tar_num").value.toLowerCase(), tE = document.getElementById("f_tar_est").value;
+    renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum}</b><br>${o.tit}<br><span class="status-badge">${o.estado} (${o.para})</span>`, o => (!tE || o.estado==tE) && o.obraNum.toLowerCase().includes(tN));
     
-    const lu = document.getElementById("lista_users");
-    if(lu) {
-        lu.innerHTML = db.users.map(u => `
-            <div class="card" style="border-left-color: ${u.status === 'Suspenso' ? 'var(--danger)' : 'var(--success)'}">
-                <b>${u.u}</b> [${u.role}] - <b>${u.status}</b>
-                <div class="btn-group">
-                    <button class="btn-edit" onclick="editarUser('${u.u}')">✏️</button>
-                    <button class="btn-del" onclick="eliminarUsuario('${u.u}')">❌</button>
-                </div>
-            </div>`).join("") || "Nenhum utilizador encontrado.";
-    }
+    // Render Users
+    document.getElementById("lista_users").innerHTML = db.users.map(u => `
+        <div class="card" style="border-left-color: ${u.status === 'Suspenso' ? 'red' : 'green'}">
+            <b>${u.u}</b> [${u.role}] - <b>${u.status}</b>
+            <div class="btn-group">
+                <button class="btn-edit" onclick="editarUser('${u.u}')">✏️</button>
+                <button class="btn-del" onclick="eliminarUsuario('${u.u}')">❌</button>
+            </div>
+        </div>`).join("");
 }
 
 function renderModulo(mod, target, template, filterFn) {
@@ -295,13 +295,10 @@ function renderModulo(mod, target, template, filterFn) {
 function guardarUsuario() {
     const u = document.getElementById("u_name").value.trim();
     const p = document.getElementById("u_pass").value.trim();
-    const r = document.getElementById("u_role").value;
-    const s = document.getElementById("u_status").value;
-    if(!u || !p) return alert("Preencha Utilizador e Palavra-passe");
-    rtdb.ref(`users/${u}`).set({ u, p, role: r, status: s }).then(() => {
+    if(!u || !p) return alert("Dados incompletos");
+    rtdb.ref(`users/${u}`).set({ u, p, role: document.getElementById("u_role").value, status: document.getElementById("u_status").value }).then(() => {
         alert("Utilizador guardado!");
-        document.getElementById("u_name").value = "";
-        document.getElementById("u_pass").value = "";
+        document.getElementById("u_name").value = ""; document.getElementById("u_pass").value = "";
     });
 }
 
@@ -317,8 +314,8 @@ function editarUser(uName) {
 }
 
 function eliminarUsuario(uName) {
-    if(uName === 'admin') return alert("Não pode apagar o admin.");
-    if(confirm(`Eliminar utilizador ${uName}?`)) rtdb.ref(`users/${uName}`).remove();
+    if(uName === 'admin') return;
+    if(confirm(`Eliminar ${uName}?`)) rtdb.ref(`users/${uName}`).remove();
 }
 
 function prepararEdicao(mod, id) {
@@ -334,20 +331,27 @@ function prepararEdicao(mod, id) {
     window.scrollTo(0,0);
 }
 
+function updateSelects() {
+    const opt = '<option value="">Obra...</option>' + db.obras.filter(o=>o.estado==='Em execução').map(o=>`<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
+    ['obs_obra','ped_obra','tar_obra'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
+    if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
+    if(document.getElementById('ped_estado')) document.getElementById('ped_estado').innerHTML = currentUser.role==='Administrador' ? '<option>Solicitado</option><option>Aprovado</option><option>Entregue</option>' : '<option>Solicitado</option>';
+}
+
 function openHistorial(id) {
     currentRef = id; const logs = Object.values(db.historial[id] || {});
     document.getElementById("modal-hist").style.display = "block";
-    document.getElementById("lista-hist-content").innerHTML = logs.reverse().map(h => `<div style="padding:8px; border-bottom:1px solid #eee; font-size:12px;"><b>${h.quando}</b> (${h.quem}):<br>${h.detalles}</div>`).join("") || "Sem histórico.";
+    document.getElementById("lista-hist-content").innerHTML = logs.reverse().map(h => `<div style="padding:8px; border-bottom:1px solid #eee; font-size:12px;"><b>${h.quando}</b> (${h.quem}): ${h.detalles}</div>`).join("");
 }
 
 function openNotas(id) { currentRef = id; document.getElementById("modal-notas").style.display = "block"; renderNotas(); }
 function renderNotas() {
     const n = Object.values(db.notas[currentRef] || {});
-    document.getElementById("lista-notas-content").innerHTML = n.map(x => `<div style="font-size:12px; border-bottom:1px solid #eee; padding:5px;"><b>${x.u}:</b> ${x.t} <br><small style="color:gray">${x.d}</small></div>`).join("") || "Sem notas.";
+    document.getElementById("lista-notas-content").innerHTML = n.map(x => `<div style="font-size:12px; border-bottom:1px solid #eee; padding:5px;"><b>${x.u}:</b> ${x.t}</div>`).join("");
 }
 function addNota() {
     const t = document.getElementById("nota-texto").value.trim(); if(!t) return;
-    rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t, d: new Date().toLocaleString('pt-PT') });
+    rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t, d: new Date().toLocaleString() });
     document.getElementById("nota-texto").value = "";
 }
 
@@ -355,29 +359,19 @@ function renderNotificaciones(notifs) {
     const badge = document.getElementById("notif-count"); let noLeidas = 0;
     document.getElementById("lista_notificaciones").innerHTML = notifs.map(n => {
         const esLeida = leidas.includes(n.id); if(!esLeida) noLeidas++;
-        return `<div class="card" style="border-left: 6px solid ${esLeida ? '#ccc' : 'var(--secondary)'}; opacity:${esLeida ? 0.6 : 1}"><small>${new Date(n.time).toLocaleString('pt-PT')}</small><br><b>${n.user}</b> ${n.msg}<button onclick="toggleLeida('${n.id}')" style="font-size:10px; width:auto; padding:4px; margin-top:5px;">OK</button></div>`;
+        return `<div class="card" style="opacity:${esLeida ? 0.6 : 1}"><b>${n.user}</b> ${n.msg}<button onclick="toggleLeida('${n.id}')">OK</button></div>`;
     }).join("");
     badge.innerText = noLeidas; badge.style.display = noLeidas > 0 ? "block" : "none";
 }
 
 function toggleLeida(id) { leidas = leidas.includes(id) ? leidas.filter(i=>i!==id) : [...leidas, id]; localStorage.setItem('notif_leidas', JSON.stringify(leidas)); syncCloud(); }
 function marcarTodasComoLidas() { leidas = db.notifications.map(n => n.id); localStorage.setItem('notif_leidas', JSON.stringify(leidas)); syncCloud(); }
-
-function updateSelects() {
-    const opt = '<option value="">Obra...</option>' + db.obras.filter(o=>o.estado==='Em execução').map(o=>`<option value="${o.id}" data-num="${o.num}" data-nome="${o.nome}">${o.num}</option>`).join("");
-    ['obs_obra','ped_obra','tar_obra'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
-    if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
-    if(document.getElementById('ped_estado')) document.getElementById('ped_estado').innerHTML = currentUser.role==='Administrador' ? '<option>Solicitado</option><option>Aprovado</option><option>Entregue</option>' : '<option>Solicitado</option>';
-}
-
 function cancelarEdicao() { editId = null; document.querySelectorAll('button[id^="btn-save-"]').forEach(b => b.innerText = "Gravar"); document.querySelectorAll('input, textarea').forEach(i => i.value = ""); }
-function eliminar(mod, id) { if(confirm("Eliminar da Nuvem?")) rtdb.ref(`${mod}/${id}`).remove(); }
+function eliminar(mod, id) { if(confirm("Eliminar?")) rtdb.ref(`${mod}/${id}`).remove(); }
 function logout() { location.reload(); }
 function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
 function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = "none"); currentRef = null; }
 function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
-
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); }
 </script>
 </body>
 </html>
