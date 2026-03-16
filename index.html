@@ -2,36 +2,36 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v10.5 - FIX EDITION</title>
+    <title>ROFREICRC v10.6 - TOTAL FIX</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { --primary: #1e3a5f; --secondary: #2c5282; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --light: #f8f9fa; --dark: #343a40; }
-        body{font-family:'Segoe UI', sans-serif; margin:0; background:#f0f2f5;}
-        header{background: var(--primary); color:white; padding:20px; text-align:center; font-weight:bold;}
+        body{font-family:'Segoe UI', Tahoma, sans-serif; margin:0; background:#f0f2f5; color:#333;}
+        header{background: var(--primary); color:white; padding:20px; text-align:center; font-size:22px; font-weight:bold;}
         .container{padding:20px; max-width: 1100px; margin: auto;}
         .menu{margin-bottom:20px; display:flex; flex-wrap:wrap; gap:8px;}
-        .menu button{padding:12px; background: var(--primary); color:white; border:none; cursor:pointer; flex:1; border-radius:5px;}
+        .menu button{padding:12px; background: var(--primary); color:white; border:none; cursor:pointer; flex:1; border-radius:5px; font-weight: bold;}
         .sec{background:white; padding:25px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; display:none;}
         .card{background:#fff; padding:15px; margin-bottom:15px; border-radius:8px; border-left:6px solid var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); position: relative;}
         input, select, textarea { width:100%; padding:12px; margin:8px 0 16px 0; border:1px solid #ccc; border-radius:5px; box-sizing: border-box; }
         .btn-main{ background: var(--success); color:white; border:none; padding:15px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold; }
-        .btn-group { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
-        .btn-group button { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; font-size: 11px;}
+        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
+        .btn-group button { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
         .btn-edit { background: var(--warning); color: black !important; }
         .btn-hist { background: #17a2b8; }
         .btn-del { background: var(--danger); }
         .btn-note { background: #6f42c1; }
         .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); }
-        .modal-content { background:white; margin:5% auto; padding:25px; width:90%; max-width:600px; border-radius:12px; }
+        .modal-content { background:white; margin:5% auto; padding:25px; width:90%; max-width:600px; border-radius:12px; max-height: 80vh; overflow-y: auto;}
         #toast { display:none; position:fixed; top:20px; right:20px; background:var(--success); color:white; padding:15px 25px; border-radius:8px; z-index:2000; font-weight:bold; }
     </style>
 </head>
 <body onload="syncCloud()">
 
-<div id="toast">Gravado com sucesso! ✅</div>
-<header>ROFREICRC CLOUD - V10.5 BASE</header>
+<div id="toast">Sincronizado! ✅</div>
+<header>ROFREICRC CLOUD v10.6</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -43,72 +43,71 @@
 
     <div id="app" style="display:none">
         <div class="menu">
-            <button onclick="show('obras')">🏗️</button>
-            <button onclick="show('obs')">📝</button>
-            <button onclick="show('ped')">🛒</button>
-            <button onclick="show('tar')">✅</button>
-            <button id="menu-notif" onclick="show('notif_center')" style="background:var(--secondary); position:relative;">
+            <button onclick="show('obras')">🏗️ Obras</button>
+            <button onclick="show('obs')">📝 Obs</button>
+            <button onclick="show('notif_center')" style="background:var(--secondary); position:relative;">
                 🔔 <span id="notif-count" style="background:red; color:white; border-radius:50%; padding:2px 6px; font-size:10px; position:absolute; top:2px; right:2px; display:none;">0</span>
             </button>
-            <button id="menu-admin" onclick="show('users_admin')" style="display:none; background:var(--dark)">👥</button>
-            <button onclick="logout()" style="background:var(--danger)">✖</button>
+            <button id="menu-admin" onclick="show('users_admin')" style="display:none; background:var(--dark)">👥 Users</button>
+            <button onclick="logout()" style="background:var(--danger)">✖ Sair</button>
         </div>
 
         <div id="obras" class="sec">
-            <h2>🏗️ Obras</h2>
+            <h2>🏗️ Gestão de Obras</h2>
             <div id="form-obra-admin" style="display:none">
-                <input id="obra_num" placeholder="Nº Obra">
-                <input id="obra_nome" placeholder="Nome">
-                <select id="obra_estado_input"><option>Em execução</option><option>Sem efeito</option><option>Finalizada</option></select>
+                <input id="obra_num" placeholder="Nº da Obra">
+                <input id="obra_nome" placeholder="Nome da Obra">
+                <select id="obra_estado_input">
+                    <option>Em execução</option>
+                    <option>Finalizada</option>
+                    <option>Sem efeito</option>
+                </select>
                 <button class="btn-main" id="btn-save-obras" onclick="guardarRegistro('obras')">Gravar Obra</button>
             </div>
-            <div id="lista_obras" style="margin-top:15px"></div>
+            <div id="lista_obras" style="margin-top:20px"></div>
         </div>
 
         <div id="obs" class="sec">
             <h2>📝 Observações</h2>
             <select id="obs_obra"></select>
-            <textarea id="obs_desc" placeholder="Detalhes"></textarea>
+            <textarea id="obs_desc" placeholder="Descreva a situação..."></textarea>
             <select id="obs_estado"><option>Por Resolver</option><option>Resolvido</option></select>
-            <button class="btn-main" id="btn-save-obs" onclick="guardarRegistro('obs')">Gravar</button>
-            <div id="lista_obs" style="margin-top:15px"></div>
+            <button class="btn-main" id="btn-save-obs" onclick="guardarRegistro('obs')">Gravar Observação</button>
+            <div id="lista_obs" style="margin-top:20px"></div>
         </div>
 
         <div id="users_admin" class="sec">
-            <h2>👥 Utilizadores</h2>
-            <input id="u_name" placeholder="Utilizador">
-            <input id="u_pass" placeholder="Password">
+            <h2>👥 Gestão de Utilizadores</h2>
+            <input id="u_name" placeholder="Nome de Utilizador">
+            <input id="u_pass" placeholder="Palavra-passe">
             <select id="u_role"><option>Operacional</option><option>Administrador</option></select>
             <select id="u_status"><option>Ativo</option><option>Suspenso</option></select>
-            <button class="btn-main" onclick="guardarUsuario()">Gravar User</button>
-            <div id="lista_users" style="margin-top:15px"></div>
+            <button class="btn-main" onclick="guardarUsuario()">Criar/Atualizar Utilizador</button>
+            <div id="lista_users" style="margin-top:20px"></div>
         </div>
 
         <div id="notif_center" class="sec">
-            <h2>🔔 Notificações Recentes</h2>
+            <h2>🔔 Notificações</h2>
             <div id="lista_notificaciones"></div>
         </div>
-
-        <div id="ped" class="sec"><h2>🛒 Pedidos</h2><select id="ped_obra"></select><input id="ped_mat" placeholder="Material"><button class="btn-main" onclick="guardarRegistro('ped')">Pedir</button><div id="lista_ped"></div></div>
-        <div id="tar" class="sec"><h2>✅ Tarefas</h2><select id="tar_obra"></select><input id="tar_tit" placeholder="Tarefa"><button class="btn-main" onclick="guardarRegistro('tar')">Atribuir</button><div id="lista_tar"></div></div>
     </div>
 </div>
 
 <div id="modal-notas" class="modal">
     <div class="modal-content">
         <h3>💬 Notas Internas</h3>
-        <div id="lista-notas-content" style="max-height:200px; overflow-y:auto; margin-bottom:10px; border:1px solid #eee; padding:10px;"></div>
-        <textarea id="nota-texto" placeholder="Escrever nota..."></textarea>
+        <div id="lista-notas-content" style="margin-bottom:15px; border:1px solid #eee; padding:10px; border-radius:5px;"></div>
+        <textarea id="nota-texto" placeholder="Escreva uma nota..."></textarea>
         <button class="btn-main" onclick="addNota()">Adicionar Nota</button>
-        <button onclick="closeModals()" style="width:100%; margin-top:5px">Fechar</button>
+        <button onclick="closeModals()" style="width:100%; margin-top:10px; border:none; padding:10px;">Fechar</button>
     </div>
 </div>
 
 <div id="modal-hist" class="modal">
     <div class="modal-content">
         <h3>📜 Histórico de Alterações</h3>
-        <div id="lista-hist-content" style="max-height:300px; overflow-y:auto;"></div>
-        <button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button>
+        <div id="lista-hist-content"></div>
+        <button onclick="closeModals()" style="width:100%; margin-top:10px; border:none; padding:10px;">Fechar</button>
     </div>
 </div>
 
@@ -126,20 +125,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const rtdb = firebase.database();
 
-let db = { obras: [], obs: [], ped: [], tar: [], users: [], notifications: [], notas: {}, historial: {} };
+let db = { obras: [], obs: [], users: [], notifications: [], notas: {}, historial: {} };
 let currentUser = null, editId = null, currentRef = null;
 
 function syncCloud() {
-    rtdb.ref('/').on('value', (snap) => {
-        const data = snap.val() || {};
+    rtdb.ref('/').on('value', (snapshot) => {
+        const data = snapshot.val() || {};
         db.obras = data.obras ? Object.values(data.obras) : [];
         db.obs = data.obs ? Object.values(data.obs) : [];
-        db.ped = data.ped ? Object.values(data.ped) : [];
-        db.tar = data.tar ? Object.values(data.tar) : [];
         db.users = data.users ? Object.values(data.users) : [];
+        db.notifications = data.notifications ? Object.entries(data.notifications).map(([id, val]) => ({id, ...val})).reverse() : [];
         db.notas = data.notas || {};
         db.historial = data.historial || {};
-        db.notifications = data.notifications ? Object.entries(data.notifications).map(([id, val])=>({id, ...val})).reverse() : [];
         
         renderAll();
         updateSelects();
@@ -151,6 +148,7 @@ function login() {
     const u = document.getElementById("user").value.trim();
     const p = document.getElementById("pass").value.trim();
     
+    // Login Hardcoded Admin
     if(u === "admin" && p === "123") {
         currentUser = {u: "admin", role: "Administrador", status: "Ativo"};
     } else {
@@ -158,191 +156,210 @@ function login() {
     }
 
     if(currentUser && currentUser.status === "Ativo") {
-        document.getElementById("login").style.display="none";
-        document.getElementById("app").style.display="block";
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
         if(currentUser.role === "Administrador") {
-            document.getElementById("form-obra-admin").style.display="block";
-            document.getElementById("menu-admin").style.display="block";
+            document.getElementById("form-obra-admin").style.display = "block";
+            document.getElementById("menu-admin").style.display = "block";
         }
-    } else { alert("Acesso negado."); }
+    } else { alert("Acesso inválido ou conta suspensa."); }
 }
 
-// --- SISTEMA DE GRAVAÇÃO COM HISTÓRICO E NOTIFICAÇÃO ---
+// --- GRAVAÇÃO REFORÇADA (NOTIFICAÇÕES E HISTÓRICO) ---
 function guardarRegistro(modulo) {
     const id = editId || Date.now().toString();
     const isEdit = !!editId;
     let newData = { id };
-    let infoAlterada = "";
+    let textoHistorial = "";
 
     if(modulo === 'obras') {
-        newData.num = document.getElementById("obra_num").value;
-        newData.nome = document.getElementById("obra_nome").value;
-        newData.estado = document.getElementById("obra_estado_input").value;
-        infoAlterada = `Obra: ${newData.num} - ${newData.estado}`;
-    } else {
-        const oId = document.getElementById(`${modulo}_obra`).value;
-        const obraObj = db.obras.find(x => x.id === oId);
-        if(!obraObj && !isEdit) return alert("Selecione Obra");
+        const num = document.getElementById("obra_num").value;
+        const nome = document.getElementById("obra_nome").value;
+        const est = document.getElementById("obra_estado_input").value;
+        if(!num || !nome) return alert("Preencha os campos!");
         
-        newData.obraId = obraObj ? obraObj.id : db[modulo].find(x=>x.id==id).obraId;
-        newData.obraNum = obraObj ? obraObj.num : db[modulo].find(x=>x.id==id).obraNum;
-
-        if(modulo === 'obs') {
-            newData.desc = document.getElementById("obs_desc").value;
-            newData.estado = document.getElementById("obs_estado").value;
-            infoAlterada = `Obs em Obra ${newData.obraNum}: ${newData.desc.substring(0,20)}... (${newData.estado})`;
-        }
-        // ... repetir lógica para ped e tar
+        newData = { id, num, nome, estado: est };
+        textoHistorial = isEdit ? `Alterou Obra ${num} para ${est}` : `Criou Obra ${num} - ${nome}`;
+    } 
+    else if(modulo === 'obs') {
+        const oId = document.getElementById("obs_obra").value;
+        const desc = document.getElementById("obs_desc").value;
+        const est = document.getElementById("obs_estado").value;
+        const obraObj = db.obras.find(x => x.id === oId);
+        
+        if(!obraObj && !isEdit) return alert("Selecione uma obra!");
+        
+        // Se for edição, mantém dados da obra se não houver novos
+        const old = db.obs.find(x => x.id === id) || {};
+        newData = {
+            id,
+            obraId: obraObj ? obraObj.id : old.obraId,
+            obraNum: obraObj ? obraObj.num : old.obraNum,
+            desc: desc,
+            estado: est
+        };
+        textoHistorial = `${isEdit ? 'Editou' : 'Criou'} Obs na Obra ${newData.obraNum}: ${desc.substring(0,20)}...`;
     }
 
-    // 1. Gravar Dados Principais
+    // Gravação Atómica
     rtdb.ref(`${modulo}/${id}`).set(newData).then(() => {
-        // 2. Gravar Histórico (O que foi alterado)
-        const log = {
+        // Gravar Histórico de Alteração Real
+        rtdb.ref(`historial/${id}`).push({
             quem: currentUser.u,
-            quando: new Date().toLocaleString(),
-            detalles: isEdit ? `EDITOU: ${infoAlterada}` : `CRIOU: ${infoAlterada}`
-        };
-        rtdb.ref(`historial/${id}`).push(log);
+            quando: new Date().toLocaleString('pt-PT'),
+            info: textoHistorial
+        });
 
-        // 3. Criar Notificação Cloud
-        const notif = {
+        // Gravar Notificação para o Sino
+        rtdb.ref(`notifications`).push({
             user: currentUser.u,
-            msg: isEdit ? `alterou dados em ${modulo}` : `criou novo registo em ${modulo}`,
-            time: Date.now(),
-            read: false
-        };
-        rtdb.ref(`notifications`).push(notif);
+            msg: textoHistorial,
+            time: Date.now()
+        });
 
         cancelarEdicao();
         showToast();
-    });
+    }).catch(e => alert("Erro ao gravar: " + e));
 }
 
-function guardarUsuario() {
-    const u = document.getElementById("u_name").value.trim();
-    const p = document.getElementById("u_pass").value.trim();
-    if(!u || !p) return;
-    
-    rtdb.ref(`users/${u}`).set({
-        u, p, 
-        role: document.getElementById("u_role").value,
-        status: document.getElementById("u_status").value
-    }).then(() => { 
-        showToast();
-        document.getElementById("u_name").value="";
-        document.getElementById("u_pass").value="";
-    });
-}
-
-// --- NOTAS ---
-function openNotas(id) {
-    currentRef = id;
-    document.getElementById("modal-notas").style.display="block";
-    renderNotas();
-}
-
+// --- NOTAS (CORREÇÃO DE ARMAZENAMENTO) ---
 function addNota() {
     const txt = document.getElementById("nota-texto").value.trim();
-    if(!txt) return;
-    rtdb.ref(`notas/${currentRef}`).push({
+    if(!txt || !currentRef) return;
+
+    const novaNota = {
         u: currentUser.u,
         t: txt,
-        d: new Date().toLocaleString()
-    }).then(() => { document.getElementById("nota-texto").value=""; });
+        d: new Date().toLocaleString('pt-PT')
+    };
+
+    rtdb.ref(`notas/${currentRef}`).push(novaNota).then(() => {
+        document.getElementById("nota-texto").value = "";
+        // Notificar também sobre a nota
+        rtdb.ref(`notifications`).push({
+            user: currentUser.u,
+            msg: `Adicionou nota ao registo ${currentRef}`,
+            time: Date.now()
+        });
+    });
 }
 
-function renderNotas() {
-    const notasObj = db.notas[currentRef] || {};
+function openNotas(id) {
+    currentRef = id;
+    document.getElementById("modal-notas").style.display = "block";
+    const notasObj = db.notas[id] || {};
     const lista = Object.values(notasObj);
     document.getElementById("lista-notas-content").innerHTML = lista.map(n => `
-        <div style="font-size:12px; border-bottom:1px solid #eee; padding:5px;">
-            <b>${n.u}:</b> ${n.t} <br><small>${n.d}</small>
+        <div style="font-size:12px; border-bottom:1px solid #eee; padding:8px; background:#f9f9f9; margin-bottom:5px;">
+            <b>${n.u}</b> (${n.d}):<br>${n.t}
         </div>
-    `).join("") || "Sem notas.";
+    `).join("") || "Sem notas ainda.";
 }
 
 // --- HISTÓRICO ---
 function openHistorial(id) {
+    document.getElementById("modal-hist").style.display = "block";
     const logs = db.historial[id] ? Object.values(db.historial[id]) : [];
-    document.getElementById("modal-hist").style.display="block";
     document.getElementById("lista-hist-content").innerHTML = logs.reverse().map(l => `
-        <div style="padding:8px; border-bottom:1px solid #eee; font-size:12px;">
-            <b>${l.quando}</b> - ${l.quem}<br>${l.detalles}
+        <div style="padding:10px; border-bottom:1px solid #eee; font-size:12px;">
+            <span style="color:var(--secondary); font-weight:bold;">${l.quando}</span> - <b>${l.quem}</b><br>${l.info}
         </div>
-    `).join("") || "Sem histórico.";
+    `).join("") || "Nenhum histórico disponível.";
 }
 
-// --- RENDERIZAÇÃO ---
+// --- UTILIZADORES (FIX ADMIN VISIBILITY) ---
+function guardarUsuario() {
+    const u = document.getElementById("u_name").value.trim();
+    const p = document.getElementById("u_pass").value.trim();
+    if(!u || !p) return alert("Preencha utilizador e pass!");
+
+    rtdb.ref(`users/${u}`).set({
+        u, p,
+        role: document.getElementById("u_role").value,
+        status: document.getElementById("u_status").value
+    }).then(() => {
+        showToast();
+        document.getElementById("u_name").value = "";
+        document.getElementById("u_pass").value = "";
+    });
+}
+
+// --- RENDERIZAÇÃO GERAL ---
 function renderAll() {
-    // Render Obras
+    // Lista Obras
     document.getElementById("lista_obras").innerHTML = db.obras.map(o => `
         <div class="card">
-            <b>${o.num} - ${o.nome}</b> (${o.estado})
+            <b>${o.num} - ${o.nome}</b> [${o.estado}]
             <div class="btn-group">
                 <button class="btn-note" onclick="openNotas('${o.id}')">💬</button>
                 <button class="btn-hist" onclick="openHistorial('${o.id}')">📜</button>
-                ${currentUser.role==='Administrador' ? `<button class="btn-edit" onclick="prepararEdicao('obras','${o.id}')">✏️</button><button class="btn-del" onclick="eliminar('obras','${o.id}')">❌</button>`:''}
+                ${currentUser.role === 'Administrador' ? `<button class="btn-edit" onclick="prepararEdicao('obras','${o.id}')">✏️</button>` : ''}
             </div>
         </div>
     `).join("");
 
-    // Render Users (Incluindo Admin se ele estiver no DB, senão mostramos manual)
-    let userHtml = db.users.map(u => `
-        <div class="card" style="border-left-color:${u.status==='Ativo'?'green':'red'}">
-            <b>${u.u}</b> [${u.role}] - ${u.status}
-            <button class="btn-del" onclick="rtdb.ref('users/${u.u}').remove()" style="float:right">❌</button>
+    // Lista Obs
+    document.getElementById("lista_obs").innerHTML = db.obs.map(o => `
+        <div class="card">
+            <b>Obra ${o.obraNum}</b> - ${o.estado}<br>${o.desc}
+            <div class="btn-group">
+                <button class="btn-note" onclick="openNotas('${o.id}')">💬</button>
+                <button class="btn-hist" onclick="openHistorial('${o.id}')">📜</button>
+            </div>
         </div>
     `).join("");
-    // Forçar aparecimento do admin para gestão
-    if(!db.users.find(x=>x.u==='admin')) {
-        userHtml += `<div class="card" style="border-left-color:blue"><b>admin</b> [Mestre] - Sistema</div>`;
+
+    // Lista Users (Garante que o admin aparece)
+    let userList = [...db.users];
+    if(!userList.find(x => x.u === 'admin')) {
+        userList.push({u: 'admin', role: 'Mestre', status: 'Ativo (Sistema)'});
     }
-    document.getElementById("lista_users").innerHTML = userHtml;
 
-    // Render Notificações
-    document.getElementById("lista_notificaciones").innerHTML = db.notifications.slice(0,10).map(n => `
-        <div class="card" style="font-size:13px; border-left-color:var(--secondary)">
-            <b>${n.user}</b> ${n.msg} <br><small>${new Date(n.time).toLocaleString()}</small>
+    document.getElementById("lista_users").innerHTML = userList.map(u => `
+        <div class="card" style="border-left-color: ${u.u === 'admin' ? 'blue' : (u.status === 'Ativo' ? 'green' : 'red')}">
+            <b>${u.u}</b> - ${u.role} (${u.status})
+            ${u.u !== 'admin' ? `<button class="btn-del" onclick="eliminar('users','${u.u}')" style="float:right; border:none; background:none; cursor:pointer;">❌</button>` : ''}
         </div>
     `).join("");
-}
 
-function updateSelects() {
-    const opt = '<option value="">Selecionar Obra...</option>' + db.obras.map(o => `<option value="${o.id}">${o.num}</option>`).join("");
-    ['obs_obra','ped_obra','tar_obra'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.innerHTML = opt;
-    });
+    // Lista Notificações
+    document.getElementById("lista_notificaciones").innerHTML = db.notifications.slice(0,15).map(n => `
+        <div class="card" style="font-size:12px; border-left-color:var(--secondary)">
+            <b>${n.user}</b>: ${n.msg}<br><small>${new Date(n.time).toLocaleString()}</small>
+        </div>
+    `).join("");
 }
 
 function updateNotifBadge() {
-    const count = db.notifications.length;
     const el = document.getElementById("notif-count");
-    el.innerText = count;
-    el.style.display = count > 0 ? "block" : "none";
+    el.innerText = db.notifications.length;
+    el.style.display = db.notifications.length > 0 ? "block" : "none";
+}
+
+function updateSelects() {
+    const opt = '<option value="">Escolher Obra...</option>' + db.obras.map(o => `<option value="${o.id}">${o.num}</option>`).join("");
+    if(document.getElementById("obs_obra")) document.getElementById("obs_obra").innerHTML = opt;
 }
 
 function prepararEdicao(mod, id) {
     editId = id;
-    const item = db[mod].find(x => x.id == id);
-    if(mod==='obras'){
+    const item = (mod === 'obras') ? db.obras.find(x => x.id === id) : db.obs.find(x => x.id === id);
+    if(mod === 'obras') {
         document.getElementById("obra_num").value = item.num;
         document.getElementById("obra_nome").value = item.nome;
+        document.getElementById("obra_estado_input").value = item.estado;
     }
-    show(mod);
 }
 
-function eliminar(mod, id) {
-    if(confirm("Apagar permanentemente?")) rtdb.ref(`${mod}/${id}`).remove();
+function eliminar(path, id) {
+    if(confirm("Deseja eliminar este registo?")) rtdb.ref(`${path}/${id}`).remove();
 }
 
-function cancelarEdicao() { editId = null; document.querySelectorAll('input, textarea').forEach(i=>i.value=""); }
-function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
-function closeModals() { document.querySelectorAll(".modal").forEach(m=>m.style.display="none"); }
-function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+function cancelarEdicao() { editId = null; document.querySelectorAll('input, textarea').forEach(i => i.value = ""); }
+function show(id) { document.querySelectorAll(".sec").forEach(s => s.style.display="none"); document.getElementById(id).style.display="block"; }
+function closeModals() { document.querySelectorAll(".modal").forEach(m => m.style.display="none"); currentRef = null; }
+function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(() => t.style.display="none", 2000); }
 function logout() { location.reload(); }
-
 </script>
 </body>
 </html>
