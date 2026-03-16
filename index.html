@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v10.9 - FULL FILTERS EDITION</title>
+    <title>ROFREICRC v11.0 - SMART SELECTOR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -14,10 +14,8 @@
         .menu{margin-bottom:20px; display:flex; flex-wrap:wrap; gap:5px;}
         .menu button{padding:12px; background: var(--primary); color:white; border:none; cursor:pointer; flex:1; border-radius:5px; font-weight: bold;}
         .sec{background:white; padding:20px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; display:none;}
-        /* Filtros */
         .filter-box { background: #e9ecef; padding: 12px; border-radius: 8px; margin: 10px 0 15px 0; display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid #dee2e6; }
         .filter-box input, .filter-box select { flex: 1; min-width: 130px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;}
-        
         .card{background:#fff; padding:15px; margin-bottom:12px; border-radius:8px; border-left:6px solid var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05);}
         input, select, textarea { width:100%; padding:12px; margin:5px 0 12px 0; border:1px solid #ccc; border-radius:5px; box-sizing: border-box; }
         .btn-main{ background: var(--success); color:white; border:none; padding:15px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold; }
@@ -36,7 +34,7 @@
 <body onload="syncCloud()">
 
 <div id="toast">Operação concluída! ✅</div>
-<header>ROFREICRC v10.9 - SISTEMA GESTÃO</header>
+<header>ROFREICRC v11.0 - CLOUD SYNC</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -180,7 +178,7 @@ function login() {
             document.getElementById("form-obra-admin").style.display="block";
             document.getElementById("menu-admin").style.display="block";
         }
-    } else { alert("Acesso Negado ou Conta suspensa."); }
+    } else { alert("Acesso Negado."); }
 }
 
 function guardarRegistro(mod) {
@@ -225,23 +223,18 @@ function guardarRegistro(mod) {
 }
 
 function renderAll() {
-    // FILTROS OBRAS
     const oN = document.getElementById("f_o_num").value.toLowerCase(), oM = document.getElementById("f_o_nom").value.toLowerCase(), oE = document.getElementById("f_o_est").value;
     renderModulo('obras', 'lista_obras', o => `<b>${o.num} - ${o.nome}</b><br><small>${o.estado}</small>`, o => (!oE || o.estado==oE) && o.num.toLowerCase().includes(oN) && o.nome.toLowerCase().includes(oM));
 
-    // FILTROS OBS
     const obN = document.getElementById("f_obs_num").value.toLowerCase(), obE = document.getElementById("f_obs_est").value;
     renderModulo('obs', 'lista_obs', o => `<b>Obra ${o.obraNum}</b>: ${o.desc}<br><small>${o.estado}</small>`, o => (!obE || o.estado==obE) && o.obraNum.toLowerCase().includes(obN));
 
-    // FILTROS PEDIDOS
     const pN = document.getElementById("f_ped_num").value.toLowerCase(), pE = document.getElementById("f_ped_est").value;
     renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum}</b>: ${o.mat} (${o.qtd})<br><small>${o.estado}</small>`, o => (!pE || o.estado==pE) && o.obraNum.toLowerCase().includes(pN));
 
-    // FILTROS TAREFAS
     const tN = document.getElementById("f_tar_num").value.toLowerCase(), tE = document.getElementById("f_tar_est").value;
     renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum}</b>: ${o.tit} <br><small>Para: ${o.para} | ${o.estado}</small>`, o => (!tE || o.estado==tE) && o.obraNum.toLowerCase().includes(tN));
 
-    // USERS (Admin Check)
     let uList = [...db.users]; if(!uList.find(x=>x.u==='admin')) uList.push({u:'admin', role:'Administrador', status:'Ativo'});
     document.getElementById("lista_users").innerHTML = uList.map(u => `<div class="card" style="border-left-color:${u.u==='admin'?'blue':'green'}"><b>${u.u}</b> [${u.role}] - ${u.status}<div class="btn-group"><button class="btn-edit" onclick="prepararEdicao('users','${u.u}')">✏️</button>${u.u!=='admin'?'<button class="btn-del" onclick="eliminar(\'users\', \''+u.u+'\')">❌</button>':''}</div></div>`).join("");
 
@@ -299,9 +292,19 @@ function guardarUsuario() {
     rtdb.ref(`users/${u}`).set({ u, p: document.getElementById("u_pass").value, role: document.getElementById("u_role").value, status: document.getElementById("u_status").value }).then(()=>cancelarEdicao());
 }
 
+// --- ACTUALIZACIÓN DE SELECTORES SMART ---
 function updateSelects() {
-    const opt = '<option value="">Obra...</option>' + db.obras.map(o => `<option value="${o.id}">${o.num}</option>`).join("");
-    ['obs_obra','ped_obra','tar_obra'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
+    // Filtrar solo obras activas (Em execução)
+    const activeObras = db.obras.filter(o => o.estado === 'Em execução');
+    
+    // Crear las opciones (Número - Nombre para mejor claridad)
+    const opt = '<option value="">Selecionar Obra Ativa...</option>' + activeObras.map(o => `<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
+    
+    // Aplicar a todos los módulos dependientes
+    ['obs_obra','ped_obra','tar_obra'].forEach(id => { 
+        if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; 
+    });
+    
     if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
 }
 
