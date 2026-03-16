@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v12.4 - MASTER SYSTEM</title>
+    <title>ROFREICRC v13.0 - MASTER COMPLETE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -25,14 +25,16 @@
         .btn-edit { background: var(--warning); color: black !important; }
         .btn-del { background: var(--danger); }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
-        .status-void { background: #6c757d; } /* Color para Sem Efeito */
+        .status-void { background: #6c757d !important; }
+        .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); }
+        .modal-content { background:white; margin:5% auto; padding:20px; width:90%; max-width:600px; border-radius:10px; max-height: 80vh; overflow-y: auto; }
         #toast { display:none; position:fixed; top:20px; right:20px; background:var(--success); color:white; padding:12px 20px; border-radius:8px; z-index:2000; font-weight:bold; }
     </style>
 </head>
 <body onload="syncCloud()">
 
 <div id="toast">Operação concluída! ✅</div>
-<header>ROFREICRC v12.4 - GESTÃO TOTAL</header>
+<header>ROFREICRC v13.0 - SISTEMA INTEGRAL</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -55,87 +57,82 @@
         </div>
 
         <div id="obras" class="sec">
-            <h2>🏗️ Obras</h2>
+            <h2 id="title-obras">🏗️ Gestão de Obras</h2>
             <div id="form-obra-admin" style="display:none">
-                <input id="obra_num" placeholder="Nº Obra">
+                <input id="obra_num" placeholder="Nº da Obra">
                 <input id="obra_nome" placeholder="Nome da Obra">
-                <select id="obra_estado"><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
+                <select id="obra_est_input"><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
                 <button class="btn-main" onclick="guardarRegistro('obras')">Gravar Obra</button>
             </div>
             <div class="filter-box">
-                <input id="f_o_num" placeholder="Nº..." oninput="renderAll()">
-                <input id="f_o_nom" placeholder="Nome..." oninput="renderAll()">
-                <select id="f_o_est" onchange="renderAll()"><option value="">Estado (Todos)</option><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
+                <input id="f_o_num" placeholder="Filtrar Nº..." oninput="renderAll()">
+                <input id="f_o_nom" placeholder="Filtrar Nome..." oninput="renderAll()">
+                <select id="f_o_est" onchange="renderAll()"><option value="">Todos os Estados</option><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_obras"></div>
         </div>
 
         <div id="hrs" class="sec">
-            <h2>🕒 Horas</h2>
+            <h2 id="title-hrs">🕒 Registo de Horas</h2>
             <div id="form-horas">
                 <input type="date" id="hrs_data">
-                <select id="hrs_obra"></select>
+                <select id="hrs_obra_sel"></select>
                 <div style="display:flex; gap:10px;">
-                    <div style="flex:1"><input type="time" id="hrs_ini"></div>
-                    <div style="flex:1"><input type="time" id="hrs_fim"></div>
+                    <div style="flex:1"><label>Início:</label><input type="time" id="hrs_ini"></div>
+                    <div style="flex:1"><label>Fim:</label><input type="time" id="hrs_fim"></div>
                 </div>
-                <textarea id="hrs_txt" placeholder="Tarefas..."></textarea>
-                <div id="admin-hrs-status" style="display:none; background:#eee; padding:10px; border-radius:5px; margin-bottom:10px;">
+                <textarea id="hrs_tarefas" placeholder="O que foi feito?"></textarea>
+                <div id="admin-hrs-area" style="display:none; background:#eee; padding:10px; border-radius:5px; margin-bottom:10px;">
+                    <label>Estado Aprovação:</label>
                     <select id="hrs_est_admin"><option>Por aprobar</option><option>Aprovado</option><option>Solicita alteração</option><option>Sem efeito</option></select>
                 </div>
-                <button class="btn-main" onclick="guardarHoras()">Adicionar</button>
+                <button class="btn-main" onclick="guardarHoras()">Adicionar Intervenção</button>
             </div>
             <div class="filter-box">
-                <select id="f_hrs_mes" onchange="renderAll()">
-                    <option value="">Mês (Todos)</option>
-                    <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option>
-                    <option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option>
-                    <option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option>
-                    <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
-                </select>
+                <select id="f_hrs_mes" onchange="renderAll()"><option value="">Mês (Todos)</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
                 <select id="f_hrs_ano" onchange="renderAll()"><option value="">Ano (Todos)</option></select>
-                <input id="f_hrs_user" placeholder="User..." oninput="renderAll()">
+                <input id="f_hrs_user" placeholder="Trabalhador..." oninput="renderAll()">
                 <select id="f_hrs_est" onchange="renderAll()"><option value="">Estado</option><option>Por aprobar</option><option>Aprovado</option><option>Solicita alteração</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_horas"></div>
         </div>
 
         <div id="obs" class="sec">
-            <h2>📝 Observações</h2>
-            <select id="obs_obra"></select>
-            <textarea id="obs_desc" placeholder="Detalhes..."></textarea>
-            <select id="obs_est"><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar</button>
+            <h2 id="title-obs">📝 Observações</h2>
+            <select id="obs_obra_sel"></select>
+            <textarea id="obs_desc" placeholder="Descreva a situação..."></textarea>
+            <select id="obs_est_input"><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
+            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar Observação</button>
             <div class="filter-box">
-                <input id="f_obs_txt" placeholder="Pesquisar..." oninput="renderAll()">
+                <input id="f_obs_txt" placeholder="Pesquisar texto..." oninput="renderAll()">
                 <select id="f_obs_est" onchange="renderAll()"><option value="">Estado</option><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_obs"></div>
         </div>
 
         <div id="ped" class="sec">
-            <h2>🛒 Pedidos</h2>
-            <select id="ped_obra"></select>
+            <h2 id="title-ped">🛒 Pedidos de Material</h2>
+            <select id="ped_obra_sel"></select>
             <input id="ped_mat" placeholder="Material">
             <input id="ped_qtd" placeholder="Quantidade">
             <input id="ped_enc" placeholder="Nº Nota Encomenda">
-            <input id="ped_guia" placeholder="Nº Guia">
-            <select id="ped_est"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('ped')">Gravar</button>
+            <input id="ped_guia" placeholder="Nº Guia (se entregue)">
+            <select id="ped_est_input"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
+            <button class="btn-main" onclick="guardarRegistro('ped')">Gravar Pedido</button>
             <div class="filter-box">
-                <input id="f_ped_txt" placeholder="Material/Obra..." oninput="renderAll()">
+                <input id="f_ped_txt" placeholder="Material/Nota..." oninput="renderAll()">
                 <select id="f_ped_est" onchange="renderAll()"><option value="">Estado</option><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
             </div>
             <div id="lista_ped"></div>
         </div>
 
         <div id="tar" class="sec">
-            <h2>✅ Tarefas</h2>
-            <select id="tar_obra"></select>
-            <input id="tar_tit" placeholder="Título">
-            <select id="tar_para" multiple></select>
-            <select id="tar_est"><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('tar')">Gravar</button>
+            <h2 id="title-tar">✅ Tarefas</h2>
+            <select id="tar_obra_sel"></select>
+            <input id="tar_tit" placeholder="Título da tarefa">
+            <select id="tar_para_sel" multiple></select>
+            <select id="tar_est_input"><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
+            <button class="btn-main" onclick="guardarRegistro('tar')">Gravar Tarefa</button>
             <div class="filter-box">
                 <input id="f_tar_txt" placeholder="Tarefa..." oninput="renderAll()">
                 <select id="f_tar_est" onchange="renderAll()"><option value="">Estado</option><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
@@ -144,22 +141,27 @@
         </div>
 
         <div id="notif" class="sec">
-            <h2>🔔 Notificações</h2>
+            <h2>🔔 Notificações Recentes</h2>
             <div id="lista_notif"></div>
         </div>
 
         <div id="users_admin" class="sec">
-            <h2>👥 Utilizadores</h2>
-            <input id="u_name" placeholder="User"><input id="u_pass" placeholder="Pass">
+            <h2>👥 Gestão de Utilizadores</h2>
+            <input id="u_name" placeholder="Username">
+            <input id="u_pass" placeholder="Password">
             <select id="u_role"><option>Operacional</option><option>Administrador</option></select>
-            <button class="btn-main" onclick="guardarUsuario()">Criar</button>
-            <div class="filter-box"><input id="f_u_txt" placeholder="Filtrar user..." oninput="renderAll()"></div>
+            <button class="btn-main" onclick="guardarUsuario()">Criar / Atualizar Utilizador</button>
+            <div class="filter-box"><input id="f_u_txt" placeholder="Filtrar utilizadores..." oninput="renderAll()"></div>
             <div id="lista_users"></div>
         </div>
     </div>
 </div>
 
+<div id="modal-notas" class="modal"><div class="modal-content"><h3>💬 Notas</h3><div id="lista-notas-content"></div><textarea id="nota-texto" placeholder="Escreva uma nota..."></textarea><button class="btn-main" onclick="addNota()">Adicionar</button><button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button></div></div>
+<div id="modal-hist" class="modal"><div class="modal-content"><h3>📜 Histórico de Alterações</h3><div id="lista-hist-content"></div><button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button></div></div>
+
 <script>
+// CONFIGURAÇÃO FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyCBkWCoWX0oN1HWCA6aGt_kdg_2vyFz1mM",
   authDomain: "rofreicrc-175f9.firebaseapp.com",
@@ -172,9 +174,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const rtdb = firebase.database();
 
-let db = { obras: [], obs: [], ped: [], tar: [], users: [], horas: [], notif: [] };
-let currentUser = null, editId = null, editSubId = null;
+let db = { obras: [], obs: [], ped: [], tar: [], users: [], horas: [], notif: [], notas: {}, historial: {} };
+let currentUser = null, editId = null, currentRef = null, editSubId = null;
 
+// SINCRONIZAÇÃO TOTAL
 function syncCloud() {
     rtdb.ref('/').on('value', (snap) => {
         const d = snap.val() || {};
@@ -185,134 +188,200 @@ function syncCloud() {
         db.users = d.users ? Object.values(d.users) : [];
         db.horas = d.horas ? Object.values(d.horas) : [];
         db.notif = d.notif ? Object.values(d.notif).reverse() : [];
+        db.notas = d.notas || {};
+        db.historial = d.historial || {};
         renderAll();
         updateSelects();
     });
 }
 
+// LOGIN
 function login() {
     const u = document.getElementById("user").value.trim();
     const p = document.getElementById("pass").value.trim();
     if(u === "admin" && p === "23778478") { currentUser = {u: "admin", role: "Administrador"}; }
     else { currentUser = db.users.find(x => x.u === u && x.p === p); }
+    
     if(currentUser) {
         document.getElementById("login").style.display="none";
         document.getElementById("app").style.display="block";
         if(currentUser.role === "Administrador") {
             document.getElementById("form-obra-admin").style.display="block";
             document.getElementById("menu-admin").style.display="block";
-            document.getElementById("admin-hrs-status").style.display="block";
+            document.getElementById("admin-hrs-area").style.display="block";
         }
-    } else alert("Dados incorretos.");
+    } else alert("Acesso Negado.");
 }
 
+// GUARDAR OBRAS / OBS / PEDIDOS / TAREFAS
 function guardarRegistro(mod) {
     const id = editId || Date.now().toString();
-    let data = { id, updated: new Date().toLocaleString() };
+    const isEdit = !!editId;
+    let data = { id, lastUpdate: new Date().toLocaleString(), user: currentUser.u };
 
-    if(mod==='obras'){
-        data.num = document.getElementById("obra_num").value;
-        data.nome = document.getElementById("obra_nome").value;
-        data.estado = document.getElementById("obra_estado").value;
-        if(!data.num || !data.nome) return alert("Erro nos campos!");
+    if (mod === 'obras') {
+        data.num = document.getElementById("obra_num").value.trim();
+        data.nome = document.getElementById("obra_nome").value.trim();
+        data.estado = document.getElementById("obra_est_input").value;
+        if(!data.num || !data.nome) return alert("Nº e Nome são obrigatórios!");
     } else {
-        const oId = document.getElementById(`${mod}_obra`).value;
+        const oId = document.getElementById(`${mod}_obra_sel`).value;
         const obra = db.obras.find(o => o.id === oId);
-        if(!obra) return alert("Selecione obra!");
-        data.obraId = oId; data.obraNum = obra.num;
-        if(mod==='obs'){ data.desc=document.getElementById("obs_desc").value; data.estado=document.getElementById("obs_est").value; }
-        if(mod==='ped'){ 
-            data.mat=document.getElementById("ped_mat").value; data.qtd=document.getElementById("ped_qtd").value; 
-            data.enc=document.getElementById("ped_enc").value; data.guia=document.getElementById("ped_guia").value; data.estado=document.getElementById("ped_est").value;
+        if(!obra) return alert("Selecione uma obra!");
+        data.obraId = oId; data.obraNum = obra.num; data.obraNome = obra.nome;
+
+        if(mod === 'obs') { data.desc = document.getElementById("obs_desc").value; data.estado = document.getElementById("obs_est_input").value; }
+        if(mod === 'ped') {
+            data.mat = document.getElementById("ped_mat").value;
+            data.qtd = document.getElementById("ped_qtd").value;
+            data.enc = document.getElementById("ped_enc").value;
+            data.guia = document.getElementById("ped_guia").value;
+            data.estado = document.getElementById("ped_est_input").value;
         }
-        if(mod==='tar'){ data.tit=document.getElementById("tar_tit").value; data.para=Array.from(document.getElementById("tar_para").selectedOptions).map(o=>o.value); data.estado=document.getElementById("tar_est").value; }
+        if(mod === 'tar') {
+            data.tit = document.getElementById("tar_tit").value;
+            data.para = Array.from(document.getElementById("tar_para_sel").selectedOptions).map(o => o.value);
+            data.estado = document.getElementById("tar_est_input").value;
+        }
     }
 
     rtdb.ref(`${mod}/${id}`).set(data).then(() => {
-        crearNotif(`Modificado/Criado em ${mod}: ID ${id}`);
-        cancelar(); showToast();
+        addHistorial(id, isEdit ? "Editou" : "Criou");
+        addNotif(`Módulo ${mod.toUpperCase()}: ${isEdit?'Edição':'Novo registo'} por ${currentUser.u}`);
+        cancelarEdicao(mod);
+        showToast();
     });
 }
 
+// GUARDAR HORAS
 function guardarHoras() {
-    const d = document.getElementById("hrs_data").value;
-    const oId = document.getElementById("hrs_obra").value;
-    if(!d || !oId) return alert("Falta data ou obra!");
+    const dataH = document.getElementById("hrs_data").value;
+    const oId = document.getElementById("hrs_obra_sel").value;
+    const ini = document.getElementById("hrs_ini").value;
+    const fim = document.getElementById("hrs_fim").value;
+    if(!dataH || !oId || !ini || !fim) return alert("Preencha todos os campos!");
 
-    const regId = editId || `${currentUser.u}_${d.replace(/-/g,'')}`;
-    let reg = db.horas.find(h => h.id === regId) || { id: regId, user: currentUser.u, data: d, estado: "Por aprobar", intervenciones: [] };
+    const regId = editId || `${currentUser.u}_${dataH.replace(/-/g,'')}`;
+    let registro = db.horas.find(h => h.id === regId) || { id: regId, user: currentUser.u, data: dataH, estado: "Por aprobar", intervenciones: [] };
     
     const obra = db.obras.find(o => o.id === oId);
-    const diff = (new Date(`1970-01-01T${document.getElementById("hrs_fim").value}`) - new Date(`1970-01-01T${document.getElementById("hrs_ini").value}`)) / 3600000;
+    const duracao = (new Date(`1970-01-01T${fim}`) - new Date(`1970-01-01T${ini}`)) / 3600000;
     
-    const sub = { 
-        subId: editSubId || Date.now().toString(), obraId: oId, obraNum: obra.num, 
-        ini: document.getElementById("hrs_ini").value, fim: document.getElementById("hrs_fim").value, 
-        txt: document.getElementById("hrs_txt").value, horas: diff 
+    const novaInt = {
+        subId: editSubId || Date.now().toString(),
+        obraId: oId, obraNum: obra.num, obraNome: obra.nome,
+        ini, fim, tareas: document.getElementById("hrs_tarefas").value, horas: duracao
     };
 
-    if(editSubId) { const idx = reg.intervenciones.findIndex(i => i.subId === editSubId); reg.intervenciones[idx] = sub; }
-    else reg.intervenciones.push(sub);
+    if(editSubId) {
+        const idx = registro.intervenciones.findIndex(i => i.subId === editSubId);
+        registro.intervenciones[idx] = novaInt;
+    } else {
+        registro.intervenciones.push(novaInt);
+    }
 
-    if(currentUser.role==='Administrador') reg.estado = document.getElementById("hrs_est_admin").value;
-    rtdb.ref(`horas/${regId}`).set(reg).then(() => { cancelar(); showToast(); });
+    if(currentUser.role === 'Administrador') registro.estado = document.getElementById("hrs_est_admin").value;
+
+    rtdb.ref(`horas/${regId}`).set(registro).then(() => {
+        addNotif(`HORAS: Registo de ${currentUser.u} em ${dataH}`);
+        cancelarEdicao('hrs');
+        showToast();
+    });
 }
 
+// RENDERIZAÇÃO CENTRALIZADA COM FILTROS
 function renderAll() {
-    // OBRAS
-    const foN = document.getElementById("f_o_num").value.toLowerCase();
-    const foM = document.getElementById("f_o_nom").value.toLowerCase();
-    const foE = document.getElementById("f_o_est").value;
-    document.getElementById("lista_obras").innerHTML = db.obras.filter(o => 
-        o.num.toLowerCase().includes(foN) && o.nome.toLowerCase().includes(foM) && (!foE || o.estado === foE)
-    ).map(o => `<div class="card"><b>${o.num} - ${o.nome}</b> <span class="badge ${o.estado==='Sem efeito'?'status-void':''}">${o.estado}</span>
-        <div class="btn-group">${currentUser.role==='Administrador'?`<button class="btn-edit" onclick="prepEdit('obras','${o.id}')">✏️</button><button class="btn-del" onclick="del('obras','${o.id}')">❌</button>`:''}</div></div>`).join("");
+    // 1. OBRAS
+    const fOn = document.getElementById("f_o_num").value.toLowerCase();
+    const fOm = document.getElementById("f_o_nom").value.toLowerCase();
+    const fOe = document.getElementById("f_o_est").value;
+    renderModulo('obras', 'lista_obras', o => `<b>${o.num} - ${o.nome}</b>`, o => 
+        o.num.toLowerCase().includes(fOn) && o.nome.toLowerCase().includes(fOm) && (!fOe || o.estado === fOe)
+    );
 
-    // HORAS
+    // 2. HORAS (COM FILTRO MÊS/ANO)
     const fHm = document.getElementById("f_hrs_mes").value;
     const fHa = document.getElementById("f_hrs_ano").value;
     const fHu = document.getElementById("f_hrs_user").value.toLowerCase();
     const fHe = document.getElementById("f_hrs_est").value;
-    document.getElementById("lista_horas").innerHTML = db.horas.filter(h => {
-        const [y, m] = h.data.split("-");
-        return (!fHm || m === fHm) && (!fHa || y === fHa) && h.user.toLowerCase().includes(fHu) && (!fHe || h.estado === fHe);
-    }).sort((a,b)=>b.data.localeCompare(a.data)).map(h => {
+
+    let hList = db.horas.filter(h => {
+        const [ano, mes] = h.data.split("-");
+        return (!fHm || mes === fHm) && (!fHa || ano === fHa) && 
+               (currentUser.role==='Administrador' ? h.user.toLowerCase().includes(fHu) : h.user === currentUser.u) &&
+               (!fHe || h.estado === fHe);
+    }).sort((a,b) => b.data.localeCompare(a.data));
+
+    document.getElementById("lista_horas").innerHTML = hList.map(h => {
         const total = h.intervenciones.reduce((acc, i) => acc + i.horas, 0);
-        return `<div class="card"><b>📅 ${h.data} - ${h.user}</b> <span class="badge">${h.estado}</span> <b style="float:right">${total.toFixed(2)}h</b>
-            ${h.intervenciones.map(i => `<div class="sub-card"><b>${i.obraNum}</b>: ${i.ini}-${i.fim} (${i.horas.toFixed(2)}h)<br>${i.txt}
-                ${h.estado!=='Aprovado'||currentUser.role==='Administrador'?`<button onclick="prepEditHrs('${h.id}','${i.subId}')">✏️</button>`:''}</div>`).join("")}
+        const lock = h.estado === 'Aprovado' && currentUser.role !== 'Administrador';
+        return `<div class="card">
+            <div style="display:flex; justify-content:space-between"><b>📅 ${h.data} (${h.user})</b> <b style="color:var(--primary)">${total.toFixed(2)}h</b></div>
+            <span class="badge ${h.estado==='Sem efeito'?'status-void':''}" style="background:var(--secondary)">${h.estado}</span>
+            ${h.intervenciones.map(i => `
+                <div class="sub-card">
+                    <b>Obra ${i.obraNum}</b>: ${i.ini} às ${i.fim} (${i.horas.toFixed(2)}h)<br><i>${i.tareas}</i>
+                    ${!lock ? `<div class="btn-group"><button class="btn-edit" onclick="prepEditHrs('${h.id}','${i.subId}')">✏️</button><button class="btn-del" onclick="delSub('${h.id}','${i.subId}')">❌</button></div>`:''}
+                </div>`).join("")}
+            <div class="btn-group">
+                <button style="background:var(--dark)" onclick="openNotas('${h.id}')">💬 Notas</button>
+                <button style="background:var(--info)" onclick="openHistorial('${h.id}')">📜 Hist.</button>
+            </div>
         </div>`;
     }).join("");
 
-    // OBS, PEDIDOS, TAREFAS (Filtros Texto + Estado)
-    renderGen('obs', 'lista_obs', 'f_obs_txt', 'f_obs_est', o => `<b>Obra ${o.obraNum}</b>: ${o.desc}`);
-    renderGen('ped', 'lista_ped', 'f_ped_txt', 'f_ped_est', o => `<b>Obra ${o.obraNum}</b>: ${o.mat} (Enc: ${o.enc||'N/A'})`);
-    renderGen('tar', 'lista_tar', 'f_tar_txt', 'f_tar_est', o => `<b>Obra ${o.obraNum}</b>: ${o.tit}`);
+    // 3. OBSERVAÇÕES
+    const fObsT = document.getElementById("f_obs_txt").value.toLowerCase();
+    const fObsE = document.getElementById("f_obs_est").value;
+    renderModulo('obs', 'lista_obs', o => `<b>${o.obraNum}</b>: ${o.desc}`, o => 
+        (o.desc.toLowerCase().includes(fObsT) || o.obraNum.toLowerCase().includes(fObsT)) && (!fObsE || o.estado === fObsE)
+    );
 
-    // NOTIF
-    document.getElementById("lista_notif").innerHTML = db.notif.slice(0,20).map(n => `<div class="sub-card"><small>${n.date}</small><br>${n.msg}</div>`).join("");
+    // 4. PEDIDOS (COM ENCOMENDA)
+    const fPedT = document.getElementById("f_ped_txt").value.toLowerCase();
+    const fPedE = document.getElementById("f_ped_est").value;
+    renderModulo('ped', 'lista_ped', o => `<b>${o.obraNum}</b>: ${o.mat} (${o.qtd})<br><small>Enc: ${o.enc || '---'} | Guia: ${o.guia || '---'}</small>`, o => 
+        (o.mat.toLowerCase().includes(fPedT) || o.obraNum.toLowerCase().includes(fPedT)) && (!fPedE || o.estado === fPedE)
+    );
 
-    // USERS
+    // 5. TAREFAS
+    const fTarT = document.getElementById("f_tar_txt").value.toLowerCase();
+    const fTarE = document.getElementById("f_tar_est").value;
+    renderModulo('tar', 'lista_tar', o => `<b>${o.obraNum}</b>: ${o.tit}<br><small>Para: ${o.para.join(", ")}</small>`, o => 
+        (o.tit.toLowerCase().includes(fTarT) || o.obraNum.toLowerCase().includes(fTarT)) && (!fTarE || o.estado === fTarE)
+    );
+
+    // 6. UTILIZADORES
     const fUt = document.getElementById("f_u_txt").value.toLowerCase();
     document.getElementById("lista_users").innerHTML = db.users.filter(u => u.u.toLowerCase().includes(fUt)).map(u => `
-        <div class="card"><b>${u.u}</b> [${u.role}] <button class="btn-del" onclick="del('users','${u.u}')" style="float:right">❌</button></div>`).join("");
+        <div class="card"><b>${u.u}</b> - Nível: ${u.role} 
+        <button class="btn-del" onclick="eliminarUser('${u.u}')" style="float:right; padding:5px">Apagar</button></div>`).join("");
+
+    // 7. NOTIFICAÇÕES
+    document.getElementById("lista_notif").innerHTML = db.notif.slice(0,15).map(n => `<div class="sub-card"><small>${n.time}</small><br>${n.msg}</div>`).join("");
 }
 
-function renderGen(mod, target, fTxtId, fEstId, temp) {
-    const txt = document.getElementById(fTxtId).value.toLowerCase();
-    const est = document.getElementById(fEstId).value;
-    document.getElementById(target).innerHTML = db[mod].filter(o => 
-        (JSON.stringify(o).toLowerCase().includes(txt)) && (!est || o.estado === est)
-    ).reverse().map(o => `<div class="card">${temp(o)} <span class="badge ${o.estado==='Sem efeito'?'status-void':''}">${o.estado}</span>
-        <div class="btn-group"><button class="btn-edit" onclick="prepEdit('${mod}','${o.id}')">✏️</button></div></div>`).join("");
+function renderModulo(mod, target, temp, filterFn) {
+    document.getElementById(target).innerHTML = db[mod].filter(filterFn).reverse().map(i => `
+        <div class="card">
+            ${temp(i)} <span class="badge ${i.estado==='Sem efeito'?'status-void':''}" style="background:var(--primary)">${i.estado}</span>
+            <div class="btn-group">
+                <button class="btn-edit" onclick="prepEdit('${mod}','${i.id}')">✏️ Editar</button>
+                <button class="btn-del" onclick="eliminarRegistro('${mod}','${i.id}')">❌ Apagar</button>
+                <button style="background:var(--dark)" onclick="openNotas('${i.id}')">💬</button>
+            </div>
+        </div>`).join("");
 }
 
+// AUXILIARES
 function prepEdit(mod, id) {
     editId = id; show(mod);
     const item = db[mod].find(x => x.id === id);
-    if(mod==='obras'){ document.getElementById("obra_num").value=item.num; document.getElementById("obra_nome").value=item.nome; document.getElementById("obra_estado").value=item.estado; }
-    if(mod==='obs'){ document.getElementById("obs_obra").value=item.obraId; document.getElementById("obs_desc").value=item.desc; document.getElementById("obs_est").value=item.estado; }
-    if(mod==='ped'){ document.getElementById("ped_obra").value=item.obraId; document.getElementById("ped_mat").value=item.mat; document.getElementById("ped_enc").value=item.enc||''; document.getElementById("ped_est").value=item.estado; }
+    if(mod==='obras'){ document.getElementById("obra_num").value=item.num; document.getElementById("obra_nome").value=item.nome; document.getElementById("obra_est_input").value=item.estado; }
+    if(mod==='obs'){ document.getElementById("obs_obra_sel").value=item.obraId; document.getElementById("obs_desc").value=item.desc; document.getElementById("obs_est_input").value=item.estado; }
+    if(mod==='ped'){ document.getElementById("ped_obra_sel").value=item.obraId; document.getElementById("ped_mat").value=item.mat; document.getElementById("ped_qtd").value=item.qtd; document.getElementById("ped_enc").value=item.enc; document.getElementById("ped_guia").value=item.guia; document.getElementById("ped_est_input").value=item.estado; }
+    if(mod==='tar'){ document.getElementById("tar_obra_sel").value=item.obraId; document.getElementById("tar_tit").value=item.tit; document.getElementById("tar_est_input").value=item.estado; }
+    document.getElementById(`title-${mod}`).innerText = "✏️ Editando Registo...";
 }
 
 function prepEditHrs(id, sId) {
@@ -320,34 +389,51 @@ function prepEditHrs(id, sId) {
     const r = db.horas.find(h => h.id === id);
     const i = r.intervenciones.find(x => x.subId === sId);
     document.getElementById("hrs_data").value = r.data;
-    document.getElementById("hrs_obra").value = i.obraId;
+    document.getElementById("hrs_obra_sel").value = i.obraId;
     document.getElementById("hrs_ini").value = i.ini;
     document.getElementById("hrs_fim").value = i.fim;
-    document.getElementById("hrs_txt").value = i.txt;
+    document.getElementById("hrs_tarefas").value = i.tareas;
+    if(currentUser.role==='Administrador') document.getElementById("hrs_est_admin").value = r.estado;
 }
 
 function updateSelects() {
     const active = db.obras.filter(o => o.estado === 'Em execução');
     const opt = '<option value="">Selecionar Obra...</option>' + active.map(o => `<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
-    ['obs_obra','ped_obra','tar_obra','hrs_obra'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
-    document.getElementById("tar_para").innerHTML = db.users.map(u => `<option value="${u.u}">${u.u}</option>`).join("");
+    ['obs_obra_sel','ped_obra_sel','tar_obra_sel','hrs_obra_sel'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
     
-    // Anos Filtro
+    document.getElementById("tar_para_sel").innerHTML = db.users.map(u => `<option value="${u.u}">${u.u}</option>`).join("");
+    
+    // Auto-popula Anos no filtro de horas
     const anos = [...new Set(db.horas.map(h => h.data.split("-")[0]))].sort();
     document.getElementById("f_hrs_ano").innerHTML = '<option value="">Ano (Todos)</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join("");
 }
 
 function guardarUsuario() {
-    const u = document.getElementById("u_name").value, p = document.getElementById("u_pass").value, r = document.getElementById("u_role").value;
-    if(u && p) rtdb.ref(`users/${u}`).set({u, p, role: r});
+    const u = document.getElementById("u_name").value.trim(), p = document.getElementById("u_pass").value.trim(), r = document.getElementById("u_role").value;
+    if(u && p) rtdb.ref(`users/${u}`).set({u, p, role: r}).then(() => { alert("Utilizador guardado!"); });
 }
 
-function crearNotif(msg) { rtdb.ref('notif').push({msg, date: new Date().toLocaleString()}); }
+function addNotif(msg) { rtdb.ref('notif').push({ msg, time: new Date().toLocaleString() }); }
+function addHistorial(ref, acao) { rtdb.ref(`historial/${ref}`).push({ q: currentUser.u, d: new Date().toLocaleString(), a: acao }); }
 function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
-function cancelar() { editId = null; editSubId = null; document.querySelectorAll('input, textarea').forEach(i=>i.value=""); }
-function del(path, id) { if(confirm("Apagar permanentemente?")) rtdb.ref(`${path}/${id}`).remove(); }
+function cancelarEdicao(mod) { editId = null; editSubId = null; document.querySelectorAll(`#${mod} input, #${mod} textarea`).forEach(i=>i.value=""); document.querySelectorAll('h2').forEach(h=>h.innerText = h.innerText.replace("✏️ Editando Registo...", "")); }
+function eliminarRegistro(path, id) { if(confirm("Apagar permanentemente?")) rtdb.ref(`${path}/${id}`).remove(); }
+function eliminarUser(u) { if(confirm("Apagar utilizador?")) rtdb.ref(`users/${u}`).remove(); }
+function delSub(id, sId) {
+    const r = db.horas.find(h => h.id === id);
+    if(confirm("Apagar esta intervenção?")) {
+        r.intervenciones = r.intervenciones.filter(i => i.subId !== sId);
+        if(r.intervenciones.length === 0) rtdb.ref(`horas/${id}`).remove();
+        else rtdb.ref(`horas/${id}`).set(r);
+    }
+}
 function logout() { location.reload(); }
-function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(()=>t.style.display="none", 2500); }
+function closeModals() { document.querySelectorAll(".modal").forEach(m=>m.style.display="none"); }
+function openNotas(id) { currentRef = id; document.getElementById("modal-notas").style.display="block"; renderNotas(); }
+function renderNotas() { const n = Object.values(db.notas[currentRef] || {}); document.getElementById("lista-notas-content").innerHTML = n.map(x => `<div class="sub-card"><b>${x.u}:</b> ${x.t}</div>`).join(""); }
+function addNota() { const t = document.getElementById("nota-texto").value; if(t) rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t }).then(()=>document.getElementById("nota-texto").value=""); }
+function openHistorial(id) { document.getElementById("modal-hist").style.display="block"; const h = Object.values(db.historial[id] || {}); document.getElementById("lista-hist-content").innerHTML = h.reverse().map(x => `<div style="font-size:11px"><b>${x.d}</b>: ${x.a} por ${x.q}</div>`).join(""); }
 </script>
 </body>
 </html>
