@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v11.0 - SMART SELECTOR</title>
+    <title>ROFREICRC v11.1 - LOGISTICS & TIMESTAMPS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -17,6 +17,7 @@
         .filter-box { background: #e9ecef; padding: 12px; border-radius: 8px; margin: 10px 0 15px 0; display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid #dee2e6; }
         .filter-box input, .filter-box select { flex: 1; min-width: 130px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;}
         .card{background:#fff; padding:15px; margin-bottom:12px; border-radius:8px; border-left:6px solid var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05);}
+        .date-info { font-size: 10px; color: #7f8c8d; margin-top: 8px; border-top: 1px solid #f0f0f0; padding-top: 5px; display: block; }
         input, select, textarea { width:100%; padding:12px; margin:5px 0 12px 0; border:1px solid #ccc; border-radius:5px; box-sizing: border-box; }
         .btn-main{ background: var(--success); color:white; border:none; padding:15px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold; }
         .btn-group { display: flex; gap: 4px; margin-top: 10px; }
@@ -28,13 +29,12 @@
         .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); }
         .modal-content { background:white; margin:5% auto; padding:20px; width:90%; max-width:600px; border-radius:10px; max-height: 85vh; overflow-y: auto; }
         #toast { display:none; position:fixed; top:20px; right:20px; background:var(--success); color:white; padding:12px 20px; border-radius:8px; z-index:2000; font-weight:bold; }
-        .hist-diff { background: #fff3cd; padding: 6px; border-radius: 4px; font-size: 11px; margin-top: 4px; border: 1px solid #ffeeba; line-height: 1.4; }
     </style>
 </head>
 <body onload="syncCloud()">
 
 <div id="toast">Operação concluída! ✅</div>
-<header>ROFREICRC v11.0 - CLOUD SYNC</header>
+<header>ROFREICRC v11.1 - GESTÃO LOGÍSTICA</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
@@ -64,12 +64,11 @@
                 <input id="obra_nome" placeholder="Nome da Obra">
                 <select id="obra_estado_input"><option>Em execução</option><option>Sem efeito</option><option>Finalizada</option></select>
                 <button class="btn-main" onclick="guardarRegistro('obras')">Gravar Obra</button>
-                <button onclick="cancelarEdicao()" style="margin-top:5px; width:100%; border:none; padding:8px; border-radius:5px; cursor:pointer;">Cancelar</button>
             </div>
             <div class="filter-box">
-                <input id="f_o_num" placeholder="Filtrar Nº..." oninput="renderAll()">
-                <input id="f_o_nom" placeholder="Filtrar Nome..." oninput="renderAll()">
-                <select id="f_o_est" onchange="renderAll()"><option value="">Estados (Todos)</option><option>Em execução</option><option>Sem efeito</option><option>Finalizada</option></select>
+                <input id="f_o_num" placeholder="Nº Obra..." oninput="renderAll()">
+                <input id="f_o_nom" placeholder="Nome..." oninput="renderAll()">
+                <select id="f_o_est" onchange="renderAll()"><option value="">Estado...</option><option>Em execução</option><option>Sem efeito</option><option>Finalizada</option></select>
             </div>
             <div id="lista_obras"></div>
         </div>
@@ -77,26 +76,28 @@
         <div id="obs" class="sec">
             <h2 id="title-obs">📝 Observações</h2>
             <select id="obs_obra"></select>
-            <textarea id="obs_desc" placeholder="Detalhes da observação..."></textarea>
+            <textarea id="obs_desc" placeholder="Detalhes..."></textarea>
             <select id="obs_estado"><option>Por Resolver</option><option>Resolvido</option></select>
-            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar Observação</button>
+            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar</button>
             <div class="filter-box">
-                <input id="f_obs_num" placeholder="Filtrar Nº Obra..." oninput="renderAll()">
-                <select id="f_obs_est" onchange="renderAll()"><option value="">Estados (Todos)</option><option>Por Resolver</option><option>Resolvido</option></select>
+                <input id="f_obs_num" placeholder="Nº Obra..." oninput="renderAll()">
+                <select id="f_obs_est" onchange="renderAll()"><option value="">Estado...</option><option>Por Resolver</option><option>Resolvido</option></select>
             </div>
             <div id="lista_obs"></div>
         </div>
 
         <div id="ped" class="sec">
-            <h2 id="title-ped">🛒 Materiais / Pedidos</h2>
+            <h2 id="title-ped">🛒 Pedidos de Material</h2>
             <select id="ped_obra"></select>
             <input id="ped_mat" placeholder="Material">
             <input id="ped_qtd" placeholder="Quantidade">
+            <input id="ped_enc" placeholder="Nº Nota de Encomenda (Opcional)">
             <select id="ped_estado"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option></select>
             <button class="btn-main" onclick="guardarRegistro('ped')">Gravar Pedido</button>
             <div class="filter-box">
-                <input id="f_ped_num" placeholder="Filtrar Nº Obra..." oninput="renderAll()">
-                <select id="f_ped_est" onchange="renderAll()"><option value="">Estados (Todos)</option><option>Solicitado</option><option>Aprovado</option><option>Entregue</option></select>
+                <input id="f_ped_num" placeholder="Nº Obra..." oninput="renderAll()">
+                <input id="f_ped_enc" placeholder="Filtrar Nota Enc..." oninput="renderAll()">
+                <select id="f_ped_est" onchange="renderAll()"><option value="">Estado...</option><option>Solicitado</option><option>Aprovado</option><option>Entregue</option></select>
             </div>
             <div id="lista_ped"></div>
         </div>
@@ -104,24 +105,24 @@
         <div id="tar" class="sec">
             <h2 id="title-tar">✅ Tarefas</h2>
             <select id="tar_obra"></select>
-            <input id="tar_tit" placeholder="Tarefa a realizar">
+            <input id="tar_tit" placeholder="Tarefa...">
             <select id="tar_para" multiple size="3"></select>
             <select id="tar_estado"><option>Por Executar</option><option>Executada</option></select>
-            <button class="btn-main" onclick="guardarRegistro('tar')">Gravar Tarefa</button>
+            <button class="btn-main" onclick="guardarRegistro('tar')">Atribuir</button>
             <div class="filter-box">
-                <input id="f_tar_num" placeholder="Filtrar Nº Obra..." oninput="renderAll()">
-                <select id="f_tar_est" onchange="renderAll()"><option value="">Estados (Todos)</option><option>Por Executar</option><option>Executada</option></select>
+                <input id="f_tar_num" placeholder="Nº Obra..." oninput="renderAll()">
+                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado...</option><option>Por Executar</option><option>Executada</option></select>
             </div>
             <div id="lista_tar"></div>
         </div>
 
         <div id="users_admin" class="sec">
-            <h2 id="title-users">👥 Utilizadores</h2>
+            <h2>👥 Utilizadores</h2>
             <input id="u_name" placeholder="Utilizador">
             <input id="u_pass" placeholder="Password">
             <select id="u_role"><option>Operacional</option><option>Administrador</option></select>
             <select id="u_status"><option>Ativo</option><option>Suspenso</option></select>
-            <button class="btn-main" onclick="guardarUsuario()">Gravar Utilizador</button>
+            <button class="btn-main" onclick="guardarUsuario()">Gravar</button>
             <div id="lista_users" style="margin-top:15px"></div>
         </div>
 
@@ -129,8 +130,8 @@
     </div>
 </div>
 
-<div id="modal-notas" class="modal"><div class="modal-content"><h3>💬 Notas</h3><div id="lista-notas-content"></div><textarea id="nota-texto" placeholder="Nova nota..."></textarea><button class="btn-main" onclick="addNota()">Adicionar</button><button onclick="closeModals()" style="width:100%; margin-top:10px; padding:10px; border:none;">Fechar</button></div></div>
-<div id="modal-hist" class="modal"><div class="modal-content"><h3>📜 Histórico Comparativo</h3><div id="lista-hist-content"></div><button onclick="closeModals()" style="width:100%; margin-top:10px; padding:10px; border:none;">Fechar</button></div></div>
+<div id="modal-notas" class="modal"><div class="modal-content"><h3>💬 Notas</h3><div id="lista-notas-content"></div><textarea id="nota-texto" placeholder="Nova nota..."></textarea><button class="btn-main" onclick="addNota()">Adicionar</button><button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button></div></div>
+<div id="modal-hist" class="modal"><div class="modal-content"><h3>📜 Histórico Comparativo</h3><div id="lista-hist-content"></div><button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button></div></div>
 
 <script>
 const firebaseConfig = {
@@ -170,14 +171,10 @@ function login() {
     const p = document.getElementById("pass").value.trim();
     if(u === "admin" && p === "23778478") { currentUser = {u: "admin", role: "Administrador", status: "Ativo"}; }
     else { currentUser = db.users.find(x => x.u === u && x.p === p); }
-
     if(currentUser && currentUser.status === "Ativo") {
         document.getElementById("login").style.display="none";
         document.getElementById("app").style.display="block";
-        if(currentUser.role === "Administrador") {
-            document.getElementById("form-obra-admin").style.display="block";
-            document.getElementById("menu-admin").style.display="block";
-        }
+        if(currentUser.role === "Administrador") { document.getElementById("form-obra-admin").style.display="block"; document.getElementById("menu-admin").style.display="block"; }
     } else { alert("Acesso Negado."); }
 }
 
@@ -185,7 +182,14 @@ function guardarRegistro(mod) {
     const id = editId || Date.now().toString();
     const isEdit = !!editId;
     const oldData = db[mod].find(x => x.id == id) || {};
-    let newData = { id };
+    const now = new Date().toLocaleString();
+    
+    let newData = { 
+        id, 
+        createdAt: isEdit ? (oldData.createdAt || now) : now,
+        updatedAt: now 
+    };
+    
     let summary = "";
     let changes = [];
 
@@ -200,13 +204,19 @@ function guardarRegistro(mod) {
         newData.obraId = obra.id; newData.obraNum = obra.num;
 
         if(mod==='obs'){ newData.desc=document.getElementById("obs_desc").value; newData.estado=document.getElementById("obs_estado").value; summary=`Obs na Obra ${newData.obraNum}`; }
-        if(mod==='ped'){ newData.mat=document.getElementById("ped_mat").value; newData.qtd=document.getElementById("ped_qtd").value; newData.estado=document.getElementById("ped_estado").value; summary=`Pedido na Obra ${newData.obraNum}`; }
+        if(mod==='ped'){ 
+            newData.mat=document.getElementById("ped_mat").value; 
+            newData.qtd=document.getElementById("ped_qtd").value; 
+            newData.enc=document.getElementById("ped_enc").value; 
+            newData.estado=document.getElementById("ped_estado").value; 
+            summary=`Pedido na Obra ${newData.obraNum}`; 
+        }
         if(mod==='tar'){ newData.tit=document.getElementById("tar_tit").value; newData.para=Array.from(document.getElementById("tar_para").selectedOptions).map(x=>x.value); newData.estado=document.getElementById("tar_estado").value; summary=`Tarefa na Obra ${newData.obraNum}`; }
     }
 
     if(isEdit) {
         Object.keys(newData).forEach(key => {
-            if(key !== 'id' && JSON.stringify(oldData[key]) !== JSON.stringify(newData[key])) {
+            if(!['id','createdAt','updatedAt'].includes(key) && JSON.stringify(oldData[key]) !== JSON.stringify(newData[key])) {
                 changes.push(`[${key.toUpperCase()}]: de "${oldData[key] || 'vazio'}" para "${newData[key]}"`);
             }
         });
@@ -215,7 +225,7 @@ function guardarRegistro(mod) {
     const logInfo = isEdit ? `EDITOU ${summary}: ${changes.join(' | ')}` : `CRIOU ${summary}`;
 
     rtdb.ref(`${mod}/${id}`).set(newData).then(() => {
-        rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: new Date().toLocaleString(), info: logInfo });
+        rtdb.ref(`historial/${id}`).push({ quem: currentUser.u, quando: now, info: logInfo });
         rtdb.ref(`notifications`).push({ user: currentUser.u, msg: logInfo, time: Date.now() });
         cancelarEdicao();
         showToast();
@@ -229,8 +239,8 @@ function renderAll() {
     const obN = document.getElementById("f_obs_num").value.toLowerCase(), obE = document.getElementById("f_obs_est").value;
     renderModulo('obs', 'lista_obs', o => `<b>Obra ${o.obraNum}</b>: ${o.desc}<br><small>${o.estado}</small>`, o => (!obE || o.estado==obE) && o.obraNum.toLowerCase().includes(obN));
 
-    const pN = document.getElementById("f_ped_num").value.toLowerCase(), pE = document.getElementById("f_ped_est").value;
-    renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum}</b>: ${o.mat} (${o.qtd})<br><small>${o.estado}</small>`, o => (!pE || o.estado==pE) && o.obraNum.toLowerCase().includes(pN));
+    const pN = document.getElementById("f_ped_num").value.toLowerCase(), pE = document.getElementById("f_ped_est").value, pEnc = document.getElementById("f_ped_enc").value.toLowerCase();
+    renderModulo('ped', 'lista_ped', o => `<b>Obra ${o.obraNum}</b>: ${o.mat} (${o.qtd})<br>Nota Enc: ${o.enc || '---'}<br><small>${o.estado}</small>`, o => (!pE || o.estado==pE) && o.obraNum.toLowerCase().includes(pN) && (o.enc || "").toLowerCase().includes(pEnc));
 
     const tN = document.getElementById("f_tar_num").value.toLowerCase(), tE = document.getElementById("f_tar_est").value;
     renderModulo('tar', 'lista_tar', o => `<b>Obra ${o.obraNum}</b>: ${o.tit} <br><small>Para: ${o.para} | ${o.estado}</small>`, o => (!tE || o.estado==tE) && o.obraNum.toLowerCase().includes(tN));
@@ -247,6 +257,7 @@ function renderModulo(mod, target, template, filterFn) {
     const list = db[mod].filter(filterFn);
     document.getElementById(target).innerHTML = list.reverse().map(i => `
         <div class="card">${template(i)}
+            <span class="date-info">🆕 ${i.createdAt || '---'} | 📝 ${i.updatedAt || '---'}</span>
             <div class="btn-group">
                 <button class="btn-note" onclick="openNotas('${i.id}')">💬</button>
                 <button class="btn-hist" onclick="openHistorial('${i.id}')">📜</button>
@@ -260,7 +271,13 @@ function prepararEdicao(mod, id) {
     const item = (mod === 'users') ? db.users.find(x => x.u == id) : db[mod].find(x => x.id == id);
     if(mod==='obras'){ document.getElementById("obra_num").value=item.num; document.getElementById("obra_nome").value=item.nome; document.getElementById("obra_estado_input").value=item.estado; }
     if(mod==='obs'){ document.getElementById("obs_obra").value=item.obraId; document.getElementById("obs_desc").value=item.desc; document.getElementById("obs_estado").value=item.estado; }
-    if(mod==='ped'){ document.getElementById("ped_obra").value=item.obraId; document.getElementById("ped_mat").value=item.mat; document.getElementById("ped_qtd").value=item.qtd; document.getElementById("ped_estado").value=item.estado; }
+    if(mod==='ped'){ 
+        document.getElementById("ped_obra").value=item.obraId; 
+        document.getElementById("ped_mat").value=item.mat; 
+        document.getElementById("ped_qtd").value=item.qtd; 
+        document.getElementById("ped_enc").value=item.enc || "";
+        document.getElementById("ped_estado").value=item.estado; 
+    }
     if(mod==='tar'){ document.getElementById("tar_obra").value=item.obraId; document.getElementById("tar_tit").value=item.tit; document.getElementById("tar_estado").value=item.estado; }
     if(mod==='users'){ document.getElementById("u_name").value=item.u; document.getElementById("u_pass").value=item.p; document.getElementById("u_role").value=item.role; document.getElementById("u_status").value=item.status; }
     document.getElementById(`title-${mod}`).innerText = "✏️ Editando...";
@@ -270,44 +287,29 @@ function openHistorial(id) {
     document.getElementById("modal-hist").style.display="block";
     const h = Object.values(db.historial[id] || {});
     document.getElementById("lista-hist-content").innerHTML = h.reverse().map(x => `
-        <div style="border-bottom:1px solid #eee; padding:10px; font-size:12px;">
-            <b>${x.quando}</b> - <span style="color:var(--secondary)">${x.quem}</span><br>
-            <div class="hist-diff">${x.info}</div>
-        </div>`).join("") || "Sem histórico.";
+        <div style="border-bottom:1px solid #eee; padding:10px; font-size:12px;"><b>${x.quando}</b> - ${x.quem}<br><div style="background:#fff3cd; padding:5px; margin-top:5px; border-radius:3px;">${x.info}</div></div>`).join("") || "Sem histórico.";
+}
+
+function updateSelects() {
+    const activeObras = db.obras.filter(o => o.estado === 'Em execução');
+    const opt = '<option value="">Selecionar Obra Ativa...</option>' + activeObras.map(o => `<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
+    ['obs_obra','ped_obra','tar_obra'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
+    if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
 }
 
 function addNota() {
     const t = document.getElementById("nota-texto").value.trim(); if(!t) return;
     rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t, d: new Date().toLocaleString() }).then(()=>document.getElementById("nota-texto").value="");
 }
-
 function openNotas(id) { currentRef = id; document.getElementById("modal-notas").style.display="block"; renderNotas(); }
 function renderNotas() {
     const n = Object.values(db.notas[currentRef] || {});
     document.getElementById("lista-notas-content").innerHTML = n.map(x => `<div style="font-size:12px; padding:8px; border-bottom:1px dotted #ccc;"><b>${x.u}:</b> ${x.t}</div>`).join("");
 }
-
 function guardarUsuario() {
     const u = document.getElementById("u_name").value.trim();
     rtdb.ref(`users/${u}`).set({ u, p: document.getElementById("u_pass").value, role: document.getElementById("u_role").value, status: document.getElementById("u_status").value }).then(()=>cancelarEdicao());
 }
-
-// --- ACTUALIZACIÓN DE SELECTORES SMART ---
-function updateSelects() {
-    // Filtrar solo obras activas (Em execução)
-    const activeObras = db.obras.filter(o => o.estado === 'Em execução');
-    
-    // Crear las opciones (Número - Nombre para mejor claridad)
-    const opt = '<option value="">Selecionar Obra Ativa...</option>' + activeObras.map(o => `<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
-    
-    // Aplicar a todos los módulos dependientes
-    ['obs_obra','ped_obra','tar_obra'].forEach(id => { 
-        if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; 
-    });
-    
-    if(document.getElementById('tar_para')) document.getElementById('tar_para').innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
-}
-
 function eliminar(path, id) { if(confirm("Apagar definitivamente?")) rtdb.ref(`${path}/${id}`).remove(); }
 function cancelarEdicao() { editId = null; document.querySelectorAll('input, textarea').forEach(i=>i.value=""); document.querySelectorAll('h2').forEach(h=>h.innerText = h.innerText.replace("✏️ Editando...", "")); }
 function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
