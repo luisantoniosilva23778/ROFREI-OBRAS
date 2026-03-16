@@ -2,45 +2,45 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v13.0 - MASTER COMPLETE</title>
+    <title>ROFREICRC v13.1 - AUDIT & CONTROL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <style>
         :root { --primary: #1e3a5f; --secondary: #2c5282; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --light: #f8f9fa; --dark: #343a40; --info: #17a2b8; }
-        body{font-family:'Segoe UI', sans-serif; margin:0; background:#f0f2f5; color:#333;}
+        body{font-family:'Segoe UI', sans-serif; margin:0; background:#f0f2f5; color:#333; font-size: 14px;}
         header{background: var(--primary); color:white; padding:15px; text-align:center; font-size:20px; font-weight:bold;}
-        .container{padding:15px; max-width: 1100px; margin: auto;}
-        .menu{margin-bottom:20px; display:flex; flex-wrap:wrap; gap:5px;}
+        .container{padding:10px; max-width: 1100px; margin: auto;}
+        .menu{margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;}
         .menu button{padding:12px; background: var(--primary); color:white; border:none; cursor:pointer; flex:1; border-radius:5px; font-weight: bold; min-width: 45px;}
-        .sec{background:white; padding:20px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; display:none;}
-        .filter-box { background: #e9ecef; padding: 12px; border-radius: 8px; margin: 10px 0 15px 0; display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid #dee2e6; }
-        .filter-box input, .filter-box select { flex: 1; min-width: 120px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;}
-        .card{background:#fff; padding:15px; margin-bottom:12px; border-radius:8px; border-left:6px solid var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05);}
-        .sub-card { background: #f8f9fa; border: 1px solid #ddd; padding: 10px; margin-top: 5px; border-radius: 5px; font-size: 13px; }
-        input, select, textarea { width:100%; padding:12px; margin:5px 0 12px 0; border:1px solid #ccc; border-radius:5px; box-sizing: border-box; }
-        .btn-main{ background: var(--success); color:white; border:none; padding:15px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold; }
-        .btn-group { display: flex; gap: 4px; margin-top: 10px; }
-        .btn-group button { flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 11px; font-weight: bold;}
-        .btn-edit { background: var(--warning); color: black !important; }
-        .btn-del { background: var(--danger); }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
-        .status-void { background: #6c757d !important; }
-        .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); }
-        .modal-content { background:white; margin:5% auto; padding:20px; width:90%; max-width:600px; border-radius:10px; max-height: 80vh; overflow-y: auto; }
+        .sec{background:white; padding:15px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; display:none;}
+        .filter-box { background: #e9ecef; padding: 10px; border-radius: 8px; margin: 10px 0; display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid #dee2e6; }
+        .filter-box input, .filter-box select { flex: 1; min-width: 110px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;}
+        .card{background:#fff; padding:12px; margin-bottom:10px; border-radius:8px; border-left:6px solid var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); position: relative;}
+        .timestamp { font-size: 10px; color: #666; margin-top: 5px; display: block; border-top: 1px solid #eee; padding-top: 5px; }
+        .sub-card { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; margin-top: 5px; border-radius: 5px; font-size: 12px; }
+        input, select, textarea { width:100%; padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px; box-sizing: border-box; }
+        .btn-main{ background: var(--success); color:white; border:none; padding:12px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold; }
+        .btn-group { display: flex; gap: 4px; margin-top: 8px; }
+        .btn-group button { flex: 1; padding: 6px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 11px; font-weight: bold;}
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
+        .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); }
+        .modal-content { background:white; margin:5% auto; padding:20px; width:90%; max-width:650px; border-radius:10px; max-height: 80vh; overflow-y: auto; }
         #toast { display:none; position:fixed; top:20px; right:20px; background:var(--success); color:white; padding:12px 20px; border-radius:8px; z-index:2000; font-weight:bold; }
+        .diff-add { color: green; font-weight: bold; }
+        .diff-old { color: #888; text-decoration: line-through; }
     </style>
 </head>
 <body onload="syncCloud()">
 
-<div id="toast">Operação concluída! ✅</div>
-<header>ROFREICRC v13.0 - SISTEMA INTEGRAL</header>
+<div id="toast">Gravado com sucesso! ✅</div>
+<header>ROFREICRC v13.1</header>
 
 <div class="container">
     <div id="login" class="sec" style="display:block">
         <h2>Acesso</h2>
         <input id="user" placeholder="Utilizador">
-        <input id="pass" type="password" placeholder="Palavra-passe">
+        <input id="pass" type="password" placeholder="Password">
         <button class="btn-main" onclick="login()">ENTRAR</button>
     </div>
 
@@ -57,111 +57,83 @@
         </div>
 
         <div id="obras" class="sec">
-            <h2 id="title-obras">🏗️ Gestão de Obras</h2>
-            <div id="form-obra-admin" style="display:none">
-                <input id="obra_num" placeholder="Nº da Obra">
-                <input id="obra_nome" placeholder="Nome da Obra">
-                <select id="obra_est_input"><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
-                <button class="btn-main" onclick="guardarRegistro('obras')">Gravar Obra</button>
+            <h2>🏗️ Obras</h2>
+            <div id="form-obras-adm" style="display:none">
+                <input id="o_num" placeholder="Nº Obra">
+                <input id="o_nom" placeholder="Nome Obra">
+                <select id="o_est"><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
+                <button class="btn-main" onclick="salvar('obras')">Gravar Obra</button>
             </div>
             <div class="filter-box">
-                <input id="f_o_num" placeholder="Filtrar Nº..." oninput="renderAll()">
-                <input id="f_o_nom" placeholder="Filtrar Nome..." oninput="renderAll()">
-                <select id="f_o_est" onchange="renderAll()"><option value="">Todos os Estados</option><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
+                <input id="f_o_txt" placeholder="Pesquisar..." oninput="renderAll()">
+                <select id="f_o_est" onchange="renderAll()"><option value="">Estados...</option><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
             </div>
-            <div id="lista_obras"></div>
+            <div id="list_obras"></div>
         </div>
 
         <div id="hrs" class="sec">
-            <h2 id="title-hrs">🕒 Registo de Horas</h2>
-            <div id="form-horas">
-                <input type="date" id="hrs_data">
-                <select id="hrs_obra_sel"></select>
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:1"><label>Início:</label><input type="time" id="hrs_ini"></div>
-                    <div style="flex:1"><label>Fim:</label><input type="time" id="hrs_fim"></div>
-                </div>
-                <textarea id="hrs_tarefas" placeholder="O que foi feito?"></textarea>
-                <div id="admin-hrs-area" style="display:none; background:#eee; padding:10px; border-radius:5px; margin-bottom:10px;">
-                    <label>Estado Aprovação:</label>
-                    <select id="hrs_est_admin"><option>Por aprobar</option><option>Aprovado</option><option>Solicita alteração</option><option>Sem efeito</option></select>
-                </div>
-                <button class="btn-main" onclick="guardarHoras()">Adicionar Intervenção</button>
-            </div>
+            <h2>🕒 Registo de Horas</h2>
+            <input type="date" id="h_dat">
+            <select id="h_obr"></select>
+            <div style="display:flex; gap:5px"><input type="time" id="h_ini"><input type="time" id="h_fim"></div>
+            <textarea id="h_tar" placeholder="Tarefas..."></textarea>
+            <div id="adm-h-st" style="display:none"><select id="h_est_adm"><option>Por aprobar</option><option>Aprovado</option><option>Solicita alteração</option><option>Sem efeito</option></select></div>
+            <button class="btn-main" onclick="salvarHoras()">Adicionar Horas</button>
             <div class="filter-box">
-                <select id="f_hrs_mes" onchange="renderAll()"><option value="">Mês (Todos)</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
-                <select id="f_hrs_ano" onchange="renderAll()"><option value="">Ano (Todos)</option></select>
-                <input id="f_hrs_user" placeholder="Trabalhador..." oninput="renderAll()">
-                <select id="f_hrs_est" onchange="renderAll()"><option value="">Estado</option><option>Por aprobar</option><option>Aprovado</option><option>Solicita alteração</option><option>Sem efeito</option></select>
+                <select id="f_h_mes" onchange="renderAll()"><option value="">Mês</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
+                <select id="f_h_ano" onchange="renderAll()"></select>
+                <input id="f_h_usr" placeholder="User..." oninput="renderAll()">
             </div>
-            <div id="lista_horas"></div>
+            <div id="list_hrs"></div>
         </div>
 
         <div id="obs" class="sec">
-            <h2 id="title-obs">📝 Observações</h2>
-            <select id="obs_obra_sel"></select>
-            <textarea id="obs_desc" placeholder="Descreva a situação..."></textarea>
-            <select id="obs_est_input"><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('obs')">Gravar Observação</button>
-            <div class="filter-box">
-                <input id="f_obs_txt" placeholder="Pesquisar texto..." oninput="renderAll()">
-                <select id="f_obs_est" onchange="renderAll()"><option value="">Estado</option><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
-            </div>
-            <div id="lista_obs"></div>
+            <h2>📝 Observações</h2>
+            <select id="obs_obr"></select>
+            <textarea id="obs_txt" placeholder="Descrição..."></textarea>
+            <select id="obs_est"><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
+            <button class="btn-main" onclick="salvar('obs')">Gravar</button>
+            <div class="filter-box"><input id="f_obs_txt" placeholder="Filtro..." oninput="renderAll()"></div>
+            <div id="list_obs"></div>
         </div>
 
         <div id="ped" class="sec">
-            <h2 id="title-ped">🛒 Pedidos de Material</h2>
-            <select id="ped_obra_sel"></select>
+            <h2>🛒 Pedidos</h2>
+            <select id="ped_obr"></select>
             <input id="ped_mat" placeholder="Material">
-            <input id="ped_qtd" placeholder="Quantidade">
-            <input id="ped_enc" placeholder="Nº Nota Encomenda">
-            <input id="ped_guia" placeholder="Nº Guia (se entregue)">
-            <select id="ped_est_input"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('ped')">Gravar Pedido</button>
-            <div class="filter-box">
-                <input id="f_ped_txt" placeholder="Material/Nota..." oninput="renderAll()">
-                <select id="f_ped_est" onchange="renderAll()"><option value="">Estado</option><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
-            </div>
-            <div id="lista_ped"></div>
+            <input id="ped_qtd" placeholder="Qtd">
+            <input id="ped_enc" placeholder="Nº Encomenda">
+            <input id="ped_gui" placeholder="Nº Guia">
+            <select id="ped_est"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
+            <button class="btn-main" onclick="salvar('ped')">Gravar</button>
+            <div id="list_ped"></div>
         </div>
 
         <div id="tar" class="sec">
-            <h2 id="title-tar">✅ Tarefas</h2>
-            <select id="tar_obra_sel"></select>
-            <input id="tar_tit" placeholder="Título da tarefa">
-            <select id="tar_para_sel" multiple></select>
-            <select id="tar_est_input"><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="guardarRegistro('tar')">Gravar Tarefa</button>
-            <div class="filter-box">
-                <input id="f_tar_txt" placeholder="Tarefa..." oninput="renderAll()">
-                <select id="f_tar_est" onchange="renderAll()"><option value="">Estado</option><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
-            </div>
-            <div id="lista_tar"></div>
+            <h2>✅ Tarefas</h2>
+            <select id="tar_obr"></select>
+            <input id="tar_tit" placeholder="Tarefa">
+            <select id="tar_p" multiple></select>
+            <select id="tar_est"><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
+            <button class="btn-main" onclick="salvar('tar')">Gravar Tarefa</button>
+            <div id="list_tar"></div>
         </div>
 
-        <div id="notif" class="sec">
-            <h2>🔔 Notificações Recentes</h2>
-            <div id="lista_notif"></div>
-        </div>
+        <div id="notif" class="sec"><h2>🔔 Notificações</h2><div id="list_notif"></div></div>
 
         <div id="users_admin" class="sec">
-            <h2>👥 Gestão de Utilizadores</h2>
-            <input id="u_name" placeholder="Username">
-            <input id="u_pass" placeholder="Password">
-            <select id="u_role"><option>Operacional</option><option>Administrador</option></select>
-            <button class="btn-main" onclick="guardarUsuario()">Criar / Atualizar Utilizador</button>
-            <div class="filter-box"><input id="f_u_txt" placeholder="Filtrar utilizadores..." oninput="renderAll()"></div>
-            <div id="lista_users"></div>
+            <h2>👥 Utilizadores</h2>
+            <input id="u_n" placeholder="Nome"><input id="u_p" placeholder="Pass">
+            <select id="u_r"><option>Operacional</option><option>Administrador</option></select>
+            <button class="btn-main" onclick="createUser()">Criar</button>
+            <div id="list_users"></div>
         </div>
     </div>
 </div>
 
-<div id="modal-notas" class="modal"><div class="modal-content"><h3>💬 Notas</h3><div id="lista-notas-content"></div><textarea id="nota-texto" placeholder="Escreva uma nota..."></textarea><button class="btn-main" onclick="addNota()">Adicionar</button><button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button></div></div>
-<div id="modal-hist" class="modal"><div class="modal-content"><h3>📜 Histórico de Alterações</h3><div id="lista-hist-content"></div><button onclick="closeModals()" style="width:100%; margin-top:10px">Fechar</button></div></div>
+<div id="mod-hist" class="modal"><div class="modal-content"><h3>📜 Histórico de Modificações</h3><div id="hist-content"></div><button onclick="closeModal()" style="width:100%; padding:10px; margin-top:10px">Fechar</button></div></div>
 
 <script>
-// CONFIGURAÇÃO FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyCBkWCoWX0oN1HWCA6aGt_kdg_2vyFz1mM",
   authDomain: "rofreicrc-175f9.firebaseapp.com",
@@ -174,266 +146,188 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const rtdb = firebase.database();
 
-let db = { obras: [], obs: [], ped: [], tar: [], users: [], horas: [], notif: [], notas: {}, historial: {} };
-let currentUser = null, editId = null, currentRef = null, editSubId = null;
+let db = { obras:[], hrs:[], obs:[], ped:[], tar:[], users:[], notif:[], historial:{} };
+let currentUser = null, editId = null, editSubId = null;
 
-// SINCRONIZAÇÃO TOTAL
 function syncCloud() {
     rtdb.ref('/').on('value', (snap) => {
         const d = snap.val() || {};
         db.obras = d.obras ? Object.values(d.obras) : [];
+        db.hrs = d.hrs ? Object.values(d.hrs) : [];
         db.obs = d.obs ? Object.values(d.obs) : [];
         db.ped = d.ped ? Object.values(d.ped) : [];
         db.tar = d.tar ? Object.values(d.tar) : [];
         db.users = d.users ? Object.values(d.users) : [];
-        db.horas = d.horas ? Object.values(d.horas) : [];
         db.notif = d.notif ? Object.values(d.notif).reverse() : [];
-        db.notas = d.notas || {};
         db.historial = d.historial || {};
         renderAll();
         updateSelects();
     });
 }
 
-// LOGIN
 function login() {
-    const u = document.getElementById("user").value.trim();
-    const p = document.getElementById("pass").value.trim();
-    if(u === "admin" && p === "23778478") { currentUser = {u: "admin", role: "Administrador"}; }
-    else { currentUser = db.users.find(x => x.u === u && x.p === p); }
+    const u = document.getElementById("user").value, p = document.getElementById("pass").value;
+    if(u==="admin" && p==="23778478") currentUser = {u:"admin", role:"Administrador"};
+    else currentUser = db.users.find(x => x.u === u && x.p === p);
     
-    if(currentUser) {
+    if(currentUser){
         document.getElementById("login").style.display="none";
         document.getElementById("app").style.display="block";
-        if(currentUser.role === "Administrador") {
-            document.getElementById("form-obra-admin").style.display="block";
+        if(currentUser.role==="Administrador"){
+            document.getElementById("form-obras-adm").style.display="block";
             document.getElementById("menu-admin").style.display="block";
-            document.getElementById("admin-hrs-area").style.display="block";
+            document.getElementById("adm-h-st").style.display="block";
         }
-    } else alert("Acesso Negado.");
+    } else alert("Erro!");
 }
 
-// GUARDAR OBRAS / OBS / PEDIDOS / TAREFAS
-function guardarRegistro(mod) {
+// SALVAR GENÉRICO COM DIFF
+function salvar(mod) {
     const id = editId || Date.now().toString();
-    const isEdit = !!editId;
-    let data = { id, lastUpdate: new Date().toLocaleString(), user: currentUser.u };
+    const old = db[mod].find(x => x.id === id) || null;
+    let data = old ? {...old} : { id, criacao: new Date().toLocaleString(), user: currentUser.u };
+    
+    data.atualizacao = new Date().toLocaleString();
 
-    if (mod === 'obras') {
-        data.num = document.getElementById("obra_num").value.trim();
-        data.nome = document.getElementById("obra_nome").value.trim();
-        data.estado = document.getElementById("obra_est_input").value;
-        if(!data.num || !data.nome) return alert("Nº e Nome são obrigatórios!");
-    } else {
-        const oId = document.getElementById(`${mod}_obra_sel`).value;
-        const obra = db.obras.find(o => o.id === oId);
-        if(!obra) return alert("Selecione uma obra!");
-        data.obraId = oId; data.obraNum = obra.num; data.obraNome = obra.nome;
+    if(mod==='obras'){ data.num=document.getElementById("o_num").value; data.nom=document.getElementById("o_nom").value; data.est=document.getElementById("o_est").value; }
+    if(mod==='obs'){ const o=db.obras.find(x=>x.id===document.getElementById("obs_obr").value); data.obrId=o.id; data.obrNum=o.num; data.txt=document.getElementById("obs_txt").value; data.est=document.getElementById("obs_est").value; }
+    if(mod==='ped'){ const o=db.obras.find(x=>x.id===document.getElementById("ped_obr").value); data.obrId=o.id; data.obrNum=o.num; data.mat=document.getElementById("ped_mat").value; data.qtd=document.getElementById("ped_qtd").value; data.enc=document.getElementById("ped_enc").value; data.gui=document.getElementById("ped_gui").value; data.est=document.getElementById("ped_est").value; }
+    if(mod==='tar'){ const o=db.obras.find(x=>x.id===document.getElementById("tar_obr").value); data.obrId=o.id; data.obrNum=o.num; data.tit=document.getElementById("tar_tit").value; data.para=Array.from(document.getElementById("tar_p").selectedOptions).map(x=>x.value); data.est=document.getElementById("tar_est").value; }
 
-        if(mod === 'obs') { data.desc = document.getElementById("obs_desc").value; data.estado = document.getElementById("obs_est_input").value; }
-        if(mod === 'ped') {
-            data.mat = document.getElementById("ped_mat").value;
-            data.qtd = document.getElementById("ped_qtd").value;
-            data.enc = document.getElementById("ped_enc").value;
-            data.guia = document.getElementById("ped_guia").value;
-            data.estado = document.getElementById("ped_est_input").value;
-        }
-        if(mod === 'tar') {
-            data.tit = document.getElementById("tar_tit").value;
-            data.para = Array.from(document.getElementById("tar_para_sel").selectedOptions).map(o => o.value);
-            data.estado = document.getElementById("tar_est_input").value;
-        }
-    }
-
+    const diff = getDiff(old, data);
     rtdb.ref(`${mod}/${id}`).set(data).then(() => {
-        addHistorial(id, isEdit ? "Editou" : "Criou");
-        addNotif(`Módulo ${mod.toUpperCase()}: ${isEdit?'Edição':'Novo registo'} por ${currentUser.u}`);
-        cancelarEdicao(mod);
-        showToast();
+        if(diff) registrarHistorial(id, diff);
+        registrarNotif(`${mod.toUpperCase()}: ${old?'Alterado':'Criado'} por ${currentUser.u}`);
+        cancelar(mod); showToast();
     });
 }
 
-// GUARDAR HORAS
-function guardarHoras() {
-    const dataH = document.getElementById("hrs_data").value;
-    const oId = document.getElementById("hrs_obra_sel").value;
-    const ini = document.getElementById("hrs_ini").value;
-    const fim = document.getElementById("hrs_fim").value;
-    if(!dataH || !oId || !ini || !fim) return alert("Preencha todos os campos!");
-
-    const regId = editId || `${currentUser.u}_${dataH.replace(/-/g,'')}`;
-    let registro = db.horas.find(h => h.id === regId) || { id: regId, user: currentUser.u, data: dataH, estado: "Por aprobar", intervenciones: [] };
+function salvarHoras() {
+    const dat = document.getElementById("h_dat").value, oId = document.getElementById("h_obr").value;
+    if(!dat || !oId) return;
+    const regId = editId || `${currentUser.u}_${dat.replace(/-/g,'')}`;
+    let reg = db.hrs.find(x => x.id === regId) || { id: regId, user:currentUser.u, data:dat, est:"Por aprobar", criacao: new Date().toLocaleString(), intervenciones: [] };
     
-    const obra = db.obras.find(o => o.id === oId);
-    const duracao = (new Date(`1970-01-01T${fim}`) - new Date(`1970-01-01T${ini}`)) / 3600000;
+    const oldReg = JSON.parse(JSON.stringify(reg));
+    const obr = db.obras.find(x => x.id === oId);
+    const ini = document.getElementById("h_ini").value, fim = document.getElementById("h_fim").value;
+    const hrs = (new Date(`1970-01-01T${fim}`) - new Date(`1970-01-01T${ini}`)) / 3600000;
     
-    const novaInt = {
-        subId: editSubId || Date.now().toString(),
-        obraId: oId, obraNum: obra.num, obraNome: obra.nome,
-        ini, fim, tareas: document.getElementById("hrs_tarefas").value, horas: duracao
-    };
+    const sub = { subId: editSubId || Date.now().toString(), obrId: oId, obrNum: obr.num, ini, fim, tar: document.getElementById("h_tar").value, hrs };
+    
+    if(editSubId) reg.intervenciones[reg.intervenciones.findIndex(i=>i.subId===editSubId)] = sub;
+    else reg.intervenciones.push(sub);
+    
+    if(currentUser.role==='Administrador') reg.est = document.getElementById("h_est_adm").value;
+    reg.atualizacao = new Date().toLocaleString();
 
-    if(editSubId) {
-        const idx = registro.intervenciones.findIndex(i => i.subId === editSubId);
-        registro.intervenciones[idx] = novaInt;
-    } else {
-        registro.intervenciones.push(novaInt);
+    rtdb.ref(`hrs/${regId}`).set(reg).then(() => {
+        registrarHistorial(regId, getDiff(oldReg, reg));
+        registrarNotif(`HORAS: Registo em ${dat} por ${currentUser.u}`);
+        cancelar('hrs'); showToast();
+    });
+}
+
+function getDiff(old, novo) {
+    if(!old) return "Registo Inicial Criado";
+    let changes = [];
+    for(let k in novo) {
+        if(k === 'atualizacao' || k === 'intervenciones') continue;
+        if(JSON.stringify(old[k]) !== JSON.stringify(novo[k])) {
+            changes.push(`${k}: <span class="diff-old">${old[k]}</span> ➔ <span class="diff-add">${novo[k]}</span>`);
+        }
     }
-
-    if(currentUser.role === 'Administrador') registro.estado = document.getElementById("hrs_est_admin").value;
-
-    rtdb.ref(`horas/${regId}`).set(registro).then(() => {
-        addNotif(`HORAS: Registo de ${currentUser.u} em ${dataH}`);
-        cancelarEdicao('hrs');
-        showToast();
-    });
+    return changes.length > 0 ? changes.join("<br>") : null;
 }
 
-// RENDERIZAÇÃO CENTRALIZADA COM FILTROS
+function registrarHistorial(ref, txt) { if(txt) rtdb.ref(`historial/${ref}`).push({ u: currentUser.u, t: new Date().toLocaleString(), msg: txt }); }
+function registrarNotif(msg) { rtdb.ref('notif').push({ msg, time: new Date().toLocaleString() }); }
+
 function renderAll() {
-    // 1. OBRAS
-    const fOn = document.getElementById("f_o_num").value.toLowerCase();
-    const fOm = document.getElementById("f_o_nom").value.toLowerCase();
+    // RENDER OBRAS
+    const fOt = document.getElementById("f_o_txt").value.toLowerCase();
     const fOe = document.getElementById("f_o_est").value;
-    renderModulo('obras', 'lista_obras', o => `<b>${o.num} - ${o.nome}</b>`, o => 
-        o.num.toLowerCase().includes(fOn) && o.nome.toLowerCase().includes(fOm) && (!fOe || o.estado === fOe)
-    );
+    document.getElementById("list_obras").innerHTML = db.obras.filter(o => (o.num+o.nom).toLowerCase().includes(fOt) && (!fOe || o.est===fOe)).map(o => `
+        <div class="card"><b>${o.num} - ${o.nom}</b> <span class="badge" style="background:var(--primary)">${o.est}</span>
+        <div class="timestamp">Criado: ${o.criacao} | Ult: ${o.atualizacao||'---'}</div>
+        <div class="btn-group">
+            ${currentUser.role==='Administrador'?`<button class="btn-edit" onclick="prepEdit('obras','${o.id}')">✏️</button>`:''}
+            <button style="background:var(--info)" onclick="openHist('${o.id}')">📜 Histórico</button>
+        </div></div>`).join("");
 
-    // 2. HORAS (COM FILTRO MÊS/ANO)
-    const fHm = document.getElementById("f_hrs_mes").value;
-    const fHa = document.getElementById("f_hrs_ano").value;
-    const fHu = document.getElementById("f_hrs_user").value.toLowerCase();
-    const fHe = document.getElementById("f_hrs_est").value;
-
-    let hList = db.horas.filter(h => {
-        const [ano, mes] = h.data.split("-");
-        return (!fHm || mes === fHm) && (!fHa || ano === fHa) && 
-               (currentUser.role==='Administrador' ? h.user.toLowerCase().includes(fHu) : h.user === currentUser.u) &&
-               (!fHe || h.estado === fHe);
-    }).sort((a,b) => b.data.localeCompare(a.data));
-
-    document.getElementById("lista_horas").innerHTML = hList.map(h => {
-        const total = h.intervenciones.reduce((acc, i) => acc + i.horas, 0);
-        const lock = h.estado === 'Aprovado' && currentUser.role !== 'Administrador';
-        return `<div class="card">
-            <div style="display:flex; justify-content:space-between"><b>📅 ${h.data} (${h.user})</b> <b style="color:var(--primary)">${total.toFixed(2)}h</b></div>
-            <span class="badge ${h.estado==='Sem efeito'?'status-void':''}" style="background:var(--secondary)">${h.estado}</span>
-            ${h.intervenciones.map(i => `
-                <div class="sub-card">
-                    <b>Obra ${i.obraNum}</b>: ${i.ini} às ${i.fim} (${i.horas.toFixed(2)}h)<br><i>${i.tareas}</i>
-                    ${!lock ? `<div class="btn-group"><button class="btn-edit" onclick="prepEditHrs('${h.id}','${i.subId}')">✏️</button><button class="btn-del" onclick="delSub('${h.id}','${i.subId}')">❌</button></div>`:''}
-                </div>`).join("")}
-            <div class="btn-group">
-                <button style="background:var(--dark)" onclick="openNotas('${h.id}')">💬 Notas</button>
-                <button style="background:var(--info)" onclick="openHistorial('${h.id}')">📜 Hist.</button>
-            </div>
-        </div>`;
-    }).join("");
-
-    // 3. OBSERVAÇÕES
-    const fObsT = document.getElementById("f_obs_txt").value.toLowerCase();
-    const fObsE = document.getElementById("f_obs_est").value;
-    renderModulo('obs', 'lista_obs', o => `<b>${o.obraNum}</b>: ${o.desc}`, o => 
-        (o.desc.toLowerCase().includes(fObsT) || o.obraNum.toLowerCase().includes(fObsT)) && (!fObsE || o.estado === fObsE)
-    );
-
-    // 4. PEDIDOS (COM ENCOMENDA)
-    const fPedT = document.getElementById("f_ped_txt").value.toLowerCase();
-    const fPedE = document.getElementById("f_ped_est").value;
-    renderModulo('ped', 'lista_ped', o => `<b>${o.obraNum}</b>: ${o.mat} (${o.qtd})<br><small>Enc: ${o.enc || '---'} | Guia: ${o.guia || '---'}</small>`, o => 
-        (o.mat.toLowerCase().includes(fPedT) || o.obraNum.toLowerCase().includes(fPedT)) && (!fPedE || o.estado === fPedE)
-    );
-
-    // 5. TAREFAS
-    const fTarT = document.getElementById("f_tar_txt").value.toLowerCase();
-    const fTarE = document.getElementById("f_tar_est").value;
-    renderModulo('tar', 'lista_tar', o => `<b>${o.obraNum}</b>: ${o.tit}<br><small>Para: ${o.para.join(", ")}</small>`, o => 
-        (o.tit.toLowerCase().includes(fTarT) || o.obraNum.toLowerCase().includes(fTarT)) && (!fTarE || o.estado === fTarE)
-    );
-
-    // 6. UTILIZADORES
-    const fUt = document.getElementById("f_u_txt").value.toLowerCase();
-    document.getElementById("lista_users").innerHTML = db.users.filter(u => u.u.toLowerCase().includes(fUt)).map(u => `
-        <div class="card"><b>${u.u}</b> - Nível: ${u.role} 
-        <button class="btn-del" onclick="eliminarUser('${u.u}')" style="float:right; padding:5px">Apagar</button></div>`).join("");
-
-    // 7. NOTIFICAÇÕES
-    document.getElementById("lista_notif").innerHTML = db.notif.slice(0,15).map(n => `<div class="sub-card"><small>${n.time}</small><br>${n.msg}</div>`).join("");
-}
-
-function renderModulo(mod, target, temp, filterFn) {
-    document.getElementById(target).innerHTML = db[mod].filter(filterFn).reverse().map(i => `
-        <div class="card">
-            ${temp(i)} <span class="badge ${i.estado==='Sem efeito'?'status-void':''}" style="background:var(--primary)">${i.estado}</span>
-            <div class="btn-group">
-                <button class="btn-edit" onclick="prepEdit('${mod}','${i.id}')">✏️ Editar</button>
-                <button class="btn-del" onclick="eliminarRegistro('${mod}','${i.id}')">❌ Apagar</button>
-                <button style="background:var(--dark)" onclick="openNotas('${i.id}')">💬</button>
-            </div>
+    // RENDER HORAS
+    const fHm = document.getElementById("f_h_mes").value, fHa = document.getElementById("f_h_ano").value, fHu = document.getElementById("f_h_usr").value.toLowerCase();
+    document.getElementById("list_hrs").innerHTML = db.hrs.filter(h => {
+        const [y, m] = h.data.split("-");
+        return (!fHm || m===fHm) && (!fHa || y===fHa) && (currentUser.role==='Administrador'?h.user.toLowerCase().includes(fHu):h.user===currentUser.u);
+    }).map(h => `
+        <div class="card"><b>${h.data} (${h.user})</b> <span class="badge" style="background:var(--secondary)">${h.est}</span>
+        <div class="timestamp">Criado: ${h.criacao} | Ult: ${h.atualizacao||'---'}</div>
+        ${h.intervenciones.map(i=>`<div class="sub-card"><b>${i.obrNum}</b>: ${i.ini}-${i.fim} (${i.hrs.toFixed(2)}h)<br>${i.tar}
+            <button onclick="prepEditHrs('${h.id}','${i.subId}')">✏️</button></div>`).join("")}
+        <button style="background:var(--info); width:100%; margin-top:5px; border:none; color:white; padding:5px; border-radius:4px" onclick="openHist('${h.id}')">📜 Ver Histórico</button>
         </div>`).join("");
+
+    // RENDER GENÉRICO (OBS, PED, TAR)
+    renderGen('obs', 'list_obs', x => `<b>${x.obrNum}</b>: ${x.txt}`);
+    renderGen('ped', 'list_ped', x => `<b>${x.obrNum}</b>: ${x.mat} (Enc: ${x.enc})`);
+    renderGen('tar', 'list_tar', x => `<b>${x.obrNum}</b>: ${x.tit} <br><small>Para: ${x.para}</small>`);
+
+    // USERS (Inclui Admin)
+    document.getElementById("list_users").innerHTML = (db.users.length ? db.users : []).concat([{u:"admin", role:"Administrador"}]).map(u => `
+        <div class="card"><b>${u.u}</b> (${u.role}) ${u.u!=='admin'?`<button onclick="del('users','${u.u}')">❌</button>`:''}</div>`).join("");
+
+    // NOTIF
+    document.getElementById("list_notif").innerHTML = db.notif.slice(0,15).map(n=>`<div class="sub-card"><small>${n.time}</small><br>${n.msg}</div>`).join("");
 }
 
-// AUXILIARES
+function renderGen(mod, target, temp) {
+    document.getElementById(target).innerHTML = db[mod].reverse().map(x => `
+        <div class="card">${temp(x)} <span class="badge" style="background:var(--dark)">${x.est}</span>
+        <div class="timestamp">Criado: ${x.criacao} | Ult: ${x.atualizacao||'---'}</div>
+        <div class="btn-group">
+            <button class="btn-edit" onclick="prepEdit('${mod}','${x.id}')">✏️</button>
+            <button style="background:var(--info)" onclick="openHist('${x.id}')">📜 Hist.</button>
+        </div></div>`).join("");
+}
+
+function updateSelects() {
+    const emExec = db.obras.filter(o => o.est === "Em execução");
+    const opt = emExec.length ? emExec.map(o => `<option value="${o.id}">${o.num} - ${o.nom}</option>`).join("") : '<option>Nenhuma obra em execução</option>';
+    ['h_obr','obs_obr','ped_obr','tar_obr'].forEach(id => document.getElementById(id).innerHTML = opt);
+    
+    document.getElementById("tar_p").innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
+    const anos = [...new Set(db.hrs.map(h => h.data.split("-")[0]))].sort();
+    document.getElementById("f_h_ano").innerHTML = '<option value="">Ano</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join("");
+}
+
 function prepEdit(mod, id) {
-    editId = id; show(mod);
-    const item = db[mod].find(x => x.id === id);
-    if(mod==='obras'){ document.getElementById("obra_num").value=item.num; document.getElementById("obra_nome").value=item.nome; document.getElementById("obra_est_input").value=item.estado; }
-    if(mod==='obs'){ document.getElementById("obs_obra_sel").value=item.obraId; document.getElementById("obs_desc").value=item.desc; document.getElementById("obs_est_input").value=item.estado; }
-    if(mod==='ped'){ document.getElementById("ped_obra_sel").value=item.obraId; document.getElementById("ped_mat").value=item.mat; document.getElementById("ped_qtd").value=item.qtd; document.getElementById("ped_enc").value=item.enc; document.getElementById("ped_guia").value=item.guia; document.getElementById("ped_est_input").value=item.estado; }
-    if(mod==='tar'){ document.getElementById("tar_obra_sel").value=item.obraId; document.getElementById("tar_tit").value=item.tit; document.getElementById("tar_est_input").value=item.estado; }
-    document.getElementById(`title-${mod}`).innerText = "✏️ Editando Registo...";
+    editId = id; show(mod); const item = db[mod].find(x=>x.id===id);
+    if(mod==='obras'){ document.getElementById("o_num").value=item.num; document.getElementById("o_nom").value=item.nom; document.getElementById("o_est").value=item.est; }
+    if(mod==='obs'){ document.getElementById("obs_obr").value=item.obrId; document.getElementById("obs_txt").value=item.txt; document.getElementById("obs_est").value=item.est; }
 }
 
 function prepEditHrs(id, sId) {
     editId = id; editSubId = sId; show('hrs');
-    const r = db.horas.find(h => h.id === id);
-    const i = r.intervenciones.find(x => x.subId === sId);
-    document.getElementById("hrs_data").value = r.data;
-    document.getElementById("hrs_obra_sel").value = i.obraId;
-    document.getElementById("hrs_ini").value = i.ini;
-    document.getElementById("hrs_fim").value = i.fim;
-    document.getElementById("hrs_tarefas").value = i.tareas;
-    if(currentUser.role==='Administrador') document.getElementById("hrs_est_admin").value = r.estado;
+    const r = db.hrs.find(x=>x.id===id), i = r.intervenciones.find(x=>x.subId===sId);
+    document.getElementById("h_dat").value=r.data; document.getElementById("h_obr").value=i.obrId;
+    document.getElementById("h_ini").value=i.ini; document.getElementById("h_fim").value=i.fim;
+    document.getElementById("h_tar").value=i.tar;
 }
 
-function updateSelects() {
-    const active = db.obras.filter(o => o.estado === 'Em execução');
-    const opt = '<option value="">Selecionar Obra...</option>' + active.map(o => `<option value="${o.id}">${o.num} - ${o.nome}</option>`).join("");
-    ['obs_obra_sel','ped_obra_sel','tar_obra_sel','hrs_obra_sel'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
-    
-    document.getElementById("tar_para_sel").innerHTML = db.users.map(u => `<option value="${u.u}">${u.u}</option>`).join("");
-    
-    // Auto-popula Anos no filtro de horas
-    const anos = [...new Set(db.horas.map(h => h.data.split("-")[0]))].sort();
-    document.getElementById("f_hrs_ano").innerHTML = '<option value="">Ano (Todos)</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join("");
+function createUser() { const u=document.getElementById("u_n").value, p=document.getElementById("u_p").value, r=document.getElementById("u_r").value; if(u&&p) rtdb.ref(`users/${u}`).set({u,p,role:r}); }
+function openHist(id) {
+    document.getElementById("mod-hist").style.display="block";
+    const h = Object.values(db.historial[id] || {}).reverse();
+    document.getElementById("hist-content").innerHTML = h.length ? h.map(x => `
+        <div class="sub-card"><b>${x.t}</b> por <b>${x.u}</b>:<br>${x.msg}</div>`).join("") : "Sem registos de alteração.";
 }
-
-function guardarUsuario() {
-    const u = document.getElementById("u_name").value.trim(), p = document.getElementById("u_pass").value.trim(), r = document.getElementById("u_role").value;
-    if(u && p) rtdb.ref(`users/${u}`).set({u, p, role: r}).then(() => { alert("Utilizador guardado!"); });
-}
-
-function addNotif(msg) { rtdb.ref('notif').push({ msg, time: new Date().toLocaleString() }); }
-function addHistorial(ref, acao) { rtdb.ref(`historial/${ref}`).push({ q: currentUser.u, d: new Date().toLocaleString(), a: acao }); }
 function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
-function cancelarEdicao(mod) { editId = null; editSubId = null; document.querySelectorAll(`#${mod} input, #${mod} textarea`).forEach(i=>i.value=""); document.querySelectorAll('h2').forEach(h=>h.innerText = h.innerText.replace("✏️ Editando Registo...", "")); }
-function eliminarRegistro(path, id) { if(confirm("Apagar permanentemente?")) rtdb.ref(`${path}/${id}`).remove(); }
-function eliminarUser(u) { if(confirm("Apagar utilizador?")) rtdb.ref(`users/${u}`).remove(); }
-function delSub(id, sId) {
-    const r = db.horas.find(h => h.id === id);
-    if(confirm("Apagar esta intervenção?")) {
-        r.intervenciones = r.intervenciones.filter(i => i.subId !== sId);
-        if(r.intervenciones.length === 0) rtdb.ref(`horas/${id}`).remove();
-        else rtdb.ref(`horas/${id}`).set(r);
-    }
-}
-function logout() { location.reload(); }
+function cancelar(m) { editId=null; editSubId=null; document.querySelectorAll(`#${m} input, #${m} textarea`).forEach(i=>i.value=""); }
+function closeModal() { document.getElementById("mod-hist").style.display="none"; }
 function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(()=>t.style.display="none", 2500); }
-function closeModals() { document.querySelectorAll(".modal").forEach(m=>m.style.display="none"); }
-function openNotas(id) { currentRef = id; document.getElementById("modal-notas").style.display="block"; renderNotas(); }
-function renderNotas() { const n = Object.values(db.notas[currentRef] || {}); document.getElementById("lista-notas-content").innerHTML = n.map(x => `<div class="sub-card"><b>${x.u}:</b> ${x.t}</div>`).join(""); }
-function addNota() { const t = document.getElementById("nota-texto").value; if(t) rtdb.ref(`notas/${currentRef}`).push({ u: currentUser.u, t }).then(()=>document.getElementById("nota-texto").value=""); }
-function openHistorial(id) { document.getElementById("modal-hist").style.display="block"; const h = Object.values(db.historial[id] || {}); document.getElementById("lista-hist-content").innerHTML = h.reverse().map(x => `<div style="font-size:11px"><b>${x.d}</b>: ${x.a} por ${x.q}</div>`).join(""); }
+function logout() { location.reload(); }
+function del(p, id) { if(confirm("Apagar?")) rtdb.ref(`${p}/${id}`).remove(); }
 </script>
 </body>
 </html>
