@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v18.0 - ERP COMPLETO</title>
+    <title>ROFREICRC v18.0 - SISTEMA INTEGRAL</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -13,255 +13,110 @@
 
     <style>
         :root { --p: #0f172a; --s: #334155; --acc: #2563eb; --ok: #16a34a; --err: #dc2626; --warn: #ea580c; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); font-size: 12px; color: #1e293b; overflow-x: hidden; }
-        header { background: var(--p); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 16px; position: sticky; top: 0; z-index: 200; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        nav { display: flex; flex-wrap: wrap; background: #e2e8f0; padding: 5px; gap: 5px; position: sticky; top: 49px; z-index: 100; border-bottom: 1px solid #cbd5e1; }
-        nav button { flex: 1; min-width: 90px; padding: 10px; border: none; background: var(--s); color: white; cursor: pointer; font-weight: bold; border-radius: 4px; transition: 0.3s; }
-        nav button.active { background: var(--acc); box-shadow: inset 0 -3px 0 white; }
-        nav button:hover { background: #475569; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); font-size: 12px; color: #1e293b; }
+        header { background: var(--p); color: white; padding: 15px; text-align: center; font-weight: bold; position: sticky; top: 0; z-index: 200; }
+        nav { display: flex; flex-wrap: wrap; background: #e2e8f0; padding: 5px; gap: 5px; position: sticky; top: 49px; z-index: 100; }
+        nav button { flex: 1; min-width: 90px; padding: 10px; border: none; background: var(--s); color: white; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        nav button.active { background: var(--acc); }
         .container { padding: 15px; max-width: 1400px; margin: auto; }
-        .mod-sec { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .form-box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 20px; background: #ffffff; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .mod-sec { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .form-box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
         .full-w { grid-column: 1 / -1; }
-        label { font-weight: bold; display: block; margin-bottom: 4px; color: var(--s); }
-        input, select, textarea { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; font-size: 12px; }
-        input:focus { border-color: var(--acc); outline: none; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
-        .btn-row-form { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-main { background: var(--ok); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 2; transition: 0.2s; }
-        .btn-main:hover { opacity: 0.9; }
-        .btn-cancel { background: var(--s); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; display: none; }
-        
-        /* Filtros por Celda */
-        .filter-bar { background: #f1f5f9; padding: 12px; border-radius: 6px; margin: 15px 0; display: flex; gap: 10px; flex-wrap: wrap; border: 1px solid #e2e8f0; align-items: flex-end; }
-        .filter-item { flex: 1; min-width: 150px; }
-        .filter-item label { font-size: 10px; text-transform: uppercase; color: #64748b; }
-
-        /* Tarjetas */
-        .card { border: 1px solid #e2e8f0; border-left: 5px solid var(--acc); padding: 15px; margin: 10px 0; border-radius: 4px; background: white; position: relative; transition: 0.2s; }
-        .card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-        .meta { font-size: 10px; color: #64748b; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: space-between; }
-        
-        .actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 12px; }
-        .actions button { padding: 6px 12px; border: none; border-radius: 3px; cursor: pointer; color: white; font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
-        .b-edit { background: var(--acc); } 
-        .b-del { background: var(--err); } 
-        .b-hist { background: var(--s); } 
-        .b-file { background: var(--ok); } 
-        .b-note { background: var(--warn); }
-
-        /* N.E. Tabla */
-        .ne-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
-        .ne-table th { background: #f8fafc; text-align: left; padding: 8px; border: 1px solid #cbd5e1; }
-        .ne-table td { border: 1px solid #cbd5e1; padding: 5px; }
-
-        /* Modales */
-        .modal { display:none; position:fixed; z-index:1000; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter: blur(2px); }
-        .modal-content { background:white; width:95%; max-width:850px; margin: 3% auto; padding: 25px; border-radius: 8px; max-height: 90vh; overflow-y: auto; position: relative; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+        .btn-main { background: var(--ok); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn-cancel { background: var(--s); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; margin-top: 5px; display: none; width: 100%; }
+        .card { border: 1px solid #e2e8f0; border-left: 5px solid var(--acc); padding: 15px; margin: 10px 0; border-radius: 4px; background: white; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .actions { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+        .actions button { padding: 6px 10px; border: none; border-radius: 3px; cursor: pointer; color: white; font-size: 10px; font-weight: bold; }
+        .b-edit { background: var(--acc); } .b-note { background: var(--warn); } .b-file { background: var(--ok); } .b-hist { background: var(--s); } .b-del { background: var(--err); }
+        .filter-bar { background: #f1f5f9; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-item { flex: 1; min-width: 120px; }
+        .modal { display:none; position:fixed; z-index:1000; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); }
+        .modal-content { background:white; width:90%; max-width:800px; margin: 5% auto; padding: 20px; border-radius: 8px; max-height: 80vh; overflow-y: auto; }
     </style>
 </head>
 <body>
-
-<header id="main-header">ROFREICRC v18.0 - GESTÃO INTEGRAL</header>
-
-<div id="login-sec" style="max-width: 400px; margin: 100px auto; padding: 35px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-    <h2 style="text-align: center; margin-top: 0; color: var(--p);">Acesso Reservado</h2>
-    <div style="margin-bottom: 15px;">
-        <label>Utilizador</label>
-        <input type="text" id="log-u" placeholder="Ex: admin">
-    </div>
-    <div style="margin-bottom: 25px;">
-        <label>Palavra-passe</label>
-        <input type="password" id="log-p" placeholder="••••••••">
-    </div>
-    <button class="btn-main" style="width:100%; font-size: 14px;" onclick="doLogin()">ENTRAR NO SISTEMA</button>
+<header>ROFREICRC v18.0 - GESTÃO OPERACIONAL</header>
+<div id="login-sec" style="max-width: 400px; margin: 80px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    <h2 style="text-align:center">Login</h2>
+    <input type="text" id="log-u" placeholder="Utilizador" style="margin-bottom:10px">
+    <input type="password" id="log-p" placeholder="Senha" style="margin-bottom:20px">
+    <button class="btn-main" onclick="doLogin()">ENTRAR</button>
 </div>
-
-<div id="app" style="display: none;">
-    <nav id="main-nav">
-        <button id="nav-obras" onclick="showMod('obras')">OBRAS</button>
-        <button id="nav-horas" onclick="showMod('horas')">HORAS</button>
-        <button id="nav-ne" onclick="showMod('ne')">ENCOMENDAS</button>
-        <button id="nav-ped" onclick="showMod('ped')">PEDIDOS</button>
-        <button id="nav-tar" onclick="showMod('tar')">TAREFAS</button>
-        <button id="nav-obs" onclick="showMod('obs')">OBS</button>
-        <button id="nav-notif" onclick="showMod('notif')">NOTIF</button>
-        <button id="nav-users" onclick="showMod('users')" style="background: var(--warn);">ADMIN</button>
-    </nav>
-
+<div id="app" style="display:none">
+    <nav id="navbar"></nav>
     <div class="container">
         <section id="mod-obras" class="mod-sec">
             <div class="form-box">
-                <h3 style="margin-top:0">🏗️ Registo de Obra</h3>
+                <h3>🏗️ Obras</h3>
                 <div class="grid">
-                    <div><label>Nº Obra</label><input type="text" id="o-num" placeholder="Ex: 2024/001"></div>
-                    <div class="full-w"><label>Nome da Obra</label><input type="text" id="o-nom"></div>
-                    <div><label>Estado</label><select id="o-est"><option>Em Execução</option><option>Finalizada</option><option>Sem Efeito</option></select></div>
+                    <input type="text" id="o-num" placeholder="Nº Obra">
+                    <input type="text" id="o-nom" placeholder="Nome">
+                    <select id="o-est"><option>Em Execução</option><option>Finalizada</option></select>
                 </div>
-                <div class="btn-row-form">
-                    <button class="btn-main" onclick="saveRecord('obras')">GRAVAR OBRA</button>
-                    <button id="o-cancel" class="btn-cancel" onclick="cancelarEdit('obras')">CANCELAR</button>
-                </div>
+                <button class="btn-main" onclick="saveRecord('obras')">Gravar</button>
+                <button id="o-cancel" class="btn-cancel" onclick="cancelarEdit('obras')">Cancelar</button>
             </div>
             <div class="filter-bar">
-                <div class="filter-item"><label>Filtrar Nº</label><input type="text" id="filt-o-num" oninput="renderObras()"></div>
-                <div class="filter-item"><label>Filtrar Nome</label><input type="text" id="filt-o-nom" oninput="renderObras()"></div>
-                <div class="filter-item"><label>Estado</label><select id="filt-o-est" onchange="renderObras()"><option value="">Todos</option><option>Em Execução</option><option>Finalizada</option></select></div>
-                <button onclick="exportarExcel('obras')">📊 Excel</button>
+                <input type="text" id="filt-o-num" placeholder="Filtrar Nº" oninput="renderObras()">
+                <input type="text" id="filt-o-nom" placeholder="Filtrar Nome" oninput="renderObras()">
             </div>
             <div id="list-obras"></div>
         </section>
-
         <section id="mod-horas" class="mod-sec">
             <div class="form-box">
-                <h3 style="margin-top:0">🕒 Lançamento de Horas</h3>
+                <h3>🕒 Horas</h3>
                 <div class="grid">
-                    <div><label>Data</label><input type="date" id="h-dat"></div>
-                    <div><label>Obra</label><select id="h-obr"></select></div>
-                    <div><label>Início</label><input type="time" id="h-ini"></div>
-                    <div><label>Fim</label><input type="time" id="h-fim"></div>
-                    <div class="full-w"><label>Descrição da Tarefa</label><textarea id="h-task" rows="2"></textarea></div>
-                    <div><label>Estado</label><select id="h-est" disabled><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option></select></div>
+                    <input type="date" id="h-dat">
+                    <select id="h-obr"></select>
+                    <input type="time" id="h-ini">
+                    <input type="time" id="h-fim">
+                    <textarea id="h-task" class="full-w" placeholder="Tarefa"></textarea>
+                    <select id="h-est" disabled><option>Por Aprobar</option><option>Aprobada</option></select>
                 </div>
-                <div class="btn-row-form">
-                    <button class="btn-main" onclick="saveRecord('horas')">GUARDAR HORAS</button>
-                    <button id="h-cancel" class="btn-cancel" onclick="cancelarEdit('horas')">CANCELAR</button>
-                </div>
+                <button class="btn-main" onclick="saveRecord('horas')">Gravar</button>
+                <button id="h-cancel" class="btn-cancel" onclick="cancelarEdit('horas')">Cancelar</button>
             </div>
             <div class="filter-bar">
-                <div class="filter-item"><label>Data</label><input type="date" id="filt-h-dat" oninput="renderHoras()"></div>
-                <div class="filter-item"><label>Obra</label><input type="text" id="filt-h-obr" oninput="renderHoras()"></div>
-                <button onclick="exportarExcel('horas')">📊 Excel</button>
+                <select id="filt-h-mes" onchange="renderHoras()"><option value="">Mês</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
+                <select id="filt-h-ano" onchange="renderHoras()"><option value="">Ano</option><option>2024</option><option>2025</option></select>
+                <select id="filt-h-est" onchange="renderHoras()"><option value="">Estado</option><option>Por Aprobar</option><option>Aprobada</option></select>
             </div>
             <div id="list-horas"></div>
         </section>
-
         <section id="mod-ne" class="mod-sec">
             <div class="form-box">
-                <h3 style="margin-top:0">📄 Nova Nota de Encomenda</h3>
+                <h3>📄 Nota Encomenda</h3>
                 <div class="grid">
-                    <div><label>Nº Encomenda</label><input type="text" id="ne-num" readonly style="background:#f1f5f9; font-weight:bold;"></div>
-                    <div><label>Obra Destino</label><select id="ne-obr"></select></div>
-                    <div><label>Fornecedor</label><input type="text" id="ne-prov"></div>
-                    <div><label>Estado</label><select id="ne-est"><option>Emitida</option><option>Enviada</option><option>Recebida Parcial</option><option>Finalizada</option></select></div>
+                    <input type="text" id="ne-num" readonly style="background:#eee">
+                    <select id="ne-obr"></select>
+                    <input type="text" id="ne-prov" placeholder="Fornecedor">
+                    <select id="ne-est"><option>Emitida</option><option>Finalizada</option></select>
                 </div>
-                <table class="ne-table">
-                    <thead>
-                        <tr>
-                            <th width="80">Qtd</th>
-                            <th width="80">Unid</th>
-                            <th>Descrição do Produto/Material</th>
-                            <th width="120">Preço Un.</th>
-                            <th width="120">Total</th>
-                            <th width="40"></th>
-                        </tr>
-                    </thead>
+                <table style="width:100%; margin-top:10px" border="1" id="ne-table">
+                    <thead><tr><th>Qtd</th><th>Un</th><th>Mat</th><th>Preço</th><th>Total</th><th></th></tr></thead>
                     <tbody id="ne-body"></tbody>
                 </table>
-                <button class="b-note" style="margin-top:10px; color:white; padding:8px;" onclick="addNERow()">+ Adicionar Linha</button>
-                <div class="btn-row-form">
-                    <button class="btn-main" onclick="saveNE()">GERAR NE E ENVIAR PARA PEDIDOS</button>
-                    <button id="ne-cancel" class="btn-cancel" onclick="cancelarEdit('ne')">LIMPAR</button>
-                </div>
+                <button onclick="addNERow()" style="margin:10px 0">+ Item</button>
+                <button class="btn-main" onclick="saveNE()">Gerar NE e PDF</button>
+                <button id="ne-cancel" class="btn-cancel" onclick="cancelarEdit('ne')">Limpar</button>
             </div>
+            <div class="filter-bar"><input type="text" id="filt-ne-num" placeholder="Procurar Nº" oninput="renderNE()"></div>
             <div id="list-ne"></div>
         </section>
-
         <section id="mod-ped" class="mod-sec">
-            <h3>🛒 Controlo de Pedidos de Material</h3>
-            <div class="filter-bar">
-                <div class="filter-item"><label>Obra</label><input type="text" id="filt-p-obr" oninput="renderPed()"></div>
-                <div class="filter-item"><label>Material</label><input type="text" id="filt-p-mat" oninput="renderPed()"></div>
-                <div class="filter-item"><label>Estado</label><select id="filt-p-est" onchange="renderPed()"><option value="">Todos</option><option>Por Solicitar</option><option>Encomendado</option><option>Entregue pelo Fornecedor</option></select></div>
-            </div>
+            <h3>🛒 Pedidos de Material</h3>
+            <div class="filter-bar"><select id="filt-ped-est" onchange="renderPed()"><option value="">Todos</option><option>Por Solicitar</option><option>Encomendado</option><option>Entregue pelo Fornecedor</option></select></div>
             <div id="list-ped"></div>
         </section>
-
-        <section id="mod-tar" class="mod-sec">
-            <div class="form-box">
-                <h3>✅ Atribuição de Tarefas</h3>
-                <div class="grid">
-                    <div class="full-w"><label>Tarefa / Instrução</label><input type="text" id="tar-txt"></div>
-                    <div><label>Obra Relacionada</label><select id="tar-obr"></select></div>
-                    <div><label>Atribuir a</label><select id="tar-users" multiple style="height:60px"></select></div>
-                    <div><label>Estado</label><select id="tar-est"><option>Pendente</option><option>Em Curso</option><option>Concluída</option></select></div>
-                </div>
-                <button class="btn-main" onclick="saveRecord('tar')">CRIAR TAREFA</button>
-            </div>
-            <div id="list-tar"></div>
-        </section>
-
-        <section id="mod-obs" class="mod-sec">
-            <div class="form-box">
-                <h3>📝 Ocorrências e Observações</h3>
-                <div class="grid">
-                    <div><label>Obra</label><select id="obs-obr"></select></div>
-                    <div class="full-w"><label>Relato da Ocorrência</label><textarea id="obs-txt" rows="3"></textarea></div>
-                    <div><label>Urgência</label><select id="obs-est"><option>Normal</option><option>Urgente</option><option>Crítico</option></select></div>
-                </div>
-                <button class="btn-main" onclick="saveRecord('obs')">REGISTAR OBSERVAÇÃO</button>
-            </div>
-            <div id="list-obs"></div>
-        </section>
-
-        <section id="mod-users" class="mod-sec">
-            <div class="form-box">
-                <h3>👥 Gestão de Utilizadores</h3>
-                <div class="grid">
-                    <div><label>Nome Utilizador</label><input type="text" id="u-nom"></div>
-                    <div><label>Palavra-passe</label><input type="text" id="u-pwd"></div>
-                    <div><label>Perfil</label><select id="u-rol"><option>Funcionário</option><option>Encarregado</option><option>Administrador</option></select></div>
-                    <div><label>Estado</label><select id="u-est"><option>Ativo</option><option>Suspenso</option></select></div>
-                </div>
-                <button class="btn-main" onclick="saveRecord('users')">GRAVAR UTILIZADOR</button>
-            </div>
-            <div id="list-users"></div>
-        </section>
-
-        <section id="mod-notif" class="mod-sec">
-            <h3>🔔 Central de Notificações</h3>
-            <div id="list-notif"></div>
-        </section>
     </div>
 </div>
-
-<div id="modal-notas" class="modal">
-    <div class="modal-content">
-        <h3>📝 Notas Adicionais</h3>
-        <textarea id="nota-texto" style="width:100%; height:300px; margin-bottom:15px;" placeholder="Escreva aqui observações internas..."></textarea>
-        <div style="display:flex; gap:10px;">
-            <button class="btn-main" onclick="saveNota()">GUARDAR NOTA</button>
-            <button class="btn-cancel" style="display:block" onclick="closeModal('modal-notas')">FECHAR</button>
-        </div>
-    </div>
-</div>
-
-<div id="modal-files" class="modal">
-    <div class="modal-content">
-        <h3>📁 Gestão de Documentos / Anexos</h3>
-        <div style="background:#f8fafc; padding:15px; border-radius:6px; border:2px dashed #cbd5e1; text-align:center; margin-bottom:20px;">
-            <input type="file" id="file-input" multiple onchange="handleFileUpload()" style="cursor:pointer">
-            <p style="margin-top:10px; color:#64748b;">Selecione ficheiros (Imagens, PDF, Excel)</p>
-        </div>
-        <div id="file-list" style="margin-bottom:20px;"></div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn-main" style="background:var(--p)" onclick="downloadCurrentFiles()">📥 DESCARREGAR TUDO (ZIP)</button>
-            <button class="btn-cancel" style="display:block" onclick="closeModal('modal-files')">VOLTAR</button>
-        </div>
-    </div>
-</div>
-
-<div id="modal-hist" class="modal">
-    <div class="modal-content">
-        <h3>📜 Histórico de Alterações (Auditoria)</h3>
-        <div id="hist-body" style="background:#f1f5f9; padding:15px; border-radius:6px; font-family: monospace; font-size:11px; line-height:1.6"></div>
-        <button class="btn-main" style="margin-top:20px;" onclick="closeModal('modal-hist')">FECHAR</button>
-    </div>
-</div>
+<div id="modal-files" class="modal"><div class="modal-content"><h3>Ficheiros</h3><input type="file" id="file-input" multiple onchange="handleFileUpload()"><div id="file-list" style="margin:15px 0"></div><button class="btn-main" onclick="downloadCurrentFiles()">Download ZIP</button><button onclick="closeModal('modal-files')">Fechar</button></div></div>
+<div id="modal-hist" class="modal"><div class="modal-content"><h3>Historial</h3><div id="hist-body"></div><button onclick="closeModal('modal-hist')">Fechar</button></div></div>
+<div id="modal-notas" class="modal"><div class="modal-content"><h3>Notas</h3><textarea id="nota-texto" style="width:100%; height:200px"></textarea><button class="btn-main" onclick="saveNota()">Gravar Nota</button><button onclick="closeModal('modal-notas')">Fechar</button></div></div>
 <script>
-// --- MOTOR FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyCBkWCoWX0oN1HWCA6aGt_kdg_2vyFz1mM",
     authDomain: "rofreicrc-175f9.firebaseapp.com",
@@ -273,235 +128,162 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let DB = { obras:[], horas:[], ne:[], ped:[], tar:[], obs:[], users:[], notif:[], hist:{} };
-let user = null; let currentMod = 'obras'; let editingId = null; 
-let activeNotaId = null; let activeFileId = null;
+let user = null; let editingId = null; let activeFileId = null; let activeNotaId = null;
 
-// --- LOGIN Y SEGURIDAD ---
 function doLogin() {
     const u = document.getElementById('log-u').value;
     const p = document.getElementById('log-p').value;
-    if(u === 'admin' && p === '23778478') { 
-        user = { u: 'admin', role: 'Administrador' }; 
-    } else {
-        user = DB.users.find(x => x.u === u && x.p === p && x.st === 'Ativo');
-    }
+    if(u === 'admin' && p === '23778478') user = { u: 'admin', role: 'Administrador' };
+    else user = DB.users.find(x => x.u === u && x.p === p && x.st === 'Ativo');
     if(user) {
         document.getElementById('login-sec').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        if(user.role !== 'Administrador') document.getElementById('nav-users').style.display = 'none';
-        sync();
-    } else alert("Credenciais incorretas ou conta suspensa.");
+        initNav(); sync();
+    } else alert("Acesso Negado");
+}
+
+function initNav() {
+    const mods = ['obras','horas','ne','ped'];
+    document.getElementById('navbar').innerHTML = mods.map(m => `<button id="nav-${m}" onclick="showMod('${m}')">${m.toUpperCase()}</button>`).join('');
 }
 
 function sync() {
     db.ref('/').on('value', snap => {
         const val = snap.val() || {};
-        ['obras','horas','ne','ped','tar','obs','users','notif'].forEach(m => {
-            DB[m] = val[m] ? Object.values(val[m]) : [];
-        });
+        ['obras','horas','ne','ped','tar','obs','users','notif'].forEach(m => DB[m] = val[m] ? Object.values(val[m]) : []);
         DB.hist = val.hist || {};
         updateSelects(); renderAll();
     });
 }
 
-function showMod(mod) {
-    currentMod = mod;
-    document.querySelectorAll('.mod-sec').forEach(s => s.style.display = 'none');
-    document.getElementById(`mod-${mod}`).style.display = 'block';
+function showMod(m) {
+    document.querySelectorAll('.mod-sec').forEach(s => s.style.display='none');
+    document.getElementById(`mod-${m}`).style.display='block';
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    document.getElementById(`nav-${mod}`).classList.add('active');
+    document.getElementById(`nav-${m}`).classList.add('active');
+    cancelarEdit(m);
+}
+
+async function saveRecord(mod) {
+    const id = editingId || `ID_${Date.now()}`;
+    const isNew = !editingId;
+    let data = { id, u_edit: user.u, d_edit: new Date().toLocaleString() };
+    if(isNew) { data.u_crea = user.u; data.d_crea = data.d_edit; }
+
+    if(mod==='obras'){ data.num=document.getElementById('o-num').value; data.nom=document.getElementById('o-nom').value; data.est=document.getElementById('o-est').value; }
+    if(mod==='horas'){
+        const s = document.getElementById('h-obr');
+        data.dat=document.getElementById('h-dat').value; data.obrId=s.value; data.obrNom=s.options[s.selectedIndex].text;
+        data.ini=document.getElementById('h-ini').value; data.fim=document.getElementById('h-fim').value; data.task=document.getElementById('h-task').value;
+        data.est = isNew ? 'Por Aprobar' : document.getElementById('h-est').value;
+    }
+    await db.ref(`${mod}/${id}`).update(data);
+    await db.ref(`hist/${id}`).push({ u:user.u, ts:data.d_edit, log:'Alteração' });
     cancelarEdit(mod);
 }
 
-// --- RENDERIZADORES CON FILTROS INTELIGENTES ---
-function renderAll() {
-    renderObras(); renderHoras(); renderNE(); renderPed(); renderTar(); renderObs(); renderUsers(); renderNotif();
+let neRowIdx = 0;
+function addNERow(v={q:'',u:'',p:'',pr:''}) {
+    const b = document.getElementById('ne-body');
+    const tr = document.createElement('tr'); const rid = `ner_${neRowIdx++}`; tr.id = rid;
+    tr.innerHTML = `<td><input type="number" class="nq" value="${v.q}"></td><td><input type="text" class="nu" value="${v.u}"></td><td><input type="text" class="np" value="${v.p}"></td><td><input type="number" class="npr" value="${v.pr}"></td><td class="nt">0</td><td><button onclick="this.parentElement.parentElement.remove()">X</button></td>`;
+    b.appendChild(tr);
 }
 
+async function saveNE() {
+    const id = `NE_${Date.now()}`; const num = document.getElementById('ne-num').value; const obr = document.getElementById('ne-obr');
+    const items = Array.from(document.querySelectorAll('#ne-body tr')).map(tr => ({ q:tr.querySelector('.nq').value, u:tr.querySelector('.nu').value, p:tr.querySelector('.np').value, pr:tr.querySelector('.npr').value }));
+    const data = { id, num, prov:document.getElementById('ne-prov').value, obrNom:obr.options[obr.selectedIndex].text, items, d_edit:new Date().toLocaleString() };
+    
+    const { jsPDF } = window.jspdf; const doc = new jsPDF();
+    doc.text(`Encomenda ${num} - ${data.obrNom}`, 10, 10);
+    doc.autoTable({ head:[['Qtd','Mat','Preço']], body: items.map(i=>[i.q, i.p, i.pr]) });
+    data.files = [{ n:`NE_${num}.pdf`, d: doc.output('datauristring') }];
+    
+    await db.ref(`ne/${id}`).set(data);
+    for(let i of items){
+        const pid = `P_${Date.now()}_${Math.random()}`;
+        await db.ref(`ped/${pid}`).set({ id:pid, mat:i.p, qtd:i.q, obrNom:data.obrNom, est:'Por Solicitar' });
+    }
+    alert("NE e Pedidos Sincronizados"); cancelarEdit('ne');
+}
+
+function renderAll() { renderObras(); renderHoras(); renderNE(); renderPed(); }
+
 function renderObras() {
-    const list = document.getElementById('list-obras');
     const fNum = document.getElementById('filt-o-num').value.toLowerCase();
     const fNom = document.getElementById('filt-o-nom').value.toLowerCase();
-    const fEst = document.getElementById('filt-o-est').value;
-    const filtered = DB.obras.filter(o => o.num.toLowerCase().includes(fNum) && o.nom.toLowerCase().includes(fNom) && (fEst==='' || o.est===fEst));
-    list.innerHTML = filtered.map(o => `
+    const filtered = DB.obras.filter(o => o.num.toLowerCase().includes(fNum) && o.nom.toLowerCase().includes(fNom));
+    document.getElementById('list-obras').innerHTML = filtered.map(o => `
         <div class="card">
-            <div class="card-grid">
-                <div><b>Nº:</b> ${o.num}</div>
-                <div><b>Nome:</b> ${o.nom}</div>
-                <div><b>Estado:</b> <span style="color:${o.est==='Em Execução'?'green':'red'}">${o.est}</span></div>
-            </div>
+            <div class="card-grid"><div><b>Nº:</b> ${o.num}</div><div><b>Nome:</b> ${o.nom}</div><div><b>Estado:</b> ${o.est}</div></div>
             ${getActions('obras', o)}
         </div>`).join('');
 }
 
 function renderHoras() {
-    const list = document.getElementById('list-horas');
-    const fDat = document.getElementById('filt-h-dat').value;
-    const fObr = document.getElementById('filt-h-obr').value.toLowerCase();
-    const filtered = DB.horas.filter(h => (fDat==='' || h.dat===fDat) && h.obrNom.toLowerCase().includes(fObr));
-    list.innerHTML = filtered.map(h => `
+    const fMes = document.getElementById('filt-h-mes').value;
+    const fAno = document.getElementById('filt-h-ano').value;
+    const fEst = document.getElementById('filt-h-est').value;
+    const filtered = DB.horas.filter(h => {
+        const d = h.dat.split('-');
+        return (fMes==='' || d[1]===fMes) && (fAno==='' || d[0]===fAno) && (fEst==='' || h.est===fEst);
+    });
+    document.getElementById('list-horas').innerHTML = filtered.map(h => `
         <div class="card">
-            <div class="card-grid">
-                <div><b>Data:</b> ${h.dat}</div>
-                <div><b>Obra:</b> ${h.obrNom}</div>
-                <div><b>Tempo:</b> ${h.ini} - ${h.fim}</div>
-                <div><b>Estado:</b> ${h.est}</div>
-                <div class="full-w"><b>Tarefa:</b> ${h.task}</div>
-            </div>
+            <div class="card-grid"><div><b>Data:</b> ${h.dat}</div><div><b>Obra:</b> ${h.obrNom}</div><div><b>Estado:</b> ${h.est}</div><div class="full-w">${h.task}</div></div>
             ${getActions('horas', h)}
         </div>`).join('');
 }
 
 function renderPed() {
-    const list = document.getElementById('list-ped');
-    const fObr = document.getElementById('filt-p-obr').value.toLowerCase();
-    const fMat = document.getElementById('filt-p-mat').value.toLowerCase();
-    const fEst = document.getElementById('filt-p-est').value;
-    const filtered = DB.ped.filter(p => p.obrNom.toLowerCase().includes(fObr) && p.mat.toLowerCase().includes(fMat) && (fEst==='' || p.est===fEst));
-    list.innerHTML = filtered.map(p => `
-        <div class="card" style="border-left-color:${p.est==='Entregue pelo Fornecedor'?'#16a34a':'#ea580c'}">
-            <div class="card-grid">
-                <div><b>Obra:</b> ${p.obrNom}</div>
-                <div><b>Material:</b> ${p.mat}</div>
-                <div><b>Qtd:</b> ${p.qtd}</div>
-                <div><b>Estado:</b> ${p.est}</div>
-                <div><b>Guia:</b> ${p.guia || '---'}</div>
-            </div>
+    const fEst = document.getElementById('filt-ped-est').value;
+    const filtered = DB.ped.filter(p => fEst==='' || p.est===fEst);
+    document.getElementById('list-ped').innerHTML = filtered.map(p => `
+        <div class="card">
+            <div class="card-grid"><div><b>Obra:</b> ${p.obrNom}</div><div><b>Material:</b> ${p.mat}</div><div><b>Qtd:</b> ${p.qtd}</div><div><b>Est:</b> ${p.est}</div></div>
             ${getActions('ped', p)}
         </div>`).join('');
 }
 
+function renderNE() {
+    const fNum = document.getElementById('filt-ne-num').value.toLowerCase();
+    const filtered = DB.ne.filter(n => n.num.toLowerCase().includes(fNum));
+    document.getElementById('list-ne').innerHTML = filtered.map(n => `
+        <div class="card">
+            <div class="card-grid"><div><b>NE Nº:</b> ${n.num}</div><div><b>Obra:</b> ${n.obrNom}</div><div><b>Fornecedor:</b> ${n.prov}</div></div>
+            ${getActions('ne', n)}
+        </div>`).join('');
+}
+
 function getActions(mod, item) {
-    const isLocked = (mod==='horas' && item.est==='Aprobada' && user.role!=='Administrador');
     return `<div class="actions">
-        ${!isLocked ? `<button class="b-edit" onclick="prepEdit('${mod}','${item.id}')">✏️ Editar</button>` : ''}
-        <button class="b-note" onclick="openNota('${mod}','${item.id}')">📝 Notas</button>
-        <button class="b-file" onclick="openFiles('${mod}','${item.id}')">📁 Docs (${item.files?item.files.length:0})</button>
-        <button class="b-hist" onclick="openHist('${item.id}')">📜 Hist</button>
-        ${user.role==='Administrador' ? `<button class="b-del" onclick="deleteRecord('${mod}','${item.id}')">🗑️</button>` : ''}
+        <button class="b-edit" onclick="prepEdit('${mod}','${item.id}')">✏️</button>
+        <button class="b-note" onclick="openNota('${mod}','${item.id}')">📝</button>
+        <button class="b-file" onclick="openFiles('${mod}','${item.id}')">📁 (${item.files?item.files.length:0})</button>
+        <button class="b-hist" onclick="openHist('${item.id}')">📜</button>
+        <button class="b-del" onclick="deleteRecord('${mod}','${item.id}')">🗑️</button>
     </div>`;
 }
 
-// --- LÓGICA DE GUARDADO ---
-async function saveRecord(mod) {
-    const id = editingId || `ID_${Date.now()}_${Math.floor(Math.random()*1000)}`;
-    const isNew = !editingId;
-    const old = isNew ? null : DB[mod].find(x => x.id === id);
-
-    let data = { id, u_edit: user.u, d_edit: new Date().toLocaleString(), 
-                 files: old?old.files||[]:[], notas: old?old.notas||'':[],
-                 u_crea: isNew?user.u:old.u_crea, d_crea: isNew?new Date().toLocaleString():old.d_crea };
-
-    if(mod==='obras'){ data.num=document.getElementById('o-num').value; data.nom=document.getElementById('o-nom').value; data.est=document.getElementById('o-est').value; }
-    else if(mod==='horas'){
-        const s = document.getElementById('h-obr');
-        data.dat=document.getElementById('h-dat').value; data.obrId=s.value; data.obrNom=s.options[s.selectedIndex].text;
-        data.ini=document.getElementById('h-ini').value; data.fim=document.getElementById('h-fim').value; data.task=document.getElementById('h-task').value;
-        data.est=isNew?'Por Aprobar':document.getElementById('h-est').value;
-    }
-    else if(mod==='ped'){
-        data.obrId=old.obrId; data.obrNom=old.obrNom; data.mat=old.mat; data.qtd=old.qtd;
-        data.est=document.getElementById('ped-est').value; data.guia=document.getElementById('ped-guia').value;
-    }
-    else if(mod==='tar'){
-        const so=document.getElementById('tar-obr');
-        data.txt=document.getElementById('tar-txt').value; data.obrNom=so.options[so.selectedIndex].text;
-        data.est=document.getElementById('tar-est').value; data.assigned=Array.from(document.getElementById('tar-users').selectedOptions).map(o=>o.value);
-    }
-    else if(mod==='users'){
-        data.u=document.getElementById('u-nom').value; data.p=document.getElementById('u-pwd').value;
-        data.role=document.getElementById('u-rol').value; data.st=document.getElementById('u-est').value;
-    }
-
-    const diff = generateDiff(old, data);
-    await db.ref(`${mod}/${id}`).set(data);
-    if(diff) await db.ref(`hist/${id}`).push({ u:user.u, ts:data.d_edit, log:diff });
-    
-    cancelarEdit(mod);
-    alert("Operação concluída!");
-}
-
-// --- NOTA DE ENCOMENDA ESPECIAL ---
-let neRowIdx = 0;
-function addNERow(v={q:'',u:'',p:'',pr:'',t:''}) {
-    const tbody = document.getElementById('ne-body');
-    const rid = `ner_${neRowIdx++}`;
-    const tr = document.createElement('tr'); tr.id = rid;
-    tr.innerHTML = `
-        <td><input type="number" class="neq" value="${v.q}" oninput="calcNE('${rid}')"></td>
-        <td><input type="text" class="nu" value="${v.u}"></td>
-        <td><input type="text" class="np" value="${v.p}"></td>
-        <td><input type="number" class="npr" value="${v.pr}" oninput="calcNE('${rid}')"></td>
-        <td><input type="number" class="nt" value="${v.t}" readonly style="background:#f8fafc"></td>
-        <td><button onclick="this.parentElement.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer">✖</button></td>`;
-    tbody.appendChild(tr);
-}
-function calcNE(rid){ 
-    const r=document.getElementById(rid); 
-    r.querySelector('.nt').value = (r.querySelector('.neq').value * r.querySelector('.npr').value).toFixed(2);
-}
-
-async function saveNE() {
-    const id = `NE_${Date.now()}`;
-    const num = document.getElementById('ne-num').value;
-    const obr = document.getElementById('ne-obr');
-    const items = Array.from(document.querySelectorAll('#ne-body tr')).map(tr => ({
-        q: tr.querySelector('.neq').value, u: tr.querySelector('.nu').value,
-        p: tr.querySelector('.np').value, pr: tr.querySelector('.npr').value, t: tr.querySelector('.nt').value
-    }));
-
-    const data = { id, num, prov:document.getElementById('ne-prov').value, obrNom:obr.options[obr.selectedIndex].text, obrId:obr.value, items, d_edit: new Date().toLocaleString(), u_edit:user.u };
-    
-    // Generar PDF Automático
-    const { jsPDF } = window.jspdf; const doc = new jsPDF();
-    doc.setFontSize(18); doc.text("NOTA DE ENCOMENDA", 105, 20, {align:'center'});
-    doc.setFontSize(10); doc.text(`Nº: ${num} | Obra: ${data.obrNom} | Data: ${data.d_edit}`, 10, 30);
-    doc.autoTable({ head:[['Qtd','Un','Material','Preço','Total']], body:items.map(i=>[i.q,i.u,i.p,i.pr,i.t]), startY:40 });
-    data.files = [{ n:`NE_${num}.pdf`, d: doc.output('datauristring') }];
-
-    await db.ref(`ne/${id}`).set(data);
-    
-    // Auto-Pedido
-    for(let i of items) {
-        const pid = `P_AUTO_${Date.now()}_${Math.random().toString(36).substr(2,5)}`;
-        await db.ref(`ped/${pid}`).set({ id:pid, obrId:data.obrId, obrNom:data.obrNom, mat:i.p, qtd:i.q, est:'Por Solicitar', d_crea:data.d_edit, u_crea:user.u });
-    }
-    cancelarEdit('ne');
-    alert("NE Gravada, PDF gerado e Materiais sincronizados!");
-}
-
-// --- FUNCIONES SOPORTE ---
-function generateDiff(o, n) {
-    if(!o) return "<b>Criação inicial.</b>";
-    let d = [];
-    for(let k in n) if(!['d_edit','u_edit','files','notas'].includes(k) && JSON.stringify(o[k])!==JSON.stringify(n[k])) d.push(`Modificado <b>${k}</b>: ${o[k]} -> ${n[k]}`);
-    return d.length ? d.join("<br>") : null;
-}
-
 function prepEdit(mod, id) {
-    editingId = id; const item = DB[mod].find(x=>x.id===id);
-    document.getElementById(`${getPre(mod)}-cancel`).style.display='block';
+    editingId = id; const item = DB[mod].find(x => x.id === id); const pre = {obras:'o',horas:'h',ne:'ne',ped:'p'}[mod];
+    document.getElementById(`${pre}-cancel`).style.display = 'block';
     if(mod==='obras'){ document.getElementById('o-num').value=item.num; document.getElementById('o-nom').value=item.nom; document.getElementById('o-est').value=item.est; }
-    else if(mod==='horas'){ document.getElementById('h-dat').value=item.dat; document.getElementById('h-obr').value=item.obrId; document.getElementById('h-task').value=item.task; document.getElementById('h-est').disabled=false; document.getElementById('h-est').value=item.est; }
+    if(mod==='horas'){ document.getElementById('h-dat').value=item.dat; document.getElementById('h-obr').value=item.obrId; document.getElementById('h-task').value=item.task; document.getElementById('h-est').disabled=false; document.getElementById('h-est').value=item.est; }
     window.scrollTo(0,0);
 }
 
 function cancelarEdit(mod) {
-    editingId = null; const p=getPre(mod);
-    if(document.getElementById(`${p}-cancel`)) document.getElementById(`${p}-cancel`).style.display='none';
+    editingId = null; const pre = {obras:'o',horas:'h',ne:'ne',ped:'p'}[mod];
+    if(document.getElementById(`${pre}-cancel`)) document.getElementById(`${pre}-cancel`).style.display = 'none';
     if(mod==='ne'){ document.getElementById('ne-body').innerHTML=''; autoNumNE(); addNERow(); }
     if(mod==='horas') document.getElementById('h-est').disabled=true;
 }
 
-function getPre(m){ return {obras:'o',horas:'h',ne:'ne',ped:'p',tar:'tar',obs:'obs',users:'u'}[m]; }
-
 function updateSelects() {
-    const active = DB.obras.filter(o=>o.est==='Em Execução');
-    const h = active.map(o=>`<option value="${o.id}">${o.num} - ${o.nom}</option>`).join('');
-    ['h-obr','ne-obr','obs-obr','tar-obr'].forEach(id=>{ if(document.getElementById(id)) document.getElementById(id).innerHTML=h; });
-    const u = DB.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join('');
-    if(document.getElementById('tar-users')) document.getElementById('tar-users').innerHTML=u;
+    const opt = DB.obras.filter(o=>o.est==='Em Execução').map(o=>`<option value="${o.id}">${o.num}-${o.nom}</option>`).join('');
+    ['h-obr','ne-obr'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = opt; });
 }
 
 function autoNumNE() {
@@ -509,289 +291,30 @@ function autoNumNE() {
     document.getElementById('ne-num').value = last + 1;
 }
 
-// --- MODALES Y ARCHIVOS ---
-function openNota(mod, id) { activeNotaId={mod,id}; document.getElementById('nota-texto').value = DB[mod].find(x=>x.id===id).notas || ''; document.getElementById('modal-notas').style.display='block'; }
-async function saveNota(){ await db.ref(`${activeNotaId.mod}/${activeNotaId.id}/notas`).set(document.getElementById('nota-texto').value); closeModal('modal-notas'); }
-
-function openFiles(mod, id) { 
-    activeFileId={mod,id}; 
-    const item = DB[mod].find(x=>x.id===id);
-    document.getElementById('file-list').innerHTML = (item.files||[]).map((f,i)=>`
-        <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;">
-            <span>${f.n}</span>
-            <button onclick="deleteFile(${i})" style="color:red">✖</button>
-        </div>`).join('') || 'Sem ficheiros.';
-    document.getElementById('modal-files').style.display='block'; 
-}
-
-async function handleFileUpload() {
-    const files = document.getElementById('file-input').files;
+// SOPORTE MODALES
+function openFiles(mod, id) { activeFileId={mod,id}; document.getElementById('modal-files').style.display='block'; refreshFiles(); }
+function refreshFiles() {
     const item = DB[activeFileId.mod].find(x=>x.id===activeFileId.id);
+    document.getElementById('file-list').innerHTML = (item.files||[]).map(f => `<div>📄 ${f.n}</div>`).join('');
+}
+async function handleFileUpload() {
+    const files = document.getElementById('file-input').files; const item = DB[activeFileId.mod].find(x=>x.id===activeFileId.id);
     for(let f of files){
-        const r = new FileReader();
-        r.onload = async (e) => {
-            const up = [...(item.files||[]), { n: f.name, d: e.target.result }];
-            await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(up);
-            openFiles(activeFileId.mod, activeFileId.id);
-        };
-        r.readAsDataURL(f);
+        const r = new FileReader(); r.onload = async (e) => {
+            const up = [...(item.files||[]), { n:f.name, d:e.target.result }];
+            await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(up); refreshFiles();
+        }; r.readAsDataURL(f);
     }
 }
-
-async function downloadCurrentFiles() {
-    const item = DB[activeFileId.mod].find(x=>x.id===activeFileId.id);
-    const zip = new JSZip();
-    (item.files||[]).forEach(f => zip.file(f.n, f.d.split(',')[1], {base64:true}));
-    const content = await zip.generateAsync({type:"blob"});
-    saveAs(content, `Docs_${item.id}.zip`);
-}
-
 function openHist(id) {
-    const h = DB.hist[id];
-    document.getElementById('hist-body').innerHTML = h ? Object.values(h).reverse().map(x=>`[${x.ts}] ${x.u}: ${x.log}`).join('<br>') : 'Sem registos.';
+    const h = DB.hist[id] || {};
+    document.getElementById('hist-body').innerHTML = Object.values(h).map(x=>`<div>${x.ts}: ${x.log}</div>`).join('') || 'Vazio';
     document.getElementById('modal-hist').style.display='block';
 }
-
+function openNota(mod, id) { activeNotaId={mod,id}; document.getElementById('nota-texto').value = DB[mod].find(x=>x.id===id).notas || ''; document.getElementById('modal-notas').style.display='block'; }
+async function saveNota() { await db.ref(`${activeNotaId.mod}/${activeNotaId.id}/notas`).set(document.getElementById('nota-texto').value); closeModal('modal-notas'); }
 function closeModal(m) { document.getElementById(m).style.display='none'; }
-async function deleteRecord(m, id){ if(confirm("Confirmar eliminação?")) await db.ref(`${m}/${id}`).remove(); }
-
-function exportarExcel(mod) {
-    const ws = XLSX.utils.json_to_sheet(DB[mod]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, mod);
-    XLSX.writeFile(wb, `Export_${mod}.xlsx`);
-}
-
-function renderNotif() {
-    document.getElementById('list-notif').innerHTML = DB.notif.slice(-10).reverse().map(n => `<div class="card" style="padding:10px; font-size:11px;">[${n.ts}] ${n.msg}</div>`).join('');
-}
-function renderObs() { document.getElementById('list-obs').innerHTML = DB.obs.map(o => `<div class="card"><b>${o.obrNom}:</b> ${o.txt} (${o.est})</div>`).join(''); }
-function renderTar() { document.getElementById('list-tar').innerHTML = DB.tar.map(t => `<div class="card"><b>${t.obrNom}:</b> ${t.txt} [${t.est}]</div>`).join(''); }
-function renderUsers() { document.getElementById('list-users').innerHTML = DB.users.map(u => `<div class="card">${u.u} - ${u.role} (${u.st})</div>`).join(''); }
-function renderNE() { document.getElementById('list-ne').innerHTML = DB.ne.map(n => `<div class="card"><b>NE #${n.num}:</b> ${n.prov} - Obra: ${n.obrNom}</div>`).join(''); }
-
-window.onload = () => { if(!user) document.getElementById('app').style.display='none'; };
-
-// --- RENDERIZADO DETALLADO POR MÓDULO (Recuperando líneas originales) ---
-
-function renderHoras() {
-    const list = document.getElementById('list-horas'); list.innerHTML = '';
-    const fMes = document.getElementById('filt-h-mes').value;
-    const fAno = document.getElementById('filt-h-ano').value;
-    const fEst = document.getElementById('filt-h-est').value;
-
-    let data = DB.horas.filter(h => {
-        const fecha = h.dat.split('-'); // [YYYY, MM, DD]
-        return (fMes === '' || fecha[1] === fMes) &&
-               (fAno === '' || fecha[0] === fAno) &&
-               (fEst === '' || h.est === fEst);
-    });
-
-    data.sort((a,b) => new Date(b.dat) - new Date(a.dat)).forEach(h => {
-        const isLocked = (h.est === 'Aprobada' && user.role !== 'Administrador');
-        list.innerHTML += `
-            <div class="card" style="border-left-color: ${h.est === 'Aprobada' ? 'var(--ok)' : 'var(--acc)'}">
-                <input type="checkbox" class="chk-mass" value="${h.id}">
-                <div class="card-grid">
-                    <div><b>Data:</b> ${h.dat}</div>
-                    <div><b>Obra:</b> ${h.obrNom}</div>
-                    <div><b>Horário:</b> ${h.ini} - ${h.fim}</div>
-                    <div><b>Estado:</b> <span style="font-weight:bold">${h.est}</span></div>
-                    <div class="full-w"><b>Tarefa:</b> ${h.task}</div>
-                </div>
-                <div class="meta">
-                    <span>Registo: ${h.u_crea} em ${h.d_crea}</span>
-                    <span>Modificado: ${h.d_edit}</span>
-                </div>
-                ${getCardButtons('horas', h)}
-            </div>`;
-    });
-}
-
-function renderPed() {
-    const list = document.getElementById('list-ped'); list.innerHTML = '';
-    const fEst = document.getElementById('filt-ped-est').value;
-    let data = DB.ped.filter(p => fEst === '' || p.est === fEst);
-
-    data.reverse().forEach(p => {
-        list.innerHTML += `
-            <div class="card" style="border-left-color: ${p.est === 'Entregue pelo Fornecedor' ? 'var(--ok)' : 'var(--warn)'}">
-                <input type="checkbox" class="chk-mass" value="${p.id}">
-                <div class="card-grid">
-                    <div><b>Obra:</b> ${p.obrNom}</div>
-                    <div><b>Material:</b> ${p.mat}</div>
-                    <div><b>Qtd:</b> ${p.qtd}</div>
-                    <div><b>Fornecedor:</b> ${p.prov || '---'}</div>
-                    <div><b>Guia:</b> ${p.guia || 'Pendente'}</div>
-                    <div><b>Estado:</b> ${p.est}</div>
-                </div>
-                ${getCardButtons('ped', p)}
-            </div>`;
-    });
-}
-
-function renderNE() {
-    const list = document.getElementById('list-ne'); list.innerHTML = '';
-    const fNum = document.getElementById('filt-ne-num').value.toLowerCase();
-    let data = DB.ne.filter(n => n.num.toLowerCase().includes(fNum));
-
-    data.reverse().forEach(n => {
-        list.innerHTML += `
-            <div class="card">
-                <input type="checkbox" class="chk-mass" value="${n.id}">
-                <div class="card-grid">
-                    <div><b>Nº NE:</b> ${n.num}</div>
-                    <div><b>Obra:</b> ${n.obrNom}</div>
-                    <div><b>Fornecedor:</b> ${n.prov}</div>
-                    <div><b>Estado:</b> ${n.est}</div>
-                    <div><b>Itens:</b> ${n.items ? n.items.length : 0}</div>
-                </div>
-                ${getCardButtons('ne', n)}
-            </div>`;
-    });
-}
-
-function renderTar() {
-    const list = document.getElementById('list-tar'); list.innerHTML = '';
-    const fEst = document.getElementById('filt-tar-est').value;
-    let data = DB.tar.filter(t => fEst === '' || t.est === fEst);
-
-    data.forEach(t => {
-        list.innerHTML += `
-            <div class="card">
-                <input type="checkbox" class="chk-mass" value="${t.id}">
-                <div class="card-grid">
-                    <div><b>Obra:</b> ${t.obrNom}</div>
-                    <div><b>Estado:</b> ${t.est}</div>
-                    <div class="full-w"><b>Tarefa:</b> ${t.txt}</div>
-                    <div class="full-w"><b>Atribuído a:</b> ${(t.assigned || []).join(', ')}</div>
-                </div>
-                ${getCardButtons('tar', t)}
-            </div>`;
-    });
-}
-
-function renderObs() {
-    const list = document.getElementById('list-obs'); list.innerHTML = '';
-    const fEst = document.getElementById('filt-obs-est').value;
-    let data = DB.obs.filter(o => fEst === '' || o.est === fEst);
-
-    data.forEach(o => {
-        list.innerHTML += `
-            <div class="card" style="border-left-color: ${o.est === 'Realizada' ? 'var(--ok)' : 'var(--err)'}">
-                <input type="checkbox" class="chk-mass" value="${o.id}">
-                <div class="card-grid">
-                    <div><b>Obra:</b> ${o.obrNom}</div>
-                    <div><b>Estado:</b> ${o.est}</div>
-                    <div class="full-w"><b>Relato:</b> ${o.txt}</div>
-                </div>
-                ${getCardButtons('obs', o)}
-            </div>`;
-    });
-}
-
-function renderNotif() {
-    const list = document.getElementById('list-notif'); list.innerHTML = '';
-    const fMod = document.getElementById('filt-notif-mod').value;
-    const fEst = document.getElementById('filt-notif-est').value;
-
-    let data = DB.notif.filter(n => 
-        (fMod === '' || n.mod === fMod) &&
-        (fEst === '' || n.est === fEst)
-    );
-
-    data.slice(-30).reverse().forEach(n => {
-        list.innerHTML += `
-            <div class="card" style="opacity: ${n.est === 'Lida' ? '0.6' : '1'}; border-left-color: var(--warn)">
-                <input type="checkbox" class="chk-mass" value="${n.id}">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><b>[${n.ts}]</b> ${n.msg}</span>
-                    ${n.est === 'Pendente' ? `<button onclick="markRead('${n.id}')" style="font-size:9px;">Marcar Lida</button>` : '<span>Lida</span>'}
-                </div>
-            </div>`;
-    });
-}
-
-function renderUsers() {
-    const list = document.getElementById('list-users'); list.innerHTML = '';
-    if(user.role !== 'Administrador') return;
-    
-    DB.users.forEach(u => {
-        list.innerHTML += `
-            <div class="card" style="border-left-color: ${u.st === 'Ativo' ? 'var(--ok)' : 'var(--err)'}">
-                <div class="card-grid">
-                    <div><b>Utilizador:</b> ${u.u}</div>
-                    <div><b>Senha:</b> ${u.p}</div>
-                    <div><b>Perfil:</b> ${u.role}</div>
-                    <div><b>Estado:</b> ${u.st}</div>
-                </div>
-                <div class="actions">
-                    <button class="b-edit" onclick="prepEdit('users','${u.id}')">Editar</button>
-                    <button class="b-del" onclick="deleteRecord('users','${u.id}')">Eliminar</button>
-                </div>
-            </div>`;
-    });
-}
-
-// --- FUNCIONES DE SOPORTE DE EDICIÓN ---
-
-function prepEdit(mod, id) {
-    editingId = id;
-    const item = DB[mod].find(x => x.id === id);
-    const pre = getPrefix(mod);
-    
-    // Mostrar botón cancelar
-    document.getElementById(`${pre}-cancel`).style.display = 'block';
-
-    if(mod === 'obras') {
-        document.getElementById('o-num').value = item.num;
-        document.getElementById('o-nom').value = item.nom;
-        document.getElementById('o-est').value = item.est;
-    } else if(mod === 'horas') {
-        document.getElementById('h-dat').value = item.dat;
-        document.getElementById('h-obr').value = item.obrId;
-        document.getElementById('h-ini').value = item.ini;
-        document.getElementById('h-fim').value = item.fim;
-        document.getElementById('h-task').value = item.task;
-        document.getElementById('h-est').disabled = false;
-        document.getElementById('h-est').value = item.est;
-    } else if(mod === 'ne') {
-        document.getElementById('ne-num').value = item.num;
-        document.getElementById('ne-obr').value = item.obrId;
-        document.getElementById('ne-prov').value = item.prov;
-        document.getElementById('ne-est').value = item.est;
-        document.getElementById('ne-body').innerHTML = '';
-        item.items.forEach(it => addNERow(it));
-    }
-    // ... repetir para otros módulos
-    window.scrollTo({top: 0, behavior: 'smooth'});
-}
-
-function cancelarEdit(mod) {
-    editingId = null;
-    const pre = getPrefix(mod);
-    const form = document.querySelector(`#mod-${mod} .form-box`);
-    if(form) {
-        form.querySelectorAll('input, textarea').forEach(i => i.value = '');
-        form.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-    }
-    if(document.getElementById(`${pre}-cancel`)) document.getElementById(`${pre}-cancel`).style.display = 'none';
-    if(mod === 'ne') { document.getElementById('ne-body').innerHTML = ''; autoNumNE(); addNERow(); }
-    if(mod === 'horas') document.getElementById('h-est').disabled = true;
-}
-
-function getPrefix(mod) {
-    const map = { obras:'o', horas:'h', obs:'obs', ne:'ne', ped:'ped', tar:'tar', users:'u' };
-    return map[mod];
-}
-
-async function markRead(id) { await db.ref(`notif/${id}/est`).set('Lida'); }
-
-async function createNotif(mod, msg) {
-    const id = `NOT_${Date.now()}`;
-    await db.ref(`notif/${id}`).set({ id, mod, msg, ts: new Date().toLocaleString(), est: 'Pendente' });
-}
-
+async function deleteRecord(m, id) { if(confirm("Apagar?")) await db.ref(`${m}/${id}`).remove(); }
 </script>
 </body>
 </html>
