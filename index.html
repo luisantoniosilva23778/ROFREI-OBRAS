@@ -941,7 +941,7 @@ async function handleFileUpload() {
     for (let f of files) {
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const fileData = { n: f.name, d: e.target.result, t: f.type };
+            const fileData = { n: {Date.now()}_{f.name}, d: e.target.result, t: f.type };
             const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
             const updatedFiles = [...(item.files || []), fileData];
             await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
