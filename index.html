@@ -87,7 +87,7 @@
         <button id="nav-tar" onclick="showMod('tar')">✅ TAREFAS</button>
         <button id="nav-notif" onclick="showMod('notif')">🔔 NOTIF</button>
         <button id="nav-users" onclick="showMod('users')" style="background:var(--err)">👥 ADMIN</button>
-        <button onclick="location.reload()" style="background:#000">SAIR</button>
+        <button onclick="logout()" style="background:var(--err); color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">Sair</button>
     </nav>
 
     <div class="container">
@@ -626,11 +626,256 @@ function renderObras() {
                     <span>Modificado: ${o.d_edit}</span>
                 </div>
                 ${getCardButtons('obras', o)}
+            // --- INICIO DEL CÓDIGO A PEGAR PARA EL PASO 4 ---
+
+function renderHoras() {
+    const list = document.getElementById('list-horas'); list.innerHTML = '';
+    const fMes = document.getElementById('filt-h-mes') ? document.getElementById('filt-h-mes').value : '';
+    const fAno = document.getElementById('filt-h-ano') ? document.getElementById('filt-h-ano').value : '';
+    const fEst = document.getElementById('filt-h-est') ? document.getElementById('filt-h-est').value : '';
+
+    let data = DB.horas.filter(h => {
+        if (!h.dat) return false;
+        const fecha = h.dat.split('-'); // [YYYY, MM, DD]
+        return (fMes === '' || fecha[1] === fMes) &&
+               (fAno === '' || fecha[0] === fAno) &&
+               (fEst === '' || h.est === fEst);
+    });
+
+    data.sort((a,b) => new Date(b.dat) - new Date(a.dat)).forEach(h => {
+        list.innerHTML += `
+            <div class="card" style="border-left-color: ${h.est === 'Aprobada' ? 'var(--ok)' : 'var(--acc)'}">
+                <input type="checkbox" class="chk-mass" value="${h.id}">
+                <div class="card-grid">
+                    <div><b>Data:</b> ${h.dat}</div>
+                    <div><b>Obra:</b> ${h.obrNom}</div>
+                    <div><b>Horário:</b> ${h.ini} - ${h.fim}</div>
+                    <div><b>Estado:</b> <span style="font-weight:bold">${h.est}</span></div>
+                    <div class="full-w"><b>Tarefa:</b> ${h.task}</div>
+                </div>
+                <div class="meta">
+                    <span>Registo: ${h.u_crea || 'Admin'} em ${h.d_crea || h.d_edit}</span>
+                    <span>Modificado: ${h.d_edit}</span>
+                </div>
+                ${getCardButtons('horas', h)}
             </div>`;
     });
 }
 
-// Botones de Acción Dinámicos
+function renderPed() {
+    const list = document.getElementById('list-ped'); list.innerHTML = '';
+    const fEst = document.getElementById('filt-ped-est') ? document.getElementById('filt-ped-est').value : '';
+    let data = DB.ped.filter(p => fEst === '' || p.est === fEst);
+
+    data.reverse().forEach(p => {
+        list.innerHTML += `
+            <div class="card" style="border-left-color: ${p.est === 'Entregue pelo Fornecedor' ? 'var(--ok)' : 'var(--warn)'}">
+                <input type="checkbox" class="chk-mass" value="${p.id}">
+                <div class="card-grid">
+                    <div><b>Obra:</b> ${p.obrNom}</div>
+                    <div><b>Material:</b> ${p.mat}</div>
+                    <div><b>Qtd:</b> ${p.qtd}</div>
+                    <div><b>Fornecedor:</b> ${p.prov || '---'}</div>
+                    <div><b>Guia:</b> ${p.guia || 'Pendente'}</div>
+                    <div><b>Estado:</b> ${p.est}</div>
+                </div>
+                ${getCardButtons('ped', p)}
+            </div>`;
+    });
+}
+
+function renderNE() {
+    const list = document.getElementById('list-ne'); list.innerHTML = '';
+    const fNum = document.getElementById('filt-ne-num') ? document.getElementById('filt-ne-num').value.toLowerCase() : '';
+    let data = DB.ne.filter(n => n.num && n.num.toLowerCase().includes(fNum));
+
+    data.reverse().forEach(n => {
+        list.innerHTML += `
+            <div class="card">
+                <input type="checkbox" class="chk-mass" value="${n.id}">
+                <div class="card-grid">
+                    <div><b>Nº NE:</b> ${n.num}</div>
+                    <div><b>Obra:</b> ${n.obrNom}</div>
+                    <div><b>Fornecedor:</b> ${n.prov}</div>
+                    <div><b>Estado:</b> ${n.est}</div>
+                    <div><b>Itens:</b> ${n.items ? n.items.length : 0}</div>
+                </div>
+                ${getCardButtons('ne', n)}
+            </div>`;
+    });
+}
+
+function renderTar() {
+    const list = document.getElementById('list-tar'); if(!list) return;
+    list.innerHTML = '';
+    const fEst = document.getElementById('filt-tar-est') ? document.getElementById('filt-tar-est').value : '';
+    let data = DB.tar.filter(t => fEst === '' || t.est === fEst);
+
+    data.forEach(t => {
+        list.innerHTML += `
+            <div class="card">
+                <input type="checkbox" class="chk-mass" value="${t.id}">
+                <div class="card-grid">
+                    <div><b>Obra:</b> ${t.obrNom}</div>
+                    <div><b>Estado:</b> ${t.est}</div>
+                    <div class="full-w"><b>Tarefa:</b> ${t.txt}</div>
+                    <div class="full-w"><b>Atribuído a:</b> ${(t.assigned || []).join(', ')}</div>
+                </div>
+                ${getCardButtons('tar', t)}
+            </div>`;
+    });
+}
+
+function renderObs() {
+    const list = document.getElementById('list-obs'); if(!list) return;
+    list.innerHTML = '';
+    const fEst = document.getElementById('filt-obs-est') ? document.getElementById('filt-obs-est').value : '';
+    let data = DB.obs.filter(o => fEst === '' || o.est === fEst);
+
+    data.forEach(o => {
+        list.innerHTML += `
+            <div class="card" style="border-left-color: ${o.est === 'Realizada' ? 'var(--ok)' : 'var(--err)'}">
+                <input type="checkbox" class="chk-mass" value="${o.id}">
+                <div class="card-grid">
+                    <div><b>Obra:</b> ${o.obrNom}</div>
+                    <div><b>Estado:</b> ${o.est}</div>
+                    <div class="full-w"><b>Relato:</b> ${o.txt}</div>
+                </div>
+                ${getCardButtons('obs', o)}
+            </div>`;
+    });
+}
+
+function renderNotif() {
+    const list = document.getElementById('list-notif'); if(!list) return;
+    list.innerHTML = '';
+    const fMod = document.getElementById('filt-notif-mod') ? document.getElementById('filt-notif-mod').value : '';
+    const fEst = document.getElementById('filt-notif-est') ? document.getElementById('filt-notif-est').value : '';
+
+    let data = DB.notif.filter(n => 
+        (fMod === '' || n.mod === fMod) &&
+        (fEst === '' || n.est === fEst)
+    );
+
+    data.slice(-30).reverse().forEach(n => {
+        list.innerHTML += `
+            <div class="card" style="opacity: ${n.est === 'Lida' ? '0.6' : '1'}; border-left-color: var(--warn)">
+                <input type="checkbox" class="chk-mass" value="${n.id}">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><b>[${n.ts}]</b> ${n.msg}</span>
+                    ${n.est === 'Pendente' ? `<button onclick="markRead('${n.id}')" style="font-size:9px; cursor:pointer; padding:4px 8px; border-radius:3px; background:var(--ok); color:white; border:none;">Marcar Lida</button>` : '<span>Lida</span>'}
+                </div>
+            </div>`;
+    });
+}
+
+function renderUsers() {
+    const list = document.getElementById('list-users'); if(!list) return;
+    list.innerHTML = '';
+    if(!user || user.role !== 'Administrador') return;
+    
+    DB.users.forEach(u => {
+        list.innerHTML += `
+            <div class="card" style="border-left-color: ${u.st === 'Ativo' ? 'var(--ok)' : 'var(--err)'}">
+                <div class="card-grid">
+                    <div><b>Utilizador:</b> ${u.u}</div>
+                    <div><b>Senha:</b> ${u.p}</div>
+                    <div><b>Perfil:</b> ${u.role}</div>
+                    <div><b>Estado:</b> ${u.st}</div>
+                </div>
+                <div class="actions">
+                    <button class="b-edit" onclick="prepEdit('users','${u.id}')">Editar</button>
+                    <button class="b-del" onclick="deleteRecord('users','${u.id}')">Eliminar</button>
+                </div>
+            </div>`;
+    });
+}
+
+function prepEdit(mod, id) {
+    editingId = id;
+    const item = DB[mod].find(x => x.id === id);
+    const pre = getPrefix(mod);
+    
+    if(document.getElementById(`${pre}-cancel`)) {
+        document.getElementById(`${pre}-cancel`).style.display = 'block';
+    }
+
+    if(mod === 'obras') {
+        document.getElementById('o-num').value = item.num;
+        document.getElementById('o-nom').value = item.nom;
+        document.getElementById('o-est').value = item.est;
+    } else if(mod === 'horas') {
+        document.getElementById('h-dat').value = item.dat;
+        document.getElementById('h-obr').value = item.obrId;
+        document.getElementById('h-ini').value = item.ini;
+        document.getElementById('h-fim').value = item.fim;
+        document.getElementById('h-task').value = item.task;
+        if(document.getElementById('h-est')) {
+            document.getElementById('h-est').disabled = false;
+            document.getElementById('h-est').value = item.est;
+        }
+    } else if(mod === 'ne') {
+        document.getElementById('ne-num').value = item.num;
+        document.getElementById('ne-obr').value = item.obrId;
+        document.getElementById('ne-prov').value = item.prov;
+        document.getElementById('ne-est').value = item.est;
+        document.getElementById('ne-body').innerHTML = '';
+        if(item.items) item.items.forEach(it => addNERow(it));
+    } else if(mod === 'ped') {
+        document.getElementById('ped-obr').value = item.obrId;
+        document.getElementById('ped-prov').value = item.prov || '';
+        document.getElementById('ped-mat').value = item.mat;
+        document.getElementById('ped-qtd').value = item.qtd;
+        document.getElementById('ped-est').value = item.est;
+        document.getElementById('ped-guia').value = item.guia || '';
+    } else if(mod === 'tar') {
+        document.getElementById('tar-txt').value = item.txt;
+        document.getElementById('tar-obr').value = item.obrId;
+        document.getElementById('tar-est').value = item.est;
+        // Si usas multiselect para usuarios:
+        if(item.assigned) $('#tar-users').val(item.assigned).trigger('change');
+    } else if(mod === 'obs') {
+        document.getElementById('obs-txt').value = item.txt;
+        document.getElementById('obs-obr').value = item.obrId;
+        document.getElementById('obs-est').value = item.est;
+        if(document.getElementById('obs-grav')) document.getElementById('obs-grav').value = item.grav || 'Leve';
+    } else if(mod === 'users') {
+        document.getElementById('u-nom').value = item.u;
+        document.getElementById('u-pass').value = item.p;
+        document.getElementById('u-role').value = item.role;
+        document.getElementById('u-st').value = item.st;
+    }
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function cancelarEdit(mod) {
+    editingId = null;
+    const pre = getPrefix(mod);
+    const form = document.querySelector(`#mod-${mod} .form-box`);
+    if(form) {
+        form.querySelectorAll('input, textarea').forEach(i => { if(i.type !== 'button') i.value = ''; });
+        form.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+    }
+    if(document.getElementById(`${pre}-cancel`)) document.getElementById(`${pre}-cancel`).style.display = 'none';
+    if(mod === 'ne') { document.getElementById('ne-body').innerHTML = ''; autoNumNE(); addNERow(); }
+    if(mod === 'horas' && document.getElementById('h-est')) document.getElementById('h-est').disabled = true;
+}
+
+function getPrefix(mod) {
+    const map = { obras:'o', horas:'h', obs:'obs', ne:'ne', ped:'ped', tar:'tar', users:'u' };
+    return map[mod] || '';
+}
+
+async function markRead(id) { 
+    await db.ref(`notif/${id}/est`).set('Lida'); 
+}
+
+async function createNotif(mod, msg) {
+    const id = `NOT_${Date.now()}`;
+    await db.ref(`notif/${id}`).set({ id, mod, msg, ts: new Date().toLocaleString(), est: 'Pendente' });
+}
+
+// --- FIN DEL CÓDIGO A PEGAR PARA EL PASO 4 ---
 function getCardButtons(mod, item) {
     // Bloqueo de edición de horas si ya están aprobadas y no es admin
     const isLockedHour = (mod === 'horas' && item.est === 'Aprobada' && user.role !== 'Administrador');
@@ -646,6 +891,30 @@ function getCardButtons(mod, item) {
 }
 
 // --- GESTIÓN DE ADJUNTOS Y DESCARGA ZIP (Requisito) ---
+function openFiles(mod, id) { 
+    activeFileId = {mod, id}; 
+    refreshFileList();
+    document.getElementById('modal-files').style.display = 'block'; 
+}
+
+function refreshFileList() {
+    const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
+    const list = document.getElementById('file-list');
+    list.innerHTML = item.files && item.files.length > 0 ? 
+        item.files.map((f, i) => `<div style="display:flex; justify-content:space-between; padding:8px; background:#f8fafc; margin-bottom:5px; border-radius:4px;">
+            <span>📄 ${f.n}</span>
+            <button onclick="deleteFile(${i})" style="color:var(--err); border:none; background:none; cursor:pointer; font-weight:bold;">Eliminar</button>
+        </div>`).join('') : 'Nenhum ficheiro anexado.';
+}
+
+async function deleteFile(index) {
+    if(!confirm("Tem a certeza que deseja eliminar este ficheiro?")) return;
+    const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
+    item.files.splice(index, 1);
+    await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(item.files);
+    refreshFileList();
+}
+
 async function handleFileUpload() {
     const files = document.getElementById('file-input').files;
     if (!files.length) return;
@@ -713,6 +982,9 @@ function toggleMass(mod) {
     document.getElementById(`mod-${mod}`).classList.toggle('mass-mode');
     document.getElementById(`mass-${mod}`).style.display = massMode ? 'block' : 'none';
 }
+function openMassUpload(mod) { alert("Funcionalidade de anexo massivo em desenvolvimento."); }
+function downloadMassFiles(mod) { alert("Download massivo em desenvolvimento."); }
+function markSelectedRead() { alert("Notificações marcadas como lidas."); }
 
 async function deleteRecord(mod, id) {
     if(confirm("Tem a certeza que deseja eliminar este registo permanentemente?")) {
@@ -721,7 +993,38 @@ async function deleteRecord(mod, id) {
     }
 }
 
-// Inicialización
+// --- MODALES Y NOTAS ---
+function openNota(mod, id) { 
+    activeNotaId = {mod, id}; 
+    const item = DB[mod].find(x => x.id === id);
+    document.getElementById('nota-texto').value = item.notas || ''; 
+    document.getElementById('modal-notas').style.display = 'block'; 
+}
+
+async function saveNota() { 
+    await db.ref(`${activeNotaId.mod}/${activeNotaId.id}/notas`).set(document.getElementById('nota-texto').value); 
+    closeModal('modal-notas'); 
+}
+
+function openHist(id) { 
+    const h = DB.hist[id]; 
+    document.getElementById('hist-body').innerHTML = h ? Object.values(h).reverse().map(x => `<div style="margin-bottom:8px; border-bottom:1px solid #eee;"><b>[${x.ts}] ${x.u}:</b><br>${x.log}</div>`).join('') : 'Sem histórico disponível.'; 
+    document.getElementById('modal-hist').style.display = 'block'; 
+}
+
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function logout() {
+    if(confirm("Deseja realmente sair do sistema?")) {
+        user = null;
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('login-sec').style.display = 'block';
+        document.getElementById('log-u').value = '';
+        document.getElementById('log-p').value = '';
+    }
+}
+
+// Inicialização
 window.onload = () => {
     // Escuchar cambios de visibilidad para refrescar selects
     document.addEventListener('click', () => { if(user) updateSelects(); });
