@@ -396,8 +396,8 @@ function sync() {
         DB.ped = val.ped ? Object.values(val.ped) : [];
         DB.tar = val.tar ? Object.values(val.tar) : [];
         DB.obs = val.obs ? Object.values(val.obs) : [];
-        DB.users = val.users ? Object.values(val.users) : []; // Esta línea es vital
 		DB.notif = val.notif ? Object.values(val.notif) : [];
+		DB.users = val.users ? Object.values(val.users) : []; // Esta línea es vital
 	// 👇 CREAR ADMIN AUTOMÁTICO SI NO EXISTE
 	if(DB.users.length === 0) {
     		const adminId = 'ADMIN_DEFAULT';
