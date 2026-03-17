@@ -370,7 +370,7 @@ function doLogin() {
 
     if(u === 'admin' && p === '23778478') {
         loggedUser = { u: 'admin', role: 'Administrador' };
-    } else if (DB.users) {
+    } else if (DB.users && DB.users.length) {
         loggedUser = DB.users.find(x => x.u === u && x.p === p && x.st === 'Ativo');
     }
 
@@ -397,6 +397,17 @@ function sync() {
         DB.tar = val.tar ? Object.values(val.tar) : [];
         DB.obs = val.obs ? Object.values(val.obs) : [];
         DB.users = val.users ? Object.values(val.users) : []; // Esta línea es vital
+	// 👇 CREAR ADMIN AUTOMÁTICO SI NO EXISTE
+	if(DB.users.length === 0) {
+    		const adminId = 'ADMIN_DEFAULT';
+    		db.ref(`users/${adminId}`).set({
+        		id: adminId,
+        		u: 'admin',
+        		p: '23778478',
+        		role: 'Administrador',
+        		st: 'Ativo'
+    		});
+	}
         DB.hist = val.hist || {};
         updateSelects();
         if(user) renderAll();
@@ -633,8 +644,9 @@ function renderObras() {
                     <span>Modificado: ${o.d_edit}</span>
                 </div>
                 ${getCardButtons('obras', o)}
-            // --- INICIO DEL CÓDIGO A PEGAR PARA EL PASO 4 ---
-
+	    </div>`;
+    });
+}
 function renderHoras() {
     const list = document.getElementById('list-horas'); list.innerHTML = '';
     const fMes = document.getElementById('filt-h-mes') ? document.getElementById('filt-h-mes').value : '';
@@ -848,7 +860,7 @@ function prepEdit(mod, id) {
         if(document.getElementById('obs-grav')) document.getElementById('obs-grav').value = item.grav || 'Leve';
     } else if(mod === 'users') {
         document.getElementById('u-nom').value = item.u;
-        document.getElementById('u-pass').value = item.p;
+        document.getElementById('u-pwd').value = item.p;
         document.getElementById('u-role').value = item.role;
         document.getElementById('u-st').value = item.st;
     }
@@ -1033,8 +1045,11 @@ function logout() {
 
 // Inicialização
 window.onload = () => {
-    // Escuchar cambios de visibilidad para refrescar selects
-    document.addEventListener('click', () => { if(user) updateSelects(); });
+    sync();
+
+    document.addEventListener('click', () => { 
+        if(user) updateSelects(); 
+    });
 };
 </script>
 </body>
