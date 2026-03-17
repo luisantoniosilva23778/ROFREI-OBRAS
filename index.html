@@ -378,8 +378,8 @@ function doLogin() {
         user = loggedUser; // Asignamos a la variable global
         document.getElementById('login-sec').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        // Se elimina initNav() porque no existe y se usa showMod para iniciar
-        showMod('obras');
+        initNav();
+        // No llames a sync() aquí de nuevo si ya está corriendo en el fondo
         renderAll(); 
     } else {
         alert("Acesso Negado. Verifique utilizador e senha.");
@@ -396,8 +396,7 @@ function sync() {
         DB.ped = val.ped ? Object.values(val.ped) : [];
         DB.tar = val.tar ? Object.values(val.tar) : [];
         DB.obs = val.obs ? Object.values(val.obs) : [];
-		DB.notif = val.notif ? Object.values(val.notif) : [];
-		DB.users = val.users ? Object.values(val.users) : []; // Esta línea es vital
+        DB.users = val.users ? Object.values(val.users) : []; // Esta línea es vital
 	// 👇 CREAR ADMIN AUTOMÁTICO SI NO EXISTE
 	if(DB.users.length === 0) {
     		const adminId = 'ADMIN_DEFAULT';
@@ -942,7 +941,7 @@ async function handleFileUpload() {
     for (let f of files) {
         const reader = new FileReader();
         reader.onload = async (e) => {
-            const fileData = { n: {Date.now()}_{f.name}, d: e.target.result, t: f.type };
+            const fileData = { n: f.name, d: e.target.result, t: f.type };
             const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
             const updatedFiles = [...(item.files || []), fileData];
             await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
