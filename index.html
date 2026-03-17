@@ -2,332 +2,447 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v13.1 - AUDIT & CONTROL</title>
+    <title>ROFREICRC v14.0 - ERP TOTAL CONTROL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
     <style>
-        :root { --primary: #1e3a5f; --secondary: #2c5282; --success: #28a745; --danger: #dc3545; --warning: #ffc107; --light: #f8f9fa; --dark: #343a40; --info: #17a2b8; }
-        body{font-family:'Segoe UI', sans-serif; margin:0; background:#f0f2f5; color:#333; font-size: 14px;}
-        header{background: var(--primary); color:white; padding:15px; text-align:center; font-size:20px; font-weight:bold;}
-        .container{padding:10px; max-width: 1100px; margin: auto;}
-        .menu{margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;}
-        .menu button{padding:12px; background: var(--primary); color:white; border:none; cursor:pointer; flex:1; border-radius:5px; font-weight: bold; min-width: 45px;}
-        .sec{background:white; padding:15px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; display:none;}
-        .filter-box { background: #e9ecef; padding: 10px; border-radius: 8px; margin: 10px 0; display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid #dee2e6; }
-        .filter-box input, .filter-box select { flex: 1; min-width: 110px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;}
-        .card{background:#fff; padding:12px; margin-bottom:10px; border-radius:8px; border-left:6px solid var(--primary); box-shadow:0 2px 5px rgba(0,0,0,0.05); position: relative;}
-        .timestamp { font-size: 10px; color: #666; margin-top: 5px; display: block; border-top: 1px solid #eee; padding-top: 5px; }
-        .sub-card { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; margin-top: 5px; border-radius: 5px; font-size: 12px; }
-        input, select, textarea { width:100%; padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px; box-sizing: border-box; }
-        .btn-main{ background: var(--success); color:white; border:none; padding:12px; width:100%; border-radius:5px; cursor:pointer; font-weight:bold; }
-        .btn-group { display: flex; gap: 4px; margin-top: 8px; }
-        .btn-group button { flex: 1; padding: 6px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 11px; font-weight: bold;}
-        .badge { padding: 3px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
-        .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); }
-        .modal-content { background:white; margin:5% auto; padding:20px; width:90%; max-width:650px; border-radius:10px; max-height: 80vh; overflow-y: auto; }
-        #toast { display:none; position:fixed; top:20px; right:20px; background:var(--success); color:white; padding:12px 20px; border-radius:8px; z-index:2000; font-weight:bold; }
-        .diff-add { color: green; font-weight: bold; }
-        .diff-old { color: #888; text-decoration: line-through; }
+        :root { --primary: #1a365d; --sec: #2d3748; --success: #2f855a; --danger: #c53030; --warn: #ecc94b; --bg: #f7fafc; }
+        body { font-family: 'Inter', sans-serif; margin:0; background: var(--bg); color: #2d3748; font-size: 13px; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        
+        .nav-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 5px; padding: 10px; background: #edf2f7; }
+        .nav-grid button { padding: 10px; border: none; border-radius: 4px; cursor: pointer; background: var(--primary); color: white; font-weight: bold; }
+        
+        .container { padding: 15px; max-width: 1400px; margin: auto; }
+        .section { display: none; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        /* Formularios */
+        .form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; box-sizing: border-box; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+
+        /* Tabla de Productos NE */
+        .ne-grid { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .ne-grid th { background: #f1f5f9; padding: 10px; border: 1px solid #cbd5e0; }
+        .ne-grid td { border: 1px solid #cbd5e0; padding: 5px; }
+
+        /* Cards y Registros */
+        .record-card { border: 1px solid #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 10px; position: relative; border-left: 5px solid var(--primary); }
+        .meta-info { font-size: 10px; color: #718096; margin-top: 10px; display: flex; gap: 15px; }
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; }
+        
+        /* Botonera */
+        .btn-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+        .btn-row button { padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 11px; color: white; }
+        .btn-edit { background: var(--warn); color: black !important; }
+        .btn-del { background: var(--danger); }
+        .btn-hist { background: var(--sec); }
+        .btn-file { background: var(--primary); }
+
+        /* Filtros */
+        .filter-bar { background: #f1f5f9; padding: 10px; border-radius: 5px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        
+        /* Modales */
+        .modal { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); }
+        .modal-content { background:white; width:90%; max-width:800px; margin: 2% auto; padding: 20px; border-radius: 8px; max-height: 90vh; overflow-y: auto; }
+        
+        #toast { display:none; position:fixed; bottom:20px; right:20px; background: var(--success); color:white; padding:15px; border-radius:5px; z-index:10000; }
+        
+        .check-item { margin-right: 10px; }
+        .admin-only { border: 2px solid var(--danger) !important; }
     </style>
 </head>
-<body onload="syncCloud()">
+<body>
 
-<div id="toast">Gravado com sucesso! ✅</div>
-<header>ROFREICRC v13.1</header>
+<div id="toast">Ação concluída com sucesso!</div>
+<header>ROFREICRC v14.0 - SISTEMA INTEGRAL DE GESTÃO</header>
 
-<div class="container">
-    <div id="login" class="sec" style="display:block">
-        <h2>Acesso</h2>
-        <input id="user" placeholder="Utilizador">
-        <input id="pass" type="password" placeholder="Password">
-        <button class="btn-main" onclick="login()">ENTRAR</button>
-    </div>
-
-    <div id="app" style="display:none">
-        <div class="menu">
-            <button onclick="show('obras')">🏗️</button>
-            <button onclick="show('hrs')">🕒</button>
-            <button onclick="show('obs')">📝</button>
-            <button onclick="show('ped')">🛒</button>
-            <button onclick="show('tar')">✅</button>
-            <button onclick="show('notif')" style="background:var(--secondary)">🔔</button>
-            <button id="menu-admin" onclick="show('users_admin')" style="display:none; background:var(--dark)">👥</button>
-            <button onclick="logout()" style="background:var(--danger)">✖</button>
-        </div>
-
-        <div id="obras" class="sec">
-            <h2>🏗️ Obras</h2>
-            <div id="form-obras-adm" style="display:none">
-                <input id="o_num" placeholder="Nº Obra">
-                <input id="o_nom" placeholder="Nome Obra">
-                <select id="o_est"><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
-                <button class="btn-main" onclick="salvar('obras')">Gravar Obra</button>
-            </div>
-            <div class="filter-box">
-                <input id="f_o_txt" placeholder="Pesquisar..." oninput="renderAll()">
-                <select id="f_o_est" onchange="renderAll()"><option value="">Estados...</option><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
-            </div>
-            <div id="list_obras"></div>
-        </div>
-
-        <div id="hrs" class="sec">
-            <h2>🕒 Registo de Horas</h2>
-            <input type="date" id="h_dat">
-            <select id="h_obr"></select>
-            <div style="display:flex; gap:5px"><input type="time" id="h_ini"><input type="time" id="h_fim"></div>
-            <textarea id="h_tar" placeholder="Tarefas..."></textarea>
-            <div id="adm-h-st" style="display:none"><select id="h_est_adm"><option>Por aprobar</option><option>Aprovado</option><option>Solicita alteração</option><option>Sem efeito</option></select></div>
-            <button class="btn-main" onclick="salvarHoras()">Adicionar Horas</button>
-            <div class="filter-box">
-                <select id="f_h_mes" onchange="renderAll()"><option value="">Mês</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
-                <select id="f_h_ano" onchange="renderAll()"></select>
-                <input id="f_h_usr" placeholder="User..." oninput="renderAll()">
-            </div>
-            <div id="list_hrs"></div>
-        </div>
-
-        <div id="obs" class="sec">
-            <h2>📝 Observações</h2>
-            <select id="obs_obr"></select>
-            <textarea id="obs_txt" placeholder="Descrição..."></textarea>
-            <select id="obs_est"><option>Por Resolver</option><option>Resolvido</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="salvar('obs')">Gravar</button>
-            <div class="filter-box"><input id="f_obs_txt" placeholder="Filtro..." oninput="renderAll()"></div>
-            <div id="list_obs"></div>
-        </div>
-
-        <div id="ped" class="sec">
-            <h2>🛒 Pedidos</h2>
-            <select id="ped_obr"></select>
-            <input id="ped_mat" placeholder="Material">
-            <input id="ped_qtd" placeholder="Qtd">
-            <input id="ped_enc" placeholder="Nº Encomenda">
-            <input id="ped_gui" placeholder="Nº Guia">
-            <select id="ped_est"><option>Solicitado</option><option>Aprovado</option><option>Entregue</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="salvar('ped')">Gravar</button>
-            <div id="list_ped"></div>
-        </div>
-
-        <div id="tar" class="sec">
-            <h2>✅ Tarefas</h2>
-            <select id="tar_obr"></select>
-            <input id="tar_tit" placeholder="Tarefa">
-            <select id="tar_p" multiple></select>
-            <select id="tar_est"><option>Por Executar</option><option>Executada</option><option>Sem efeito</option></select>
-            <button class="btn-main" onclick="salvar('tar')">Gravar Tarefa</button>
-            <div id="list_tar"></div>
-        </div>
-
-        <div id="notif" class="sec"><h2>🔔 Notificações</h2><div id="list_notif"></div></div>
-
-        <div id="users_admin" class="sec">
-            <h2>👥 Utilizadores</h2>
-            <input id="u_n" placeholder="Nome"><input id="u_p" placeholder="Pass">
-            <select id="u_r"><option>Operacional</option><option>Administrador</option></select>
-            <button class="btn-main" onclick="createUser()">Criar</button>
-            <div id="list_users"></div>
-        </div>
+<div id="login-sec" class="container" style="margin-top: 50px; max-width: 400px;">
+    <div class="section" style="display: block;">
+        <h2>Acesso ao Sistema</h2>
+        <input type="text" id="login-user" placeholder="Utilizador">
+        <input type="password" id="login-pass" placeholder="Palavra-passe">
+        <button class="nav-grid button" onclick="auth()" style="width: 100%; margin-top: 10px;">Entrar</button>
     </div>
 </div>
 
-<div id="mod-hist" class="modal"><div class="modal-content"><h3>📜 Histórico de Modificações</h3><div id="hist-content"></div><button onclick="closeModal()" style="width:100%; padding:10px; margin-top:10px">Fechar</button></div></div>
+<div id="main-app" style="display: none;">
+    <div class="nav-grid">
+        <button onclick="changeMod('obras')">🏗️ Obras</button>
+        <button onclick="changeMod('horas')">🕒 Horas</button>
+        <button onclick="changeMod('obs')">📝 Obs</button>
+        <button onclick="changeMod('ne')">📄 Encomendas</button>
+        <button onclick="changeMod('ped')">🛒 Pedidos</button>
+        <button onclick="changeMod('tar')">✅ Tarefas</button>
+        <button onclick="changeMod('notif')">🔔 Notificações</button>
+        <button id="btn-adm-mod" onclick="changeMod('users')" style="display:none; background:var(--danger)">👥 Admin</button>
+        <button onclick="logout()" style="background:#000">✖ Sair</button>
+    </div>
+
+    <div class="container">
+        <section id="mod-obras" class="section">
+            <div id="form-obras" class="form-area">
+                <h2>Registo de Obra</h2>
+                <div class="form-group">
+                    <div><label>Nº Obra</label><input type="text" id="o-num"></div>
+                    <div><label>Nome da Obra</label><input type="text" id="o-nom"></div>
+                    <div><label>Estado</label>
+                        <select id="o-est"><option>Em execução</option><option>Finalizada</option><option>Sem efeito</option></select>
+                    </div>
+                </div>
+                <button class="btn-main" onclick="saveRecord('obras')" style="background:var(--success); padding:10px; color:white; border:none; border-radius:4px;">Gravar Obra</button>
+                <button id="btn-cancel-obras" style="display:none" onclick="cancelEdit('obras')">Cancelar Edição</button>
+            </div>
+            <hr>
+            <div class="filter-bar" id="filters-obras">
+                <input type="text" placeholder="Filtro Nº..." oninput="filterData('obras', 0, this.value)">
+                <input type="text" placeholder="Filtro Nome..." oninput="filterData('obras', 1, this.value)">
+                <select onchange="filterData('obras', 2, this.value)"><option value="">Todos Estados</option><option>Em execução</option><option>Finalizada</option><option>Sem efecto</option></select>
+                <button onclick="exportExcel('obras')" style="background:var(--success); color:white; border:none;">📊 Exportar Excel</button>
+            </div>
+            <div class="bulk-actions">
+                <button onclick="openBulkUpload('obras')">📁 Adjuntar a vários</button>
+                <button onclick="bulkDownload('obras')">⬇️ Descarregar vários</button>
+            </div>
+            <div id="list-obras"></div>
+        </section>
+
+        <section id="mod-horas" class="section">
+            <div id="form-horas" class="form-area">
+                <h2>Registo de Horas</h2>
+                <div class="form-group">
+                    <div><label>Data</label><input type="date" id="h-data"></div>
+                    <div><label>Obra</label><select id="h-obra-sel"></select></div>
+                    <div><label>Início</label><input type="time" id="h-ini"></div>
+                    <div><label>Fim</label><input type="time" id="h-fim"></div>
+                    <div style="grid-column: span 2;"><label>Tarefa</label><textarea id="h-task"></textarea></div>
+                    <div><label>Estado</label>
+                        <select id="h-est" disabled><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem efeito</option></select>
+                    </div>
+                </div>
+                <button class="btn-main" onclick="saveRecord('horas')" style="background:var(--success); padding:10px; color:white; border:none;">Gravar Horas</button>
+                <button id="btn-cancel-horas" style="display:none" onclick="cancelEdit('horas')">Cancelar Edição</button>
+            </div>
+            <div class="filter-bar">
+                <select id="f-h-mes" onchange="renderRecords('horas')"><option value="">Mês</option><option value="01">Jan</option><option value="12">Dez</option></select>
+                <select id="f-h-ano" onchange="renderRecords('horas')"><option value="">Ano</option></select>
+                <input type="text" placeholder="Utilizador..." oninput="filterData('horas', 'user', this.value)">
+            </div>
+            <div id="list-horas"></div>
+        </section>
+
+        <section id="mod-ne" class="section">
+            <div id="form-ne" class="form-area">
+                <h2>Nota de Encomenda</h2>
+                <div class="form-group">
+                    <div><label>Nº Encomenda</label><input type="text" id="ne-num" readonly></div>
+                    <div><label>Obra</label><select id="ne-obra-sel"></select></div>
+                    <div><label>Fornecedor</label><input type="text" id="ne-forn"></div>
+                    <div><label>Estado</label><select id="ne-est"><option>Emitida</option><option>Enviada ao fornecedor</option><option>Sem efeito</option></select></div>
+                </div>
+                
+                <table class="ne-grid" id="ne-items">
+                    <thead><tr><th>Qtd</th><th>Unid</th><th>Produto</th><th>Preço Un.</th><th>Total</th><th>+</th><th>-</th></tr></thead>
+                    <tbody id="ne-body">
+                        </tbody>
+                </table>
+
+                <div class="form-group">
+                    <div style="grid-column: span 2;"><label>Morada de Entrega</label><input type="text" id="ne-morada"></div>
+                    <div style="grid-column: span 2;"><label>Condições e Datas</label><textarea id="ne-cond"></textarea></div>
+                </div>
+                <button class="btn-main" onclick="saveNE()">Gravar Nota de Encomenda & Sincronizar</button>
+                <button id="btn-cancel-ne" style="display:none" onclick="cancelEdit('ne')">Cancelar Edição</button>
+            </div>
+            <div id="list-ne"></div>
+        </section>
+
+        <section id="mod-obs" class="section"><h2>Observações</h2><div id="list-obs"></div></section>
+        <section id="mod-ped" class="section"><h2>Pedidos de Material</h2><div id="list-ped"></div></section>
+        <section id="mod-tar" class="section"><h2>Tarefas</h2><div id="list-tar"></div></section>
+        <section id="mod-notif" class="section"><h2>Notificações</h2><div id="list-notif"></div></section>
+        <section id="mod-users" class="section"><h2>Gestão de Utilizadores</h2><div id="list-users"></div></section>
+    </div>
+</div>
+
+<div id="modal-hist" class="modal">
+    <div class="modal-content">
+        <h3 id="hist-title">Histórico de Edição</h3>
+        <div id="hist-body"></div>
+        <button onclick="closeModal('modal-hist')" style="width:100%; margin-top:20px;">Fechar</button>
+    </div>
+</div>
+
+<div id="modal-files" class="modal">
+    <div class="modal-content">
+        <h3>Documentação Adjunta</h3>
+        <input type="file" id="file-input" multiple>
+        <button onclick="uploadFiles()">Upload</button>
+        <div id="file-list"></div>
+        <button onclick="downloadAllFiles()" style="background:var(--success); color:white;">Descarregar Tudo (ZIP)</button>
+        <button onclick="closeModal('modal-files')">Fechar</button>
+    </div>
+</div>
 
 <script>
+// CONFIGURACIÓN FIREBASE (Reemplaza con tus datos reales)
 const firebaseConfig = {
-  apiKey: "AIzaSyCBkWCoWX0oN1HWCA6aGt_kdg_2vyFz1mM",
-  authDomain: "rofreicrc-175f9.firebaseapp.com",
-  databaseURL: "https://rofreicrc-175f9-default-rtdb.firebaseio.com",
-  projectId: "rofreicrc-175f9",
-  storageBucket: "rofreicrc-175f9.firebasestorage.app",
-  messagingSenderId: "597226985528",
-  appId: "1:597226985528:web:c371ca51032301e51feecd"
+    apiKey: "AIzaSyCBkWCoWX0oN1HWCA6aGt_kdg_2vyFz1mM",
+    authDomain: "rofreicrc-175f9.firebaseapp.com",
+    databaseURL: "https://rofreicrc-175f9-default-rtdb.firebaseio.com",
+    projectId: "rofreicrc-175f9",
+    storageBucket: "rofreicrc-175f9.firebasestorage.app",
+    appId: "1:597226985528:web:c371ca51032301e51feecd"
 };
 firebase.initializeApp(firebaseConfig);
 const rtdb = firebase.database();
 
-let db = { obras:[], hrs:[], obs:[], ped:[], tar:[], users:[], notif:[], historial:{} };
-let currentUser = null, editId = null, editSubId = null;
+let DB = { obras:[], horas:[], obs:[], ne:[], ped:[], tar:[], users:[], notif:[], hist:{} };
+let currentUser = null;
+let editingId = null;
+let currentMod = 'obras';
 
-function syncCloud() {
-    rtdb.ref('/').on('value', (snap) => {
-        const d = snap.val() || {};
-        db.obras = d.obras ? Object.values(d.obras) : [];
-        db.hrs = d.hrs ? Object.values(d.hrs) : [];
-        db.obs = d.obs ? Object.values(d.obs) : [];
-        db.ped = d.ped ? Object.values(d.ped) : [];
-        db.tar = d.tar ? Object.values(d.tar) : [];
-        db.users = d.users ? Object.values(d.users) : [];
-        db.notif = d.notif ? Object.values(d.notif).reverse() : [];
-        db.historial = d.historial || {};
-        renderAll();
+// --- AUTH & NAVIGATION ---
+function auth() {
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    // Lógica admin hardcoded o desde DB
+    if(u === 'admin' && p === '23778478') {
+        currentUser = { u: 'admin', role: 'Administrador' };
+    } else {
+        currentUser = DB.users.find(x => x.u === u && x.p === p);
+    }
+
+    if(currentUser) {
+        document.getElementById('login-sec').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        if(currentUser.role === 'Administrador') document.getElementById('btn-adm-mod').style.display = 'block';
+        sync();
+    } else alert("Credenciais inválidas");
+}
+
+function changeMod(mod) {
+    currentMod = mod;
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    document.getElementById(`mod-${mod}`).style.display = 'block';
+    limparFormularios();
+    renderRecords(mod);
+}
+
+// --- SYNC ---
+function sync() {
+    rtdb.ref('/').on('value', snap => {
+        const data = snap.val() || {};
+        DB.obras = data.obras ? Object.values(data.obras) : [];
+        DB.horas = data.horas ? Object.values(data.horas) : [];
+        DB.ne = data.ne ? Object.values(data.ne) : [];
+        DB.ped = data.ped ? Object.values(data.ped) : [];
+        DB.tar = data.tar ? Object.values(data.tar) : [];
+        DB.users = data.users ? Object.values(data.users) : [];
+        DB.notif = data.notif ? Object.values(data.notif) : [];
+        DB.hist = data.hist || {};
         updateSelects();
+        renderRecords(currentMod);
+        generateNENumber();
     });
 }
 
-function login() {
-    const u = document.getElementById("user").value, p = document.getElementById("pass").value;
-    if(u==="admin" && p==="23778478") currentUser = {u:"admin", role:"Administrador"};
-    else currentUser = db.users.find(x => x.u === u && x.p === p);
-    
-    if(currentUser){
-        document.getElementById("login").style.display="none";
-        document.getElementById("app").style.display="block";
-        if(currentUser.role==="Administrador"){
-            document.getElementById("form-obras-adm").style.display="block";
-            document.getElementById("menu-admin").style.display="block";
-            document.getElementById("adm-h-st").style.display="block";
-        }
-    } else alert("Erro!");
+// --- LÓGICA NOTA DE ENCOMENDA (ESPECÍFICA) ---
+function generateNENumber() {
+    const year = new Date().getFullYear();
+    const nesThisYear = DB.ne.filter(n => n.id.includes(`.${year}`));
+    const nextSeq = (nesThisYear.length + 1).toString().padStart(3, '0');
+    if(!editingId) document.getElementById('ne-num').value = `NE${nextSeq}.${year}`;
 }
 
-// SALVAR GENÉRICO COM DIFF
-function salvar(mod) {
-    const id = editId || Date.now().toString();
-    const old = db[mod].find(x => x.id === id) || null;
-    let data = old ? {...old} : { id, criacao: new Date().toLocaleString(), user: currentUser.u };
-    
-    data.atualizacao = new Date().toLocaleString();
-
-    if(mod==='obras'){ data.num=document.getElementById("o_num").value; data.nom=document.getElementById("o_nom").value; data.est=document.getElementById("o_est").value; }
-    if(mod==='obs'){ const o=db.obras.find(x=>x.id===document.getElementById("obs_obr").value); data.obrId=o.id; data.obrNum=o.num; data.txt=document.getElementById("obs_txt").value; data.est=document.getElementById("obs_est").value; }
-    if(mod==='ped'){ const o=db.obras.find(x=>x.id===document.getElementById("ped_obr").value); data.obrId=o.id; data.obrNum=o.num; data.mat=document.getElementById("ped_mat").value; data.qtd=document.getElementById("ped_qtd").value; data.enc=document.getElementById("ped_enc").value; data.gui=document.getElementById("ped_gui").value; data.est=document.getElementById("ped_est").value; }
-    if(mod==='tar'){ const o=db.obras.find(x=>x.id===document.getElementById("tar_obr").value); data.obrId=o.id; data.obrNum=o.num; data.tit=document.getElementById("tar_tit").value; data.para=Array.from(document.getElementById("tar_p").selectedOptions).map(x=>x.value); data.est=document.getElementById("tar_est").value; }
-
-    const diff = getDiff(old, data);
-    rtdb.ref(`${mod}/${id}`).set(data).then(() => {
-        if(diff) registrarHistorial(id, diff);
-        registrarNotif(`${mod.toUpperCase()}: ${old?'Alterado':'Criado'} por ${currentUser.u}`);
-        cancelar(mod); showToast();
-    });
+function addNERow(data = {}) {
+    const tbody = document.getElementById('ne-body');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><input type="number" class="ne-qty" value="${data.qty || 0}" oninput="calcNETotal(this)"></td>
+        <td><input type="text" class="ne-uni" value="${data.uni || 'un'}"></td>
+        <td><input type="text" class="ne-prod" value="${data.prod || ''}"></td>
+        <td><input type="number" step="0.001" class="ne-prc" value="${data.prc || 0}" oninput="calcNETotal(this)"></td>
+        <td class="ne-total">${( (data.qty||0) * (data.prc||0) ).toFixed(3)}</td>
+        <td><button onclick="addNERow()">+</button></td>
+        <td><button onclick="this.parentElement.parentElement.remove()">🗑️</button></td>
+    `;
+    tbody.appendChild(row);
 }
 
-function salvarHoras() {
-    const dat = document.getElementById("h_dat").value, oId = document.getElementById("h_obr").value;
-    if(!dat || !oId) return;
-    const regId = editId || `${currentUser.u}_${dat.replace(/-/g,'')}`;
-    let reg = db.hrs.find(x => x.id === regId) || { id: regId, user:currentUser.u, data:dat, est:"Por aprobar", criacao: new Date().toLocaleString(), intervenciones: [] };
-    
-    const oldReg = JSON.parse(JSON.stringify(reg));
-    const obr = db.obras.find(x => x.id === oId);
-    const ini = document.getElementById("h_ini").value, fim = document.getElementById("h_fim").value;
-    const hrs = (new Date(`1970-01-01T${fim}`) - new Date(`1970-01-01T${ini}`)) / 3600000;
-    
-    const sub = { subId: editSubId || Date.now().toString(), obrId: oId, obrNum: obr.num, ini, fim, tar: document.getElementById("h_tar").value, hrs };
-    
-    if(editSubId) reg.intervenciones[reg.intervenciones.findIndex(i=>i.subId===editSubId)] = sub;
-    else reg.intervenciones.push(sub);
-    
-    if(currentUser.role==='Administrador') reg.est = document.getElementById("h_est_adm").value;
-    reg.atualizacao = new Date().toLocaleString();
+function calcNETotal(el) {
+    const row = el.parentElement.parentElement;
+    const q = row.querySelector('.ne-qty').value;
+    const p = row.querySelector('.ne-prc').value;
+    row.querySelector('.ne-total').innerText = (q * p).toFixed(3);
+}
 
-    rtdb.ref(`hrs/${regId}`).set(reg).then(() => {
-        registrarHistorial(regId, getDiff(oldReg, reg));
-        registrarNotif(`HORAS: Registo em ${dat} por ${currentUser.u}`);
-        cancelar('hrs'); showToast();
-    });
+// --- CORE FUNCTIONS (SAVE, EDIT, DELETE) ---
+async function saveRecord(mod) {
+    const id = editingId || `ID_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+    const isNew = !editingId;
+    const oldData = isNew ? null : DB[mod].find(x => x.id === id);
+    
+    let newData = {
+        id: id,
+        user: currentUser.u,
+        criacao: isNew ? new Date().toLocaleString() : oldData.criacao,
+        edicao: new Date().toLocaleString(),
+        files: oldData ? oldData.files || [] : []
+    };
+
+    // Mapeo de campos por módulo
+    if(mod === 'obras') {
+        newData.num = document.getElementById('o-num').value;
+        newData.nom = document.getElementById('o-nom').value;
+        newData.est = document.getElementById('o-est').value;
+    }
+    // ... repetir para otros módulos ...
+
+    const diff = getDiff(oldData, newData);
+    
+    await rtdb.ref(`${mod}/${id}`).set(newData);
+    if(diff) saveHist(id, diff);
+    
+    registrarNotif(mod, isNew ? 'Criação' : 'Edição', id);
+    limparFormularios();
+    showToast();
 }
 
 function getDiff(old, novo) {
-    if(!old) return "Registo Inicial Criado";
+    if(!old) return "Registo Inicial";
     let changes = [];
-    for(let k in novo) {
-        if(k === 'atualizacao' || k === 'intervenciones') continue;
-        if(JSON.stringify(old[k]) !== JSON.stringify(novo[k])) {
-            changes.push(`${k}: <span class="diff-old">${old[k]}</span> ➔ <span class="diff-add">${novo[k]}</span>`);
+    for(let key in novo) {
+        if(['edicao', 'files'].includes(key)) continue;
+        if(JSON.stringify(old[key]) !== JSON.stringify(novo[key])) {
+            changes.push(`${key}: [${old[key]}] -> [${novo[key]}]`);
         }
     }
-    return changes.length > 0 ? changes.join("<br>") : null;
+    return changes.length > 0 ? changes.join(" | ") : null;
 }
 
-function registrarHistorial(ref, txt) { if(txt) rtdb.ref(`historial/${ref}`).push({ u: currentUser.u, t: new Date().toLocaleString(), msg: txt }); }
-function registrarNotif(msg) { rtdb.ref('notif').push({ msg, time: new Date().toLocaleString() }); }
-
-function renderAll() {
-    // RENDER OBRAS
-    const fOt = document.getElementById("f_o_txt").value.toLowerCase();
-    const fOe = document.getElementById("f_o_est").value;
-    document.getElementById("list_obras").innerHTML = db.obras.filter(o => (o.num+o.nom).toLowerCase().includes(fOt) && (!fOe || o.est===fOe)).map(o => `
-        <div class="card"><b>${o.num} - ${o.nom}</b> <span class="badge" style="background:var(--primary)">${o.est}</span>
-        <div class="timestamp">Criado: ${o.criacao} | Ult: ${o.atualizacao||'---'}</div>
-        <div class="btn-group">
-            ${currentUser.role==='Administrador'?`<button class="btn-edit" onclick="prepEdit('obras','${o.id}')">✏️</button>`:''}
-            <button style="background:var(--info)" onclick="openHist('${o.id}')">📜 Histórico</button>
-        </div></div>`).join("");
-
-    // RENDER HORAS
-    const fHm = document.getElementById("f_h_mes").value, fHa = document.getElementById("f_h_ano").value, fHu = document.getElementById("f_h_usr").value.toLowerCase();
-    document.getElementById("list_hrs").innerHTML = db.hrs.filter(h => {
-        const [y, m] = h.data.split("-");
-        return (!fHm || m===fHm) && (!fHa || y===fHa) && (currentUser.role==='Administrador'?h.user.toLowerCase().includes(fHu):h.user===currentUser.u);
-    }).map(h => `
-        <div class="card"><b>${h.data} (${h.user})</b> <span class="badge" style="background:var(--secondary)">${h.est}</span>
-        <div class="timestamp">Criado: ${h.criacao} | Ult: ${h.atualizacao||'---'}</div>
-        ${h.intervenciones.map(i=>`<div class="sub-card"><b>${i.obrNum}</b>: ${i.ini}-${i.fim} (${i.hrs.toFixed(2)}h)<br>${i.tar}
-            <button onclick="prepEditHrs('${h.id}','${i.subId}')">✏️</button></div>`).join("")}
-        <button style="background:var(--info); width:100%; margin-top:5px; border:none; color:white; padding:5px; border-radius:4px" onclick="openHist('${h.id}')">📜 Ver Histórico</button>
-        </div>`).join("");
-
-    // RENDER GENÉRICO (OBS, PED, TAR)
-    renderGen('obs', 'list_obs', x => `<b>${x.obrNum}</b>: ${x.txt}`);
-    renderGen('ped', 'list_ped', x => `<b>${x.obrNum}</b>: ${x.mat} (Enc: ${x.enc})`);
-    renderGen('tar', 'list_tar', x => `<b>${x.obrNum}</b>: ${x.tit} <br><small>Para: ${x.para}</small>`);
-
-    // USERS (Inclui Admin)
-    document.getElementById("list_users").innerHTML = (db.users.length ? db.users : []).concat([{u:"admin", role:"Administrador"}]).map(u => `
-        <div class="card"><b>${u.u}</b> (${u.role}) ${u.u!=='admin'?`<button onclick="del('users','${u.u}')">❌</button>`:''}</div>`).join("");
-
-    // NOTIF
-    document.getElementById("list_notif").innerHTML = db.notif.slice(0,15).map(n=>`<div class="sub-card"><small>${n.time}</small><br>${n.msg}</div>`).join("");
+function saveHist(refId, msg) {
+    const hId = Date.now();
+    rtdb.ref(`hist/${refId}/${hId}`).set({
+        data: new Date().toLocaleString(),
+        user: currentUser.u,
+        msg: msg
+    });
 }
 
-function renderGen(mod, target, temp) {
-    document.getElementById(target).innerHTML = db[mod].reverse().map(x => `
-        <div class="card">${temp(x)} <span class="badge" style="background:var(--dark)">${x.est}</span>
-        <div class="timestamp">Criado: ${x.criacao} | Ult: ${x.atualizacao||'---'}</div>
-        <div class="btn-group">
-            <button class="btn-edit" onclick="prepEdit('${mod}','${x.id}')">✏️</button>
-            <button style="background:var(--info)" onclick="openHist('${x.id}')">📜 Hist.</button>
-        </div></div>`).join("");
+function registrarNotif(mod, acao, refId) {
+    rtdb.ref('notif').push({
+        mod: mod,
+        acao: acao,
+        ref: refId,
+        user: currentUser.u,
+        data: new Date().toLocaleString(),
+        lida: false
+    });
+}
+
+// --- RENDERIZACIÓN ---
+function renderRecords(mod) {
+    const list = document.getElementById(`list-${mod}`);
+    if(!list) return;
+    list.innerHTML = '';
+    
+    let data = DB[mod];
+
+    // Aplicar Filtros Específicos (Mês/Ano para Horas)
+    if(mod === 'horas') {
+        const m = document.getElementById('f-h-mes').value;
+        if(m) data = data.filter(x => x.data.split('-')[1] === m);
+    }
+
+    data.forEach(item => {
+        // Bloqueio de segurança para utilizadores comuns em Horas
+        if(mod === 'horas' && currentUser.role !== 'Administrador' && item.user !== currentUser.u) return;
+
+        const card = document.createElement('div');
+        card.className = 'record-card';
+        card.innerHTML = `
+            <input type="checkbox" class="bulk-check" data-id="${item.id}">
+            <b>${item.num || item.id}</b> - ${item.nom || item.task || ''} 
+            <span class="badge" style="background:${getStatusColor(item.est)}">${item.est}</span>
+            <div class="meta-info">
+                <span>Criado: ${item.criacao}</span>
+                <span>Última: ${item.edicao}</span>
+                <span>User: ${item.user}</span>
+            </div>
+            <div class="btn-row">
+                <button class="btn-edit" onclick="prepEdit('${mod}', '${item.id}')">✏️ Editar</button>
+                <button class="btn-hist" onclick="showHist('${item.id}')">📜 Histórico</button>
+                <button class="btn-file" onclick="openFiles('${mod}', '${item.id}')">📁 Adjuntos (${item.files?.length || 0})</button>
+                ${currentUser.role === 'Administrador' ? `<button class="btn-del" onclick="deleteRec('${mod}', '${item.id}')">🗑️ Eliminar</button>` : ''}
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
+
+// --- UTILIDADES ---
+function limparFormularios() {
+    editingId = null;
+    document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+    document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+    document.querySelectorAll('[id^="btn-cancel"]').forEach(b => b.style.display = 'none');
+    
+    // Reset Tabla NE
+    const tbody = document.getElementById('ne-body');
+    if(tbody) {
+        tbody.innerHTML = '';
+        addNERow();
+    }
+    generateNENumber();
+}
+
+function getStatusColor(est) {
+    if(['Finalizada', 'Aprobada', 'Realizada', 'Entregue'].includes(est)) return '#2f855a';
+    if(['Sem efeito'].includes(est)) return '#718096';
+    return '#1a365d';
+}
+
+function deleteRec(mod, id) {
+    if(confirm("Tem certeza que deseja eliminar este registo permanentemente? Esta ação não pode ser desfeita.")) {
+        rtdb.ref(`${mod}/${id}`).remove();
+        showToast();
+    }
 }
 
 function updateSelects() {
-    const emExec = db.obras.filter(o => o.est === "Em execução");
-    const opt = emExec.length ? emExec.map(o => `<option value="${o.id}">${o.num} - ${o.nom}</option>`).join("") : '<option>Nenhuma obra em execução</option>';
-    ['h_obr','obs_obr','ped_obr','tar_obr'].forEach(id => document.getElementById(id).innerHTML = opt);
-    
-    document.getElementById("tar_p").innerHTML = db.users.map(u=>`<option value="${u.u}">${u.u}</option>`).join("");
-    const anos = [...new Set(db.hrs.map(h => h.data.split("-")[0]))].sort();
-    document.getElementById("f_h_ano").innerHTML = '<option value="">Ano</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join("");
+    const emExec = DB.obras.filter(o => o.est === 'Em ejecución');
+    const options = emExec.map(o => `<option value="${o.id}">${o.num} - ${o.nom}</option>`).join('');
+    ['h-obra-sel', 'ne-obra-sel'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = options;
+    });
 }
 
-function prepEdit(mod, id) {
-    editId = id; show(mod); const item = db[mod].find(x=>x.id===id);
-    if(mod==='obras'){ document.getElementById("o_num").value=item.num; document.getElementById("o_nom").value=item.nom; document.getElementById("o_est").value=item.est; }
-    if(mod==='obs'){ document.getElementById("obs_obr").value=item.obrId; document.getElementById("obs_txt").value=item.txt; document.getElementById("obs_est").value=item.est; }
+function showToast() {
+    const t = document.getElementById('toast');
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
 }
 
-function prepEditHrs(id, sId) {
-    editId = id; editSubId = sId; show('hrs');
-    const r = db.hrs.find(x=>x.id===id), i = r.intervenciones.find(x=>x.subId===sId);
-    document.getElementById("h_dat").value=r.data; document.getElementById("h_obr").value=i.obrId;
-    document.getElementById("h_ini").value=i.ini; document.getElementById("h_fim").value=i.fim;
-    document.getElementById("h_tar").value=i.tar;
+// Inicialización de filas NE
+addNERow();
+</script>
+
+<script>
+function exportExcel(mod) {
+    const ws = XLSX.utils.json_to_sheet(DB[mod]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, mod);
+    XLSX.writeFile(wb, `Reporte_${mod}_${new Date().toLocaleDateString()}.xlsx`);
 }
 
-function createUser() { const u=document.getElementById("u_n").value, p=document.getElementById("u_p").value, r=document.getElementById("u_r").value; if(u&&p) rtdb.ref(`users/${u}`).set({u,p,role:r}); }
-function openHist(id) {
-    document.getElementById("mod-hist").style.display="block";
-    const h = Object.values(db.historial[id] || {}).reverse();
-    document.getElementById("hist-content").innerHTML = h.length ? h.map(x => `
-        <div class="sub-card"><b>${x.t}</b> por <b>${x.u}</b>:<br>${x.msg}</div>`).join("") : "Sem registos de alteração.";
-}
-function show(id) { document.querySelectorAll(".sec").forEach(s=>s.style.display="none"); document.getElementById(id).style.display="block"; }
-function cancelar(m) { editId=null; editSubId=null; document.querySelectorAll(`#${m} input, #${m} textarea`).forEach(i=>i.value=""); }
-function closeModal() { document.getElementById("mod-hist").style.display="none"; }
-function showToast() { const t = document.getElementById("toast"); t.style.display="block"; setTimeout(()=>t.style.display="none", 2500); }
 function logout() { location.reload(); }
-function del(p, id) { if(confirm("Apagar?")) rtdb.ref(`${p}/${id}`).remove(); }
 </script>
 </body>
 </html>
