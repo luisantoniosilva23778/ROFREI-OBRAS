@@ -366,20 +366,23 @@ function doLogin() {
     const u = document.getElementById('log-u').value;
     const p = document.getElementById('log-p').value;
     
-    // Admin Maestro (credenciales fijas solicitadas)
-    if(u === 'admin' && p === '23778478') { 
-        user = { u: 'admin', role: 'Administrador' }; 
-    } else {
-        user = DB.users.find(x => x.u === u && x.p === p && x.st === 'Ativo');
+    let loggedUser = null;
+
+    if(u === 'admin' && p === '23778478') {
+        loggedUser = { u: 'admin', role: 'Administrador' };
+    } else if (DB.users) {
+        loggedUser = DB.users.find(x => x.u === u && x.p === p && x.st === 'Ativo');
     }
 
-    if(user) {
+    if(loggedUser) {
+        user = loggedUser; // Asignamos a la variable global
         document.getElementById('login-sec').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        if(user.role !== 'Administrador') document.getElementById('nav-users').style.display = 'none';
-        sync();
+        initNav();
+        // No llames a sync() aquí de nuevo si ya está corriendo en el fondo
+        renderAll(); 
     } else {
-        alert("Credenciais incorretas ou utilizador suspenso.");
+        alert("Acesso Negado. Verifique utilizador e senha.");
     }
 }
 
@@ -387,12 +390,16 @@ function doLogin() {
 function sync() {
     db.ref('/').on('value', snap => {
         const val = snap.val() || {};
-        ['obras','horas','ne','ped','tar','obs','users','notif'].forEach(m => {
-            DB[m] = val[m] ? Object.values(val[m]) : [];
-        });
+        DB.obras = val.obras ? Object.values(val.obras) : [];
+        DB.horas = val.horas ? Object.values(val.horas) : [];
+        DB.ne = val.ne ? Object.values(val.ne) : [];
+        DB.ped = val.ped ? Object.values(val.ped) : [];
+        DB.tar = val.tar ? Object.values(val.tar) : [];
+        DB.obs = val.obs ? Object.values(val.obs) : [];
+        DB.users = val.users ? Object.values(val.users) : []; // Esta línea es vital
         DB.hist = val.hist || {};
-        updateSelects(); 
-        renderAll();
+        updateSelects();
+        if(user) renderAll();
     });
 }
 
