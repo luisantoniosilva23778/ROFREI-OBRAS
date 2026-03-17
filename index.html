@@ -378,8 +378,8 @@ function doLogin() {
         user = loggedUser; // Asignamos a la variable global
         document.getElementById('login-sec').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        initNav();
-        // No llames a sync() aquí de nuevo si ya está corriendo en el fondo
+        // Se elimina initNav() porque no existe y se usa showMod para iniciar
+        showMod('obras');
         renderAll(); 
     } else {
         alert("Acesso Negado. Verifique utilizador e senha.");
