@@ -587,7 +587,8 @@ async function saveNE() {
     
     // Convertir PDF a Base64 para guardarlo como adjunto automático
     const pdfBase64 = doc.output('datauristring');
-    const pdfFile = { n: `NE_${num}_${Date.now()}.pdf`, d: pdfBase64 };
+    const v = old && old.files ? old.files.filter(f => f.n.includes('.pdf')).length + 1 : 1;
+    const pdfFile = { n: `NE${num}.RE.V${v}.pdf`, d: pdfBase64 };
 
     // Recuperar archivos anteriores si existen
     const old = DB.ne.find(x => x.id === id);
