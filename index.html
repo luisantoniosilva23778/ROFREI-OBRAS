@@ -653,28 +653,51 @@ function renderObras() {
     });
 }
 function renderHoras() {
-    const list = document.getElementById('list-horas'); list.innerHTML = '';
+    const list = document.getElementById('list-horas'); if(!list) return;
+    list.innerHTML = '';
     const fMes = document.getElementById('filt-h-mes').value;
     const fAno = document.getElementById('filt-h-ano').value;
     const fEst = document.getElementById('filt-h-est').value;
-    const fUsr = document.getElementById('filt-h-user').value.toLowerCase();
+    const fUsr = (document.getElementById('filt-h-user').value || "").toLowerCase();
+    
     let grouped = {};
     DB.horas.forEach(h => {
-        const d = h.dat.split('-');
-        if((!fMes || d[1]===fMes) && (!fAno || d[0]===fAno) && (!fEst || h.est===fEst) && (!fUsr || h.u_crea.toLowerCase().includes(fUsr))) {
-            const key = `${h.dat}_${h.u_crea}`;
-            if(!grouped[key]) grouped[key] = { dat: h.dat, u: h.u_crea, items: [], tot: 0 };
-            const diff = (new Date(`1970-01-01T${h.fim}`) - new Date(`1970-01-01T${h.ini}`))/3600000;
-            grouped[key].items.push(h); grouped[key].tot += diff;
+        // Protección contra datos faltantes
+        const hDat = h.dat || "0000-00-00";
+        const hUser = h.u_crea || "Sistema";
+        const d = hDat.split('-');
+        
+        const matchesUser = !fUsr || hUser.toLowerCase().includes(fUsr);
+        const matchesEst = !fEst || h.est === fEst;
+        const matchesMes = !fMes || d[1] === fMes;
+        const matchesAno = !fAno || d[0] === fAno;
+
+        if(matchesMes && matchesAno && matchesEst && matchesUser) {
+            const key = `${hDat}_${hUser}`;
+            if(!grouped[key]) grouped[key] = { dat: hDat, u: hUser, items: [], tot: 0 };
+            const diff = (new Date(`1970-01-01T${h.fim || "00:00"}`) - new Date(`1970-01-01T${h.ini || "00:00"}`))/3600000;
+            grouped[key].items.push(h); 
+            grouped[key].tot += isNaN(diff) ? 0 : diff;
         }
     });
+
     Object.values(grouped).forEach(g => {
-        list.innerHTML += `<div class="group-header" style="background:#e2e8f0; padding:5px; margin:10px 0; font-weight:bold;">📅 ${g.dat} - 👤 ${g.u} | Total: ${g.tot.toFixed(2)}h</div>`;
+        list.innerHTML += `<div class="group-header" style="background:#e2e8f0; padding:8px; margin:10px 0; font-weight:bold; border-radius:4px;">📅 ${g.dat} - 👤 ${g.u} | Total Dia: ${g.tot.toFixed(2)}h</div>`;
         g.items.forEach(h => {
-            list.innerHTML += `<div class="card"><input type="checkbox" class="chk-mass" value="${h.id}"><div class="card-grid"><div><b>Obra:</b> ${h.obrNom}</div><div><b>Horas:</b> ${h.ini}-${h.fim}</div></div>${getCardButtons('horas', h)}</div>`;
+            list.innerHTML += `
+            <div class="card">
+                <input type="checkbox" class="chk-mass" value="${h.id}">
+                <div class="card-grid">
+                    <div><b>Obra:</b> ${h.obrNom || '---'}</div>
+                    <div><b>Horas:</b> ${h.ini || '00:00'}-${h.fim || '00:00'} (${h.est || 'S/E'})</div>
+                    <div class="full-w"><b>Tarefa:</b> ${h.task || '---'}</div>
+                </div>
+                ${getCardButtons('horas', h)}
+            </div>`;
         });
     });
 }
+
 
 function renderPed() {
     const list = document.getElementById('list-ped'); list.innerHTML = '';
