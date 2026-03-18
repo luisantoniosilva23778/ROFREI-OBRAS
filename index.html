@@ -528,16 +528,17 @@ function generateDiff(old, novo) {
 let neRowIdx = 0;
 function addNERow(val = { q:'', u:'', p:'', pr:'', t:'' }) {
     const tbody = document.getElementById('ne-body');
-    const id = `ne-r-${neRowIdx++}`;
-    tbody.innerHTML += `
-        <tr id="${id}">
-            <td><input type="number" class="ne-q" value="${val.q}" oninput="calcNETotal('${id}')"></td>
-            <td><input type="text" class="ne-u" value="${val.u}"></td>
-            <td><input type="text" class="ne-p" value="${val.p}"></td>
-            <td><input type="number" class="ne-pr" value="${val.pr}" oninput="calcNETotal('${id}')"></td>
-            <td><input type="number" class="ne-t" value="${val.t}" readonly></td>
-            <td><button onclick="document.getElementById('${id}').remove()" style="color:red">✖</button></td>
-        </tr>`;
+    const tr = document.createElement('tr');
+    const rid = `ner_${Date.now()}_${Math.random()}`;
+    tr.id = rid;
+    tr.innerHTML = `
+        <td><input type="number" class="ne-q" value="${val.q}" oninput="calcNETotal('${rid}')"></td>
+        <td><input type="text" class="ne-u" value="${val.u}"></td>
+        <td><input type="text" class="ne-p" value="${val.p}"></td>
+        <td><input type="number" class="ne-pr" value="${val.pr}" oninput="calcNETotal('${rid}')"></td>
+        <td><input type="number" class="ne-t" value="${val.t}" readonly></td>
+        <td><button onclick="this.parentElement.parentElement.remove()" style="color:red">✖</button></td>`;
+    tbody.appendChild(tr);
 }
 
 function calcNETotal(rowId) {
