@@ -605,7 +605,7 @@ async function saveNE() {
     for(let it of items) {
         const pedId = `PED_NE_${id}_${Math.random().toString(36).substr(2, 5)}`;
         await db.ref(`ped/${pedId}`).set({
-            id: pedId, obrId: data.obrId, obrNom: data.obrNom,
+            id: pedId, obrId: data.obrId, obrNom: data.obrNom, neId: id, neNum: num,
             prov: data.prov, mat: it.p, qtd: it.q,
             est: 'Por Solicitar', guia: '', d_crea: data.d_edit, u_crea: user.u
         });
