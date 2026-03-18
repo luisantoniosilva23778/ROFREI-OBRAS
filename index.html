@@ -617,10 +617,15 @@ async function saveNE() {
 
 // --- MOTOR DE RENDERIZADO GENERAL ---
 function renderAll() {
-    renderObras(); renderHoras(); renderObs(); 
-    renderNE(); renderPed(); renderTar(); 
-    renderNotif(); renderUsers();
+    try { renderObras(); } catch(e) { console.error("Erro Obras:", e); }
+    try { renderHoras(); } catch(e) { console.error("Erro Horas:", e); }
+    try { renderObs(); } catch(e) { console.error("Erro Obs:", e); }
+    try { renderNE(); } catch(e) { console.error("Erro NE:", e); }
+    try { renderPed(); } catch(e) { console.error("Erro Ped:", e); }
+    try { renderTasks(); } catch(e) { console.error("Erro Tasks:", e); }
+    try { renderNotif(); } catch(e) { console.error("Erro Notif:", e); }
 }
+
 
 // Ejemplo: Render Obras con Filtro por Celda (Requisito)
 function renderObras() {
