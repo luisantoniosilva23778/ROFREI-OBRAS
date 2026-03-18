@@ -1001,10 +1001,56 @@ function toggleMass(mod) {
     massMode = !massMode;
     document.getElementById(`mod-${mod}`).classList.toggle('mass-mode');
     document.getElementById(`mass-${mod}`).style.display = massMode ? 'block' : 'none';
+}// Función para abrir el modal de subida masiva para los registros seleccionados
+async function openMassUpload(mod) {
+    const selected = Array.from(document.querySelectorAll(`#mod-${mod} .chk-mass:checked`)).map(cb => cb.value);
+    if(selected.length === 0) return alert("Selecione pelo menos um registo.");
+    
+    // Configuramos el ID activo para que sepa que es una subida masiva a varios IDs
+    activeFileId = { mod, isMass: true, ids: selected };
+    document.getElementById('file-list').innerHTML = `<p style="color:var(--acc)"><b>Modo Massivo:</b> Preparado para anexar ficheiros a ${selected.length} registos selecionados.</p>`;
+    document.getElementById('modal-files').style.display = 'block';
 }
-function openMassUpload(mod) { alert("Funcionalidade de anexo massivo em desenvolvimento."); }
-function downloadMassFiles(mod) { alert("Download massivo em desenvolvimento."); }
-function markSelectedRead() { alert("Notificações marcadas como lidas."); }
+
+// Función para descargar todos los archivos de los registros seleccionados en un solo ZIP
+async function downloadMassFiles(mod) {
+    const selected = Array.from(document.querySelectorAll(`#mod-${mod} .chk-mass:checked`)).map(cb => cb.value);
+    if(selected.length === 0) return alert("Selecione pelo menos um registo.");
+    
+    const zip = new JSZip();
+    let hasFiles = false;
+
+    selected.forEach(id => {
+        const item = DB[mod].find(x => x.id === id);
+        if(item && item.files && item.files.length > 0) {
+            hasFiles = true;
+            item.files.forEach(f => {
+                // Extraemos la base64 quitando el prefijo de data URI
+                const base64Data = f.d.split(',')[1];
+                // Creamos una carpeta por cada registro dentro del ZIP para que no se mezclen
+                const folderName = item.num || item.id;
+                zip.file(`${folderName}/${f.n}`, base64Data, {base64: true});
+            });
+        }
+    });
+
+    if(!hasFiles) return alert("Os registos selecionados não possuem ficheiros para descargar.");
+
+    const content = await zip.generateAsync({type:"blob"});
+    saveAs(content, `Documentacao_Massiva_${mod.toUpperCase()}_${Date.now()}.zip`);
+}
+
+// Función para marcar notificaciones seleccionadas como leídas
+async function markSelectedRead() {
+    const selected = Array.from(document.querySelectorAll(`#mod-notif .chk-mass:checked`)).map(cb => cb.value);
+    if(selected.length === 0) return alert("Selecione pelo menos uma notificação.");
+    
+    for(let id of selected) {
+        await db.ref(`notif/${id}/est`).set('Lida');
+    }
+    alert("Notificações atualizadas!");
+}
+
 
 async function deleteRecord(mod, id) {
     if(confirm("Tem a certeza que deseja eliminar este registo permanentemente?")) {
