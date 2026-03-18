@@ -143,9 +143,7 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('horas')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('horas')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <select id="filt-h-obr" onchange="renderHoras()">
-				<option value="">Todas as Obras</option>
-				</select>
+                <select id="filt-h-obr" onchange="renderHoras()"><option value="">Todas as Obras</option></select>
 				<select id="filt-h-mes" onchange="renderHoras()"><option value="">Filtrar Mês...</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
                 <input type="number" id="filt-h-ano" placeholder="Ano" oninput="renderHoras()"> <input type="text" id="filt-h-user" placeholder="Filtrar Utilizador..." oninput="renderHoras()">
                 <select id="filt-h-est" onchange="renderHoras()"><option value="">Todos os Estados</option><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select>
@@ -175,9 +173,7 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('obs')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('obs')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <select id="filt-obs-obr" onchange="renderObs()">
-				<option value="">Todas as Obras</option>
-				</select>
+                <select id="filt-obs-obr" onchange="renderObs()"><option value="">Todas as Obras</option></select>
 				<select id="filt-obs-est" onchange="renderObs()"><option value="">Todos os Estados</option><option>Por Realizar</option><option>Realizada</option><option>Sem Efeito</option></select>
             </div>
             <div id="mass-obs" class="mass-panel">
@@ -213,7 +209,7 @@
                 <button onclick="toggleMass('ne')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('ne')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
                 <input type="text" id="filt-ne-num" placeholder="Nº" oninput="renderNE()">
-				<select id="filt-ne-obr" onchange="renderNE()"><option value="">Obra</option></select>
+				<select id="filt-ne-obr" onchange="renderNE()"><option value="">Todas as Obras</option></select>
 				<input type="text" id="filt-ne-prov" placeholder="Fornecedor" oninput="renderNE()">
 				<select id="filt-ne-est" onchange="renderNE()">
 				<option value="">Estado</option>
@@ -249,7 +245,7 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('ped')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('ped')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <select id="filt-ped-obr" onchange="renderPed()"><option value="">Obra</option></select>
+                <select id="filt-ped-obr" onchange="renderPed()"><option value="">Todas as Obras</option></select>
 				<input type="text" id="filt-ped-prov" placeholder="Fornecedor" oninput="renderPed()">
 				<input type="text" id="filt-ped-ne" placeholder="Nº NE" oninput="renderPed()">
 				<input type="text" id="filt-ped-guia" placeholder="Guia" oninput="renderPed()">
@@ -286,9 +282,7 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('tar')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('tar')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <select id="filt-tar-obr" onchange="renderTar()">
-				<option value="">Todas as Obras</option>
-				</select>
+                <select id="filt-tar-obr" onchange="renderTar()"><option value="">Todas as Obras</option></select>
 				<select id="filt-tar-est" onchange="renderTar()"><option value="">Todos os Estados</option><option>Por Realizar</option><option>Realizada</option></select>
             </div>
             <div id="mass-tar" class="mass-panel">
@@ -561,17 +555,32 @@ async function saveRecord(mod) {
     cancelarEdit(mod);
 }
 
-function generateDiff(old, novo) {
-    if(!old) return "<b>Criação inicial do registo.</b>";
-    let diffs = [];
-    const ignore = ['d_edit', 'u_edit', 'files', 'notas'];
-    for(let k in novo) {
-        if(ignore.includes(k)) continue;
-        if(JSON.stringify(old[k]) !== JSON.stringify(novo[k])) {
-            diffs.push(`Alteração em <b>${k}</b>: <span style="color:red">"${old[k]}"</span> ➔ <span style="color:green">"${novo[k]}"</span>`);
+function generateDiff(oldData, newData) {
+    if(!oldData) return "📦 Registo inicial criado.";
+    let changes = [];
+    
+    // Lista de campos importantes a monitorizar
+    const fields = {
+        'est': 'Estado',
+        'obrNom': 'Obra',
+        'cli': 'Cliente',
+        'forn': 'Fornecedor',
+        'val': 'Valor',
+        'dat': 'Data',
+        'ini': 'Hora Início',
+        'fim': 'Hora Fim',
+        'desc': 'Descrição'
+    };
+
+    for (let key in fields) {
+        if (oldData[key] !== newData[key]) {
+            let oldVal = oldData[key] || "vazio";
+            let newVal = newData[key] || "vazio";
+            changes.push(`[${fields[key]}]: "${oldVal}" ➔ "${newVal}"`);
         }
     }
-    return diffs.length > 0 ? diffs.join("<br>") : null;
+
+    return changes.length > 0 ? changes.join(' | ') : "📝 Editado sem alterações de valores.";
 }
 
 // --- LÓGICA ESPECÍFICA N.E. ---
@@ -670,9 +679,28 @@ async function saveNE() {
     alert("NE Gravada, PDF gerado e Materiais enviados para Pedidos!");
     cancelarEdit('ne');
 }
-
+function populateObraFilter(selectId) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const currentVal = sel.value; 
+    sel.innerHTML = '<option value="">Todas as Obras</option>'; 
+    if (DB.obras) {
+        DB.obras.forEach(o => {
+            sel.innerHTML += `<option value="${o.nom}">${o.nom}</option>`;
+        });
+    }
+    sel.value = currentVal; 
+}
+	
 // --- MOTOR DE RENDERIZADO GENERAL ---
 function renderAll() {
+    if(!user) return;
+    // Llenar filtros antes de renderizar las listas
+    populateObraFilter('filt-h-obr');
+    populateObraFilter('filt-obs-obr');
+    populateObraFilter('filt-ne-obr');
+    populateObraFilter('filt-ped-obr');
+    populateObraFilter('filt-tar-obr');
     try { renderObras(); } catch(e) { console.error("Erro Obras:", e); }
     try { renderHoras(); } catch(e) { console.error("Erro Horas:", e); }
     try { renderObs(); } catch(e) { console.error("Erro Obs:", e); }
@@ -1027,49 +1055,40 @@ async function deleteFile(index) {
     refreshFileList();
 }
 
-async function handleFileUpload(e) {
+function handleFileUpload(e) {
     const files = e.target.files;
     if(!files || files.length === 0) return;
 
-    document.getElementById('upload-progress').style.display = 'block';
-
-    let total = files.length;
-    let done = 0;
-
     for(let f of files) {
         const reader = new FileReader();
-
-        reader.onload = async (ev) => {
-            // Aquí usamos comillas invertidas para el nombre del archivo
-            const fileData = { n: `${Date.now()}_${f.name}`, d: ev.target.result, t: f.type };
+        reader.onload = async (e) => {
+            // Creamos un nombre único usando tiempo + número aleatorio para evitar bloqueos
+            const uniqueId = Date.now() + "_" + Math.floor(Math.random() * 1000);
+            const fileData = { 
+                n: `${uniqueId}_${f.name}`, 
+                d: e.target.result, 
+                t: f.type 
+            };
             
             if(activeFileId.isMass) {
                 for(let id of activeFileId.ids) {
                     const item = DB[activeFileId.mod].find(x => x.id === id);
-                    let currentFiles = item.files || [];
-                    currentFiles.push(fileData);
-                    await db.ref(`${activeFileId.mod}/${id}/files`).set(currentFiles);
+                    if(item) {
+                        let currentFiles = item.files || [];
+                        currentFiles.push(fileData);
+                        await db.ref(`${activeFileId.mod}/${id}/files`).set(currentFiles);
+                    }
                 }
-                alert("Ficheiro anexado a todos los registos selecionados.");
             } else {
                 const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
-                let currentFiles = item.files || [];
-                currentFiles.push(fileData);
-                await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(currentFiles);
+                if(item) {
+                    let currentFiles = item.files || [];
+                    currentFiles.push(fileData);
+                    await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(currentFiles);
+                }
             }
-            done++;
-			let percent = Math.round((done / total) * 100);
-			document.getElementById('upload-bar').style.width = percent + "%";
-			document.getElementById('upload-text').innerText = `Subindo ${done}/${total} ficheiros`;
-
-			if(done === total){
-   				document.getElementById('upload-text').innerText = "Upload completo";
-    			setTimeout(()=> {
-       				document.getElementById('upload-progress').style.display = 'none';
-   				}, 1500);
-			}
-
-			renderAll();
+            alert("Ficheiro anexado com sucesso!");
+            renderAll();
         };
         reader.readAsDataURL(f);
     }
