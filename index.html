@@ -803,7 +803,7 @@ function renderPed() {
     	(!fObr || p.obrNom === fObr) &&
     	(!fProv || (p.prov || '').toLowerCase().includes(fProv)) &&
     	(!fNE || (p.neNum || '').includes(fNE)) &&
-    	(!fGuia || (p.guia || '').includes(fGuia)) && (!fEst || p.est === fEst);
+    	(!fGuia || (p.guia || '').includes(fGuia)) && (!fEst || p.est === fEst));
 
     data.reverse().forEach(p => {
         list.innerHTML += `
@@ -857,7 +857,7 @@ function renderTar() {
     const fEst = document.getElementById('filt-tar-est') ? document.getElementById('filt-tar-est').value : '';
     const fObr = document.getElementById('filt-tar-obr')?.value || '';
 	let data = DB.tar.filter(t =>
-    	(!fObr || t.obrNom === fObr) && (!fEst || t.est === fEst);
+    	(!fObr || t.obrNom === fObr) && (!fEst || t.est === fEst));
 
     data.forEach(t => {
         list.innerHTML += `
@@ -880,7 +880,7 @@ function renderObs() {
     const fEst = document.getElementById('filt-obs-est') ? document.getElementById('filt-obs-est').value : '';
     const fObr = document.getElementById('filt-obs-obr')?.value || '';
 	let data = DB.obs.filter(o =>
-    	(!fObr || o.obrNom === fObr) && (!fEst || o.est === fEst);
+    	(!fObr || o.obrNom === fObr) && (!fEst || o.est === fEst));
 
     data.forEach(o => {
         list.innerHTML += `
