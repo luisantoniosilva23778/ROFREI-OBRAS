@@ -447,10 +447,9 @@ function sync() {
         DB.ped = val.ped ? Object.values(val.ped) : [];
         DB.tar = val.tar ? Object.values(val.tar) : [];
         DB.obs = val.obs ? Object.values(val.obs) : [];
-		DB.users = val.users ? Object.values(val.users) : []; // Esta línea es vital
-	// 👇 CREAR ADMIN AUTOMÁTICO SI NO EXISTE
-		DB.notif = val.notif ? Object.values(val.notif) : []; 
-	if(DB.users.length === 0) {
+		DB.users = val.users ? Object.values(val.users) : [];
+        DB.notif = val.notif ? Object.values(val.notif) : []; 
+        if(DB.users.length === 0) {
     		const adminId = 'ADMIN_DEFAULT';
     		db.ref(`users/${adminId}`).set({
         		id: adminId,
@@ -459,7 +458,7 @@ function sync() {
         		role: 'Administrador',
         		st: 'Ativo'
     		});
-	}
+		}
         DB.hist = val.hist || {};
         updateSelects();
         if(user) renderAll();
@@ -990,8 +989,8 @@ async function createNotif(mod, msg) {
 // --- FIN DEL CÓDIGO A PEGAR PARA EL PASO 4 ---
 function getCardButtons(mod, item) {
     // Bloqueo de edición de horas si ya están aprobadas y no es admin
-    const isLockedHour =
-	const isLockedPed = (mod === 'ped' && item.locked); (mod === 'horas' && item.est === 'Aprobada' && user.role !== 'Administrador');
+    const isLockedHour = (mod === 'horas' && item.est === 'Aprobada' && user.role !== 'Administrador');
+    const isLockedPed = (mod === 'ped' && item.locked);
     
     return `
         <div class="actions">
@@ -1042,7 +1041,7 @@ async function handleFileUpload(e) {
 
         reader.onload = async (ev) => {
             // Aquí usamos comillas invertidas para el nombre del archivo
-            const fileData = { n: `${Date.now()}_${f.name}`, d: e.target.result, t: f.type };
+            const fileData = { n: `${Date.now()}_${f.name}`, d: ev.target.result, t: f.type };
             
             if(activeFileId.isMass) {
                 for(let id of activeFileId.ids) {
