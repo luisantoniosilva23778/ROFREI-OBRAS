@@ -233,6 +233,7 @@
                     <div><label>Obra (Apenas Em Execução)</label><select id="ped-obr"></select></div>
                     <div><label>Fornecedor (Opcional)</label><input type="text" id="ped-prov"></div>
                     <div><label>Material</label><input type="text" id="ped-mat"></div>
+					<div><label>Nº Nota Encomenda (Opcional)</label><input type="text" id="ped-ne"></div>
                     <div><label>Quantidade</label><input type="number" id="ped-qtd"></div>
                     <div><label>Estado</label><select id="ped-est"><option>Por Solicitar</option><option>Enviado ao Fornecedor</option><option>Entregue pelo Fornecedor</option><option>Sem Efeito</option></select></div>
                     <div><label>Nº Guia (Obrigatório se Entregue)</label><input type="text" id="ped-guia"></div>
@@ -522,6 +523,7 @@ async function saveRecord(mod) {
         data.qtd = document.getElementById('ped-qtd').value;
         data.est = document.getElementById('ped-est').value;
         data.guia = document.getElementById('ped-guia').value;
+		data.neNum = document.getElementById('ped-ne').value || '';
         // Validación: Guía obligatoria si está entregado
         if(data.est === 'Entregue pelo Fornecedor' && !data.guia) {
             alert("O número da guia é obrigatório para o estado 'Entregue'.");
@@ -645,8 +647,22 @@ async function saveNE() {
     doc.autoTable({ head: [['Qtd','Un','Produto','Preço','Total']], body: tableData, startY: 40 });
     const pdfBase64 = doc.output('datauristring');
     
-    const v = old && old.files ? old.files.filter(f => f.n.includes('.pdf')).length + 1 : 1;
-    const pdfFile = { n: `NE${num}_V${v}_${Date.now()}.pdf`, d: pdfBase64 };
+    let version = 1;
+
+	if(old && old.files){
+    	const pdfs = old.files.filter(f => f.n.includes('.pdf'));
+    	if(pdfs.length > 0){
+        	const last = pdfs[pdfs.length - 1].n;
+        	const match = last.match(/V(\d+)/);
+        	if(match){
+            	version = parseInt(match[1]) + 1;
+        	}
+    	}	
+	}
+    const pdfFile = { 
+    	n: `NE${num}.V${version}.pdf`, 
+    	d: pdfBase64 
+	};
 
     data.files = old && old.files ? [...old.files] : [];
     data.files.push(pdfFile);
@@ -654,7 +670,13 @@ async function saveNE() {
     // Guardar Historial
     const log = generateDiff(old, data);
     await db.ref(`ne/${id}`).set(data);
-    if(log) await db.ref(`hist/${id}`).push({ u: user.u || user.n, ts: data.d_edit, log });
+    if(log) await db.ref(`hist/${id}`).push({ 
+    u: user.u || user.n, 
+    ts: data.d_edit, 
+    log,
+    before: old || {},
+    after: data
+	});
 
     // Sincronizar Pedidos
     for(let it of items) {
@@ -752,7 +774,7 @@ function renderHoras() {
         const d = hDat.split('-');
 
         if((!fMes || d[1]===fMes)
-		&& (!fObr || h.obrId === fObr) && (!fAno || d[0]===fAno) && (!fEst || h.est===fEst) && (!fUsr || hUser.toLowerCase().includes(fUsr))) {
+		&& (!fObr || h.obrNom === fObr) && (!fAno || d[0]===fAno) && (!fEst || h.est===fEst) && (!fUsr || hUser.toLowerCase().includes(fUsr))) {
             const key = `${hDat}_${hUser}`;
             if(!grouped[key]) grouped[key] = { dat: hDat, u: hUser, items: [], tot: 0 };
             const diff = (new Date(`1970-01-01T${h.fim}`) - new Date(`1970-01-01T${h.ini}`))/3600000;
@@ -778,10 +800,10 @@ function renderPed() {
 	const fGuia = document.getElementById('filt-ped-guia')?.value || '';
 
 	let data = DB.ped.filter(p =>
-    	(!fObr || p.obrId === fObr) &&
+    	(!fObr || p.obrNom === fObr) &&
     	(!fProv || (p.prov || '').toLowerCase().includes(fProv)) &&
     	(!fNE || (p.neNum || '').includes(fNE)) &&
-    	(!fGuia || (p.guia || '').includes(fGuia)) && fEst === '' || p.est === fEst);
+    	(!fGuia || (p.guia || '').includes(fGuia)) && (!fEst || p.est === fEst);
 
     data.reverse().forEach(p => {
         list.innerHTML += `
@@ -792,6 +814,7 @@ function renderPed() {
                     <div><b>Material:</b> ${p.mat}</div>
                     <div><b>Qtd:</b> ${p.qtd}</div>
                     <div><b>Fornecedor:</b> ${p.prov || '---'}</div>
+					<div><b>Nº NE:</b> ${p.neNum || '---'}</div>
                     <div><b>Guia:</b> ${p.guia || 'Pendente'}</div>
                     <div><b>Estado:</b> ${p.est}</div>
                 </div>
@@ -808,7 +831,7 @@ function renderNE() {
 	const fEst = document.getElementById('filt-ne-est')?.value || '';
 
 	let data = DB.ne.filter(n =>
-    	(!fObr || n.obrId === fObr) &&
+    	(!fObr || n.obrNom === fObr) &&
     	(!fProv || (n.prov || '').toLowerCase().includes(fProv)) &&
     	(!fEst || n.est === fEst) && n.num && n.num.toLowerCase().includes(fNum));
 
@@ -834,7 +857,7 @@ function renderTar() {
     const fEst = document.getElementById('filt-tar-est') ? document.getElementById('filt-tar-est').value : '';
     const fObr = document.getElementById('filt-tar-obr')?.value || '';
 	let data = DB.tar.filter(t =>
-    	(!fObr || t.obrId === fObr) && fEst === '' || t.est === fEst);
+    	(!fObr || t.obrNom === fObr) && (!fEst || t.est === fEst);
 
     data.forEach(t => {
         list.innerHTML += `
@@ -857,7 +880,7 @@ function renderObs() {
     const fEst = document.getElementById('filt-obs-est') ? document.getElementById('filt-obs-est').value : '';
     const fObr = document.getElementById('filt-obs-obr')?.value || '';
 	let data = DB.obs.filter(o =>
-    	(!fObr || o.obrId === fObr) && fEst === '' || o.est === fEst);
+    	(!fObr || o.obrNom === fObr) && (!fEst || o.est === fEst);
 
     data.forEach(o => {
         list.innerHTML += `
@@ -926,6 +949,12 @@ function prepEdit(mod, id) {
     if(document.getElementById(`${pre}-cancel`)) {
         document.getElementById(`${pre}-cancel`).style.display = 'block';
     }
+	if(item.neId){
+    document.getElementById('ped-obr').disabled = true;
+    document.getElementById('ped-prov').disabled = true;
+    document.getElementById('ped-mat').disabled = true;
+    document.getElementById('ped-qtd').disabled = true;
+	}
 
     if(mod === 'obras') {
         document.getElementById('o-num').value = item.num;
@@ -1011,10 +1040,12 @@ function getCardButtons(mod, item) {
     // Bloqueo de edición de horas si ya están aprobadas y no es admin
     const isLockedHour = (mod === 'horas' && item.est === 'Aprobada' && user.role !== 'Administrador');
     const isLockedPed = (mod === 'ped' && item.locked);
+	const isFromNE = (mod === 'ped' && item.neId);
+	const isBlocked = isFromNE && item.est === 'Sem Efeito';
     
     return `
         <div class="actions">
-            ${!isLockedHour && !isLockedPed ? `<button class="b-edit" onclick="prepEdit('${mod}','${item.id}')">✏️ Editar</button>` : ''}
+            ${(!isLockedHour && !isLockedPed && !isBlocked) ? `<button class="b-edit" onclick="prepEdit('${mod}','${item.id}')">✏️ Editar</button>` : ''}
             <button class="b-note" onclick="openNota('${mod}','${item.id}')">📝 Notas</button>
             <button class="b-hist" onclick="openHist('${item.id}')">📜 Historial</button>
             <button class="b-file" onclick="openFiles('${mod}','${item.id}')">📁 Anexos (${item.files ? item.files.length : 0})</button>
