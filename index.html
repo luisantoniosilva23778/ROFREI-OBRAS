@@ -1113,6 +1113,13 @@ window.onload = () => {
 
     // updateSelects() eliminado de aquí para evitar reseteo de selección
 };
+function generateDiff(oldData, newData) {
+    if(!oldData) return "Registo inicial criado.";
+    let changes = [];
+    if(oldData.est !== newData.est) changes.push(`Estado: ${oldData.est} -> ${newData.est}`);
+    if(oldData.obrNom !== newData.obrNom) changes.push(`Obra alterada`);
+    return changes.length > 0 ? changes.join(' | ') : "Editado sem alterações críticas.";
+}
 </script>
 </body>
 </html>
