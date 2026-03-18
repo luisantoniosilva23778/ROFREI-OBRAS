@@ -363,8 +363,17 @@ let massMode = false;
 
 // --- LOGIN Y SEGURIDAD ---
 async function doLogin() {
-    const u = document.getElementById('user').value;
-    const p = document.getElementById('pass').value;
+    // Corregimos los IDs para que coincidan con el HTML (user-input y pass-input)
+    const uEl = document.getElementById('user-input');
+    const pEl = document.getElementById('pass-input');
+
+    if (!uEl || !pEl) {
+        console.error("Error: No se encontraron los campos de login en el HTML.");
+        return;
+    }
+
+    const u = uEl.value;
+    const p = pEl.value;
 
     // Login Admin
     if(u === 'admin' && p === '23778478') {
@@ -377,9 +386,11 @@ async function doLogin() {
     if(user) {
         document.getElementById('login-sec').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        document.getElementById('user-info').innerText = `👤 ${user.n} (${user.r})`;
         
-        // Cambiamos initNav() por showMod para que no de error
+        // Actualizamos el nombre del usuario arriba
+        const userInfo = document.getElementById('user-info');
+        if(userInfo) userInfo.innerText = `👤 ${user.n} (${user.r})`;
+        
         showMod('obras'); 
         renderAll();
     } else {
