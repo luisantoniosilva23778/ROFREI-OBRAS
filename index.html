@@ -206,7 +206,7 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('ne')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('ne')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <input type="text" placeholder="Filtro Nº..." id="filt-ne-num" oninput="renderNE()">
+                <input type="text" id="filt-ne-num" ...> <input type="text" id="filt-ne-all" placeholder="Pesquisa geral..." oninput="renderNE()">
             </div>
             <div id="mass-ne" class="mass-panel">
                 <button onclick="openMassUpload('ne')" class="actions b-file">📁 Anexar aos Selecionados</button>
