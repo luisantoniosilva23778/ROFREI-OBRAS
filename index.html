@@ -364,8 +364,8 @@ let massMode = false;
 // --- LOGIN Y SEGURIDAD ---
 async function doLogin() {
     // Corregimos los IDs para que coincidan con el HTML (user-input y pass-input)
-    const uEl = document.getElementById('user-input');
-    const pEl = document.getElementById('pass-input');
+    const uEl = document.getElementById('log-u');
+	const pEl = document.getElementById('log-p');
 
     if (!uEl || !pEl) {
         console.error("Error: No se encontraron los campos de login en el HTML.");
@@ -377,7 +377,11 @@ async function doLogin() {
 
     // Login Admin
     if(u === 'admin' && p === '23778478') {
-        user = { n: 'Administrador', r: 'admin' };
+        user = { 
+    		u: 'admin',
+    		n: 'Administrador', 
+    		role: 'Administrador' 
+		};
     } else {
         const found = DB.users.find(x => x.u === u && x.p === p);
         if(found) user = found;
