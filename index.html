@@ -206,7 +206,7 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('ne')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('ne')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <input type="text" id="filt-ne-num" ...> <input type="text" id="filt-ne-all" placeholder="Pesquisa geral..." oninput="renderNE()">
+                <input type="text" id="filt-ne-num" placeholder="Filtrar Nº..." oninput="renderNE()"> <input type="text" id="filt-ne-all" placeholder="Pesquisa geral..." oninput="renderNE()">
             </div>
             <div id="mass-ne" class="mass-panel">
                 <button onclick="openMassUpload('ne')" class="actions b-file">📁 Anexar aos Selecionados</button>
@@ -328,7 +328,7 @@
         <p style="font-size:11px; color:var(--s);">Pode selecionar vários ficheiros em simultâneo. Tamanho máx recomendado: 2MB por ficheiro.</p>
         
         <div style="background:#f8fafc; padding:15px; border:1px dashed #cbd5e1; text-align:center; border-radius:4px;">
-            <input type="file" id="file-input" multiple onchange="handleFileUpload()" style="display:none;">
+            <input type="file" id="file-input" multiple onchange="handleFileUpload(event)" style="display:none;">
             <button onclick="document.getElementById('file-input').click()" style="background:var(--acc); color:white; border:none; padding:10px 20px; border-radius:4px; font-weight:bold; cursor:pointer;">➕ Adicionar Ficheiros / Fotos</button>
         </div>
         
@@ -393,7 +393,7 @@ async function doLogin() {
         
         // Actualizamos el nombre del usuario arriba
         const userInfo = document.getElementById('user-info');
-        if(userInfo) userInfo.innerText = `👤 ${user.n} (${user.r})`;
+		if(userInfo) userInfo.innerText = `👤 ${user.n} (${user.role})`;
         
         showMod('obras'); 
         renderAll();
@@ -605,16 +605,15 @@ async function saveNE() {
     
     // Convertir PDF a Base64 para guardarlo como adjunto automático
     const pdfBase64 = doc.output('datauristring');
-    const v = old && old.files ? old.files.filter(f => f.n.includes('.pdf')).length + 1 : 1;
-	const pdfFile = { n: `NE${num}.RE.V${v}.pdf`, d: pdfBase64 };
-	if(!data.files) data.files = [];
-	data.files.push(pdfFile);
-
-    // Recuperar archivos anteriores si existen
     const old = DB.ne.find(x => x.id === id);
-    data.files = old ? [...(old.files || []), pdfFile] : [pdfFile];
-    data.d_crea = old ? old.d_crea : data.d_edit;
-    data.u_crea = old ? old.u_crea : user.u;
+	const v = old && old.files ? old.files.filter(f => f.n.includes('.pdf')).length + 1 : 1;
+	const pdfFile = { n: `NE${num}.RE.V${v}.pdf`, d: pdfBase64 };
+
+	if(!data.files) data.files = [];
+
+	data.files = old ? [...(old.files || []), pdfFile] : [pdfFile];
+	data.d_crea = old ? old.d_crea : data.d_edit;
+	data.u_crea = old ? old.u_crea : user.u;
 
     // 2. Guardar en DB
     await db.ref(`ne/${id}`).set(data);
@@ -640,8 +639,9 @@ function renderAll() {
     try { renderObs(); } catch(e) { console.error("Erro Obs:", e); }
     try { renderNE(); } catch(e) { console.error("Erro NE:", e); }
     try { renderPed(); } catch(e) { console.error("Erro Ped:", e); }
-    try { renderTasks(); } catch(e) { console.error("Erro Tasks:", e); }
+    try { renderTar(); } catch(e) { console.error("Erro Tasks:", e); }
     try { renderNotif(); } catch(e) { console.error("Erro Notif:", e); }
+	try { renderUsers(); } catch(e) { console.error("Erro Users:", e); }
 }
 
 
@@ -879,7 +879,11 @@ function prepEdit(mod, id) {
         document.getElementById('tar-obr').value = item.obrId;
         document.getElementById('tar-est').value = item.est;
         // Si usas multiselect para usuarios:
-        if(item.assigned) $('#tar-users').val(item.assigned).trigger('change');
+        if(item.assigned){
+    		Array.from(document.getElementById('tar-users').options).forEach(opt=>{
+        		opt.selected = item.assigned.includes(opt.value);
+   			 });
+		}
     } else if(mod === 'obs') {
         document.getElementById('obs-txt').value = item.txt;
         document.getElementById('obs-obr').value = item.obrId;
@@ -888,8 +892,8 @@ function prepEdit(mod, id) {
     } else if(mod === 'users') {
         document.getElementById('u-nom').value = item.u;
         document.getElementById('u-pwd').value = item.p;
-        document.getElementById('u-role').value = item.role;
-        document.getElementById('u-st').value = item.st;
+        document.getElementById('u-rol').value = item.role;
+		document.getElementById('u-est').value = item.st;
     }
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
@@ -1118,15 +1122,6 @@ function openHist(id) {
 }
 
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-function generateDiff(oldData, newData) {
-    if(!oldData) return "Registo inicial criado.";
-    let changes = [];
-    if(oldData.est !== newData.est) changes.push(`Estado: ${oldData.est} -> ${newData.est}`);
-    if(oldData.obrNom !== newData.obrNom) changes.push(`Obra alterada`);
-    if(oldData.cli !== newData.cli) changes.push(`Cliente alterado`);
-    return changes.length > 0 ? changes.join(' | ') : "Editado sem alterações críticas.";
-}	
 	
 function logout() {
     if(confirm("Deseja realmente sair do sistema?")) {
