@@ -1088,9 +1088,7 @@ function logout() {
 window.onload = () => {
     sync();
 
-    document.addEventListener('click', () => { 
-        if(user) updateSelects(); 
-    });
+    // updateSelects() eliminado de aquí para evitar reseteo de selección
 };
 </script>
 </body>
