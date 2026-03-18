@@ -983,7 +983,7 @@ function updateSelects() {
 function autoNumNE() {
     if(!editingId) {
         const last = DB.ne.length > 0 ? Math.max(...DB.ne.map(n => parseInt(n.num) || 0)) : 0;
-        document.getElementById('ne-num').value = last + 1;
+        document.getElementById('ne-num').value = String(last + 1).padStart(3, '0');
     }
 }
 
