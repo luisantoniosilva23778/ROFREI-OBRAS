@@ -608,76 +608,94 @@ function calcNETotal(rowId) {
 }
 
 async function saveNE() {
-    const id = editingId || `NE_${Date.now()}`;
+    // 1. Definición de IDs y búsqueda de datos antiguos para el historial
+    const id = activeEditId || `NE_${Date.now()}`;
     const num = document.getElementById('ne-num').value;
     const obrSel = document.getElementById('ne-obr');
-    const oldPeds = DB.ped.filter(p => p.neId === id);
+    const old = DB.ne.find(x => x.id === id);
 
-	for(let op of oldPeds) {
-    	await db.ref(`ped/${op.id}/est`).set('Sem Efeito');
-    	await db.ref(`ped/${op.id}/locked`).set(true);
-	}
-	
-    // Captura de materiales de la tabla
+    // 2. Lógica de Pedidos Antiguos (Para no duplicar al editar)
+    const oldPeds = DB.ped.filter(p => p.neId === id);
+    for(let op of oldPeds) {
+        await db.ref(`ped/${op.id}/est`).set('Sem Efeito');
+        await db.ref(`ped/${op.id}/locked`).set(true);
+    }
+    
+    // 3. Captura de materiales de la tabla
     let items = [];
     document.querySelectorAll('#ne-body tr').forEach(tr => {
-        items.push({
-            q: tr.querySelector('.ne-q').value,
-            u: tr.querySelector('.ne-u').value,
-            p: tr.querySelector('.ne-p').value,
-            pr: tr.querySelector('.ne-pr').value,
-            t: tr.querySelector('.ne-t').value
-        });
+        const q = tr.querySelector('.ne-q').value;
+        const p = tr.querySelector('.ne-p').value;
+        if(q && p) { // Solo si tienen cantidad y producto
+            items.push({
+                q: q,
+                u: tr.querySelector('.ne-u').value,
+                p: p,
+                pr: tr.querySelector('.ne-pr').value,
+                t: tr.querySelector('.ne-t').value
+            });
+        }
     });
 
+    // 4. Construcción del objeto de datos
     const data = {
-        id, num, 
+        id: id, 
+        num: num, 
         obrId: obrSel.value, 
         obrNom: obrSel.options[obrSel.selectedIndex].text,
         prov: document.getElementById('ne-prov').value,
         est: document.getElementById('ne-est').value,
-        items,
-        u_edit: user.u, d_edit: new Date().toLocaleString()
+        items: items,
+        u_edit: user.n, 
+        d_edit: new Date().toLocaleString(),
+        d_crea: old ? old.d_crea : new Date().toLocaleString(),
+        u_crea: old ? old.u_crea : user.n
     };
 
-    // 1. Generar PDF (jsPDF)
+    // 5. Generación de PDF Automático
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.text(`Nota de Encomenda: ${num}`, 10, 10);
     doc.text(`Fornecedor: ${data.prov}`, 10, 20);
     doc.text(`Obra: ${data.obrNom}`, 10, 30);
-    
     const tableData = items.map(i => [i.q, i.u, i.p, i.pr, i.t]);
     doc.autoTable({ head: [['Qtd','Un','Produto','Preço','Total']], body: tableData, startY: 40 });
     
-    // Convertir PDF a Base64 para guardarlo como adjunto automático
     const pdfBase64 = doc.output('datauristring');
-    const old = DB.ne.find(x => x.id === id);
-	const v = old && old.files ? old.files.filter(f => f.n.includes('.pdf')).length + 1 : 1;
-	const pdfFile = { n: `NE${num}.RE.V${v}.pdf`, d: pdfBase64 };
+    const v = old && old.files ? old.files.filter(f => f.n.includes('.pdf')).length + 1 : 1;
+    
+    // Nombre de archivo con ID único para evitar bloqueos (Punto 4.2)
+    const pdfFile = { n: `NE${num}_V${v}_${Date.now()}.pdf`, d: pdfBase64 };
 
-	if(!data.files) data.files = [];
+    // Recuperar archivos existentes y añadir el nuevo PDF
+    data.files = old && old.files ? [...old.files] : [];
+    data.files.push(pdfFile);
 
-	data.files = old ? [...(old.files || []), pdfFile] : [pdfFile];
-	data.d_crea = old ? old.d_crea : data.d_edit;
-	data.u_crea = old ? old.u_crea : user.u;
+    // 6. GUARDAR HISTORIAL DETALLADO (Punto 4.3)
+    const log = {
+        ts: new Date().toLocaleString(),
+        u: user.n,
+        log: generateDiff(old, data) 
+    };
 
-    // 2. Guardar en DB
+    // 7. Guardar en Firebase
     await db.ref(`ne/${id}`).set(data);
+    await db.ref(`hist/${id}`).push(log);
 
-    // 3. Sincronización automática con PEDIDOS (Requisito)
+    // 8. Sincronización con PEDIDOS
     for(let it of items) {
         const pedId = `PED_NE_${id}_${Math.random().toString(36).substr(2, 5)}`;
         await db.ref(`ped/${pedId}`).set({
-    		locked: true,
+            locked: true,
             id: pedId, obrId: data.obrId, obrNom: data.obrNom, neId: id, neNum: num,
             prov: data.prov, mat: it.p, qtd: it.q,
-            est: 'Enviado ao Fornecedor', guia: '', d_crea: data.d_edit, u_crea: user.u
+            est: 'Enviado ao Fornecedor', guia: '', d_crea: data.d_edit, u_crea: user.n
         });
     }
 
-    alert("NE Gravada, PDF gerado e Materiais enviados para Pedidos!");
-    cancelarEdit('ne');
+    alert("NE Gravada com Histórico e Materiais Sincronizados!");
+    closeModal('modal-ne');
+    renderAll();
 }
 function populateObraFilter(selectId) {
     const sel = document.getElementById(selectId);
