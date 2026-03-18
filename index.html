@@ -552,7 +552,9 @@ async function saveNE() {
     const id = editingId || `NE_${Date.now()}`;
     const num = document.getElementById('ne-num').value;
     const obrSel = document.getElementById('ne-obr');
-    
+    const oldPeds = DB.ped.filter(p => p.neId === id);
+    for(let op of oldPeds) { await db.ref(`ped/${op.id}/est`).set('Sem Efeito'); }
+	
     // Captura de materiales de la tabla
     let items = [];
     document.querySelectorAll('#ne-body tr').forEach(tr => {
