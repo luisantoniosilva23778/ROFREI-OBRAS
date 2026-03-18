@@ -556,31 +556,22 @@ async function saveRecord(mod) {
 }
 
 function generateDiff(oldData, newData) {
-    if(!oldData) return "📦 Registo inicial criado.";
-    let changes = [];
+    if(!oldData) return "<b>Criação inicial do registo.</b>";
+    let diffs = [];
+    // Ignoramos campos técnicos para que no saturen el historial
+    const ignore = ['d_edit', 'u_edit', 'files', 'notas', 'd_crea', 'u_crea', 'id', 'items'];
     
-    // Lista de campos importantes a monitorizar
-    const fields = {
-        'est': 'Estado',
-        'obrNom': 'Obra',
-        'cli': 'Cliente',
-        'forn': 'Fornecedor',
-        'val': 'Valor',
-        'dat': 'Data',
-        'ini': 'Hora Início',
-        'fim': 'Hora Fim',
-        'desc': 'Descrição'
-    };
-
-    for (let key in fields) {
-        if (oldData[key] !== newData[key]) {
-            let oldVal = oldData[key] || "vazio";
-            let newVal = newData[key] || "vazio";
-            changes.push(`[${fields[key]}]: "${oldVal}" ➔ "${newVal}"`);
+    for(let k in newData) {
+        if(ignore.includes(k)) continue;
+        
+        let oldVal = oldData[k] || "Vazio";
+        let newVal = newData[k] || "Vazio";
+        
+        if(JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+            diffs.push(`Alteração em <b>${k}</b>: <span style="color:red">"${oldVal}"</span> ➔ <span style="color:green">"${newVal}"</span>`);
         }
     }
-
-    return changes.length > 0 ? changes.join(' | ') : "📝 Editado sem alterações de valores.";
+    return diffs.length > 0 ? diffs.join("<br>") : null;
 }
 
 // --- LÓGICA ESPECÍFICA N.E. ---
@@ -608,94 +599,75 @@ function calcNETotal(rowId) {
 }
 
 async function saveNE() {
-    // 1. Definición de IDs y búsqueda de datos antiguos para el historial
-    const id = activeEditId || `NE_${Date.now()}`;
+    // Usamos TU variable original: editingId
+    const id = editingId || `NE_${Date.now()}`;
     const num = document.getElementById('ne-num').value;
     const obrSel = document.getElementById('ne-obr');
     const old = DB.ne.find(x => x.id === id);
 
-    // 2. Lógica de Pedidos Antiguos (Para no duplicar al editar)
+    // Desactivar pedidos anteriores para no duplicar
     const oldPeds = DB.ped.filter(p => p.neId === id);
     for(let op of oldPeds) {
         await db.ref(`ped/${op.id}/est`).set('Sem Efeito');
-        await db.ref(`ped/${op.id}/locked`).set(true);
     }
     
-    // 3. Captura de materiales de la tabla
+    // Captura de materiales
     let items = [];
     document.querySelectorAll('#ne-body tr').forEach(tr => {
         const q = tr.querySelector('.ne-q').value;
         const p = tr.querySelector('.ne-p').value;
-        if(q && p) { // Solo si tienen cantidad y producto
+        if(q && p) {
             items.push({
-                q: q,
-                u: tr.querySelector('.ne-u').value,
-                p: p,
-                pr: tr.querySelector('.ne-pr').value,
+                q: q, u: tr.querySelector('.ne-u').value,
+                p: p, pr: tr.querySelector('.ne-pr').value,
                 t: tr.querySelector('.ne-t').value
             });
         }
     });
 
-    // 4. Construcción del objeto de datos
     const data = {
-        id: id, 
-        num: num, 
+        id, num, 
         obrId: obrSel.value, 
         obrNom: obrSel.options[obrSel.selectedIndex].text,
         prov: document.getElementById('ne-prov').value,
         est: document.getElementById('ne-est').value,
-        items: items,
-        u_edit: user.n, 
-        d_edit: new Date().toLocaleString(),
+        items,
+        u_edit: user.u || user.n, d_edit: new Date().toLocaleString(),
         d_crea: old ? old.d_crea : new Date().toLocaleString(),
-        u_crea: old ? old.u_crea : user.n
+        u_crea: old ? old.u_crea : (user.u || user.n)
     };
 
-    // 5. Generación de PDF Automático
+    // Generar PDF Automático
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.text(`Nota de Encomenda: ${num}`, 10, 10);
-    doc.text(`Fornecedor: ${data.prov}`, 10, 20);
-    doc.text(`Obra: ${data.obrNom}`, 10, 30);
     const tableData = items.map(i => [i.q, i.u, i.p, i.pr, i.t]);
     doc.autoTable({ head: [['Qtd','Un','Produto','Preço','Total']], body: tableData, startY: 40 });
-    
     const pdfBase64 = doc.output('datauristring');
-    const v = old && old.files ? old.files.filter(f => f.n.includes('.pdf')).length + 1 : 1;
     
-    // Nombre de archivo con ID único para evitar bloqueos (Punto 4.2)
+    const v = old && old.files ? old.files.filter(f => f.n.includes('.pdf')).length + 1 : 1;
     const pdfFile = { n: `NE${num}_V${v}_${Date.now()}.pdf`, d: pdfBase64 };
 
-    // Recuperar archivos existentes y añadir el nuevo PDF
     data.files = old && old.files ? [...old.files] : [];
     data.files.push(pdfFile);
 
-    // 6. GUARDAR HISTORIAL DETALLADO (Punto 4.3)
-    const log = {
-        ts: new Date().toLocaleString(),
-        u: user.n,
-        log: generateDiff(old, data) 
-    };
-
-    // 7. Guardar en Firebase
+    // Guardar Historial
+    const log = generateDiff(old, data);
     await db.ref(`ne/${id}`).set(data);
-    await db.ref(`hist/${id}`).push(log);
+    if(log) await db.ref(`hist/${id}`).push({ u: user.u || user.n, ts: data.d_edit, log });
 
-    // 8. Sincronización con PEDIDOS
+    // Sincronizar Pedidos
     for(let it of items) {
         const pedId = `PED_NE_${id}_${Math.random().toString(36).substr(2, 5)}`;
         await db.ref(`ped/${pedId}`).set({
-            locked: true,
             id: pedId, obrId: data.obrId, obrNom: data.obrNom, neId: id, neNum: num,
-            prov: data.prov, mat: it.p, qtd: it.q,
-            est: 'Enviado ao Fornecedor', guia: '', d_crea: data.d_edit, u_crea: user.n
+            prov: data.prov, mat: it.p, qtd: it.q, est: 'Enviado ao Fornecedor', 
+            d_crea: data.d_edit, u_crea: user.u || user.n
         });
     }
 
-    alert("NE Gravada com Histórico e Materiais Sincronizados!");
-    closeModal('modal-ne');
-    renderAll();
+    alert("Nota de Encomenda guardada com sucesso!");
+    cancelarEdit('ne');
 }
 function populateObraFilter(selectId) {
     const sel = document.getElementById(selectId);
@@ -704,7 +676,9 @@ function populateObraFilter(selectId) {
     sel.innerHTML = '<option value="">Todas as Obras</option>'; 
     if (DB.obras) {
         DB.obras.forEach(o => {
-            sel.innerHTML += `<option value="${o.nom}">${o.nom}</option>`;
+            // Se debe usar exactamente el mismo texto que se guarda en la base de datos
+            const textoCompleto = `${o.num} - ${o.nom}`;
+            sel.innerHTML += `<option value="${textoCompleto}">${textoCompleto}</option>`;
         });
     }
     sel.value = currentVal; 
@@ -1073,45 +1047,47 @@ async function deleteFile(index) {
     refreshFileList();
 }
 
-function handleFileUpload(e) {
-    const files = e.target.files;
-    if(!files || files.length === 0) return;
+async function handleFileUpload() {
+    const fileInput = document.getElementById('file-input');
+    const files = fileInput.files;
+    if (!files || files.length === 0) return;
 
-    for(let f of files) {
+    for (let f of files) {
         const reader = new FileReader();
         reader.onload = async (e) => {
-            // Creamos un nombre único usando tiempo + número aleatorio para evitar bloqueos
-            const uniqueId = Date.now() + "_" + Math.floor(Math.random() * 1000);
-            const fileData = { 
-                n: `${uniqueId}_${f.name}`, 
-                d: e.target.result, 
-                t: f.type 
-            };
-            
-            if(activeFileId.isMass) {
-                for(let id of activeFileId.ids) {
+            // Añadimos un número aleatorio al inicio del nombre para que JAMÁS se duplique en base de datos
+            const prefix = Math.floor(Math.random() * 1000000);
+            const fileData = { n: `(${prefix})_${f.name}`, d: e.target.result, t: f.type };
+
+            if (activeFileId.isMass) {
+                // LÓGICA DE CARGA MASIVA
+                for (let id of activeFileId.ids) {
                     const item = DB[activeFileId.mod].find(x => x.id === id);
-                    if(item) {
-                        let currentFiles = item.files || [];
-                        currentFiles.push(fileData);
-                        await db.ref(`${activeFileId.mod}/${id}/files`).set(currentFiles);
+                    if (item) {
+                        const updatedFiles = [...(item.files || []), fileData];
+                        await db.ref(`${activeFileId.mod}/${id}/files`).set(updatedFiles);
                     }
                 }
+                alert("Ficheiro anexado aos registos selecionados!");
+                renderAll(); // Refrescamos la vista principal
+                
             } else {
+                // LÓGICA DE CARGA INDIVIDUAL
                 const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
-                if(item) {
-                    let currentFiles = item.files || [];
-                    currentFiles.push(fileData);
-                    await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(currentFiles);
+                if (item) {
+                    const updatedFiles = [...(item.files || []), fileData];
+                    await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
                 }
+                // Refrescar visualmente la lista de archivos del modal
+                openFiles(activeFileId.mod, activeFileId.id);
             }
-            alert("Ficheiro anexado com sucesso!");
-            renderAll();
         };
         reader.readAsDataURL(f);
     }
+    
+    // MUY IMPORTANTE: Limpiar el input para permitir subir el mismo archivo otra vez sin bloqueo del navegador
+    fileInput.value = "";
 }
-
 async function downloadCurrentFiles() {
     const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
     if (!item.files || !item.files.length) return alert("Não existem ficheiros.");
