@@ -144,7 +144,7 @@
                 <button onclick="toggleMass('horas')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('horas')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
                 <select id="filt-h-mes" onchange="renderHoras()"><option value="">Filtrar Mês...</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
-                <input type="number" id="filt-h-ano" placeholder="Filtrar Ano (ex: 2026)" oninput="renderHoras()">
+                <input type="number" id="filt-h-ano" placeholder="Ano" oninput="renderHoras()"> <input type="text" id="filt-h-user" placeholder="Filtrar Utilizador..." oninput="renderHoras()">
                 <select id="filt-h-est" onchange="renderHoras()"><option value="">Todos os Estados</option><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select>
             </div>
             
