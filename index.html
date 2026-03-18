@@ -143,7 +143,10 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('horas')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('horas')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <select id="filt-h-mes" onchange="renderHoras()"><option value="">Filtrar Mês...</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
+                <select id="filt-h-obr" onchange="renderHoras()">
+				<option value="">Todas as Obras</option>
+				</select>
+				<select id="filt-h-mes" onchange="renderHoras()"><option value="">Filtrar Mês...</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
                 <input type="number" id="filt-h-ano" placeholder="Ano" oninput="renderHoras()"> <input type="text" id="filt-h-user" placeholder="Filtrar Utilizador..." oninput="renderHoras()">
                 <select id="filt-h-est" onchange="renderHoras()"><option value="">Todos os Estados</option><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select>
             </div>
@@ -172,7 +175,10 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('obs')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('obs')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <select id="filt-obs-est" onchange="renderObs()"><option value="">Todos os Estados</option><option>Por Realizar</option><option>Realizada</option><option>Sem Efeito</option></select>
+                <select id="filt-obs-obr" onchange="renderObs()">
+				<option value="">Todas as Obras</option>
+				</select>
+				<select id="filt-obs-est" onchange="renderObs()"><option value="">Todos os Estados</option><option>Por Realizar</option><option>Realizada</option><option>Sem Efeito</option></select>
             </div>
             <div id="mass-obs" class="mass-panel">
                 <button onclick="openMassUpload('obs')" class="actions b-file">📁 Anexar aos Selecionados</button>
@@ -206,7 +212,15 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('ne')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('ne')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <input type="text" id="filt-ne-num" placeholder="Filtrar Nº..." oninput="renderNE()"> <input type="text" id="filt-ne-all" placeholder="Pesquisa geral..." oninput="renderNE()">
+                <input type="text" id="filt-ne-num" placeholder="Nº" oninput="renderNE()">
+				<select id="filt-ne-obr" onchange="renderNE()"><option value="">Obra</option></select>
+				<input type="text" id="filt-ne-prov" placeholder="Fornecedor" oninput="renderNE()">
+				<select id="filt-ne-est" onchange="renderNE()">
+				<option value="">Estado</option>
+				<option>Emitida</option>
+				<option>Enviada ao Fornecedor</option>
+				<option>Sem Efeito</option>
+				</select> placeholder="Filtrar Nº..." oninput="renderNE()"> <input type="text" id="filt-ne-all" placeholder="Pesquisa geral..." oninput="renderNE()">
             </div>
             <div id="mass-ne" class="mass-panel">
                 <button onclick="openMassUpload('ne')" class="actions b-file">📁 Anexar aos Selecionados</button>
@@ -235,7 +249,18 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('ped')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('ped')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <select id="filt-ped-est" onchange="renderPed()"><option value="">Todos os Estados</option><option>Por Solicitar</option><option>Entregue pelo Fornecedor</option></select>
+                <select id="filt-ped-obr" onchange="renderPed()"><option value="">Obra</option></select>
+				<input type="text" id="filt-ped-prov" placeholder="Fornecedor" oninput="renderPed()">
+				<input type="text" id="filt-ped-ne" placeholder="Nº NE" oninput="renderPed()">
+				<input type="text" id="filt-ped-guia" placeholder="Guia" oninput="renderPed()">
+
+				<select id="filt-ped-est" onchange="renderPed()">
+				<option value="">Todos</option>
+				<option>Por Solicitar</option>
+				<option>Enviado ao Fornecedor</option>
+				<option>Entregue pelo Fornecedor</option>
+				<option>Sem Efeito</option>
+				</select> onchange="renderPed()"><option value="">Todos os Estados</option><option>Por Solicitar</option><option>Entregue pelo Fornecedor</option></select>
             </div>
             <div id="mass-ped" class="mass-panel">
                 <button onclick="openMassUpload('ped')" class="actions b-file">📁 Anexar aos Selecionados</button>
@@ -261,7 +286,10 @@
             <div class="filter-bar">
                 <button onclick="toggleMass('tar')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="exportarExcel('tar')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
-                <select id="filt-tar-est" onchange="renderTar()"><option value="">Todos os Estados</option><option>Por Realizar</option><option>Realizada</option></select>
+                <select id="filt-tar-obr" onchange="renderTar()">
+				<option value="">Todas as Obras</option>
+				</select>
+				<select id="filt-tar-est" onchange="renderTar()"><option value="">Todos os Estados</option><option>Por Realizar</option><option>Realizada</option></select>
             </div>
             <div id="mass-tar" class="mass-panel">
                 <button onclick="openMassUpload('tar')" class="actions b-file">📁 Anexar aos Selecionados</button>
@@ -333,6 +361,13 @@
         </div>
         
         <div id="file-list" style="margin-top:15px; max-height: 200px; overflow-y:auto;"></div>
+
+		<div id="upload-progress" style="margin-top:10px; display:none;">
+    		<div style="background:#e2e8f0; border-radius:4px; overflow:hidden;">
+       			<div id="upload-bar" style="height:10px; width:0%; background:var(--acc);"></div>
+   			</div>
+ 			<div id="upload-text" style="font-size:11px; margin-top:5px;"></div>
+		</div>
         
         <div style="display:flex; gap:10px; margin-top:20px;">
             <button class="btn-main" style="flex:2; background:var(--s);" onclick="downloadCurrentFiles()">⬇️ Descarregar Toda a Documentação (ZIP)</button>
@@ -569,7 +604,11 @@ async function saveNE() {
     const num = document.getElementById('ne-num').value;
     const obrSel = document.getElementById('ne-obr');
     const oldPeds = DB.ped.filter(p => p.neId === id);
-    for(let op of oldPeds) { await db.ref(`ped/${op.id}/est`).set('Sem Efeito'); }
+
+	for(let op of oldPeds) {
+    	await db.ref(`ped/${op.id}/est`).set('Sem Efeito');
+    	await db.ref(`ped/${op.id}/locked`).set(true);
+	}
 	
     // Captura de materiales de la tabla
     let items = [];
@@ -622,9 +661,10 @@ async function saveNE() {
     for(let it of items) {
         const pedId = `PED_NE_${id}_${Math.random().toString(36).substr(2, 5)}`;
         await db.ref(`ped/${pedId}`).set({
+    		locked: true,
             id: pedId, obrId: data.obrId, obrNom: data.obrNom, neId: id, neNum: num,
             prov: data.prov, mat: it.p, qtd: it.q,
-            est: 'Por Solicitar', guia: '', d_crea: data.d_edit, u_crea: user.u
+            est: 'Enviado ao Fornecedor', guia: '', d_crea: data.d_edit, u_crea: user.u
         });
     }
 
@@ -685,13 +725,15 @@ function renderHoras() {
     const fEst = document.getElementById('filt-h-est').value;
     const fUsr = (document.getElementById('filt-h-user')?.value || "").toLowerCase();
     
-    let grouped = {};
+    const fObr = document.getElementById('filt-h-obr')?.value || '';
+	let grouped = {};
     DB.horas.forEach(h => {
         const hUser = h.u_crea || "Desconhecido";
         const hDat = h.dat || "0000-00-00";
         const d = hDat.split('-');
 
-        if((!fMes || d[1]===fMes) && (!fAno || d[0]===fAno) && (!fEst || h.est===fEst) && (!fUsr || hUser.toLowerCase().includes(fUsr))) {
+        if((!fMes || d[1]===fMes)
+		&& (!fObr || h.obrId === fObr) && (!fAno || d[0]===fAno) && (!fEst || h.est===fEst) && (!fUsr || hUser.toLowerCase().includes(fUsr))) {
             const key = `${hDat}_${hUser}`;
             if(!grouped[key]) grouped[key] = { dat: hDat, u: hUser, items: [], tot: 0 };
             const diff = (new Date(`1970-01-01T${h.fim}`) - new Date(`1970-01-01T${h.ini}`))/3600000;
@@ -711,7 +753,16 @@ function renderHoras() {
 function renderPed() {
     const list = document.getElementById('list-ped'); list.innerHTML = '';
     const fEst = document.getElementById('filt-ped-est') ? document.getElementById('filt-ped-est').value : '';
-    let data = DB.ped.filter(p => fEst === '' || p.est === fEst);
+    const fObr = document.getElementById('filt-ped-obr')?.value || '';
+	const fProv = document.getElementById('filt-ped-prov')?.value.toLowerCase() || '';
+	const fNE = document.getElementById('filt-ped-ne')?.value || '';
+	const fGuia = document.getElementById('filt-ped-guia')?.value || '';
+
+	let data = DB.ped.filter(p =>
+    	(!fObr || p.obrId === fObr) &&
+    	(!fProv || (p.prov || '').toLowerCase().includes(fProv)) &&
+    	(!fNE || (p.neNum || '').includes(fNE)) &&
+    	(!fGuia || (p.guia || '').includes(fGuia)) && fEst === '' || p.est === fEst);
 
     data.reverse().forEach(p => {
         list.innerHTML += `
@@ -733,7 +784,14 @@ function renderPed() {
 function renderNE() {
     const list = document.getElementById('list-ne'); list.innerHTML = '';
     const fNum = document.getElementById('filt-ne-num') ? document.getElementById('filt-ne-num').value.toLowerCase() : '';
-    let data = DB.ne.filter(n => n.num && n.num.toLowerCase().includes(fNum));
+    const fObr = document.getElementById('filt-ne-obr')?.value || '';
+	const fProv = document.getElementById('filt-ne-prov')?.value.toLowerCase() || '';
+	const fEst = document.getElementById('filt-ne-est')?.value || '';
+
+	let data = DB.ne.filter(n =>
+    	(!fObr || n.obrId === fObr) &&
+    	(!fProv || (n.prov || '').toLowerCase().includes(fProv)) &&
+    	(!fEst || n.est === fEst) && n.num && n.num.toLowerCase().includes(fNum));
 
     data.reverse().forEach(n => {
         list.innerHTML += `
@@ -755,7 +813,9 @@ function renderTar() {
     const list = document.getElementById('list-tar'); if(!list) return;
     list.innerHTML = '';
     const fEst = document.getElementById('filt-tar-est') ? document.getElementById('filt-tar-est').value : '';
-    let data = DB.tar.filter(t => fEst === '' || t.est === fEst);
+    const fObr = document.getElementById('filt-tar-obr')?.value || '';
+	let data = DB.tar.filter(t =>
+    	(!fObr || t.obrId === fObr) && fEst === '' || t.est === fEst);
 
     data.forEach(t => {
         list.innerHTML += `
@@ -776,7 +836,9 @@ function renderObs() {
     const list = document.getElementById('list-obs'); if(!list) return;
     list.innerHTML = '';
     const fEst = document.getElementById('filt-obs-est') ? document.getElementById('filt-obs-est').value : '';
-    let data = DB.obs.filter(o => fEst === '' || o.est === fEst);
+    const fObr = document.getElementById('filt-obs-obr')?.value || '';
+	let data = DB.obs.filter(o =>
+    	(!fObr || o.obrId === fObr) && fEst === '' || o.est === fEst);
 
     data.forEach(o => {
         list.innerHTML += `
@@ -928,11 +990,12 @@ async function createNotif(mod, msg) {
 // --- FIN DEL CÓDIGO A PEGAR PARA EL PASO 4 ---
 function getCardButtons(mod, item) {
     // Bloqueo de edición de horas si ya están aprobadas y no es admin
-    const isLockedHour = (mod === 'horas' && item.est === 'Aprobada' && user.role !== 'Administrador');
+    const isLockedHour =
+	const isLockedPed = (mod === 'ped' && item.locked); (mod === 'horas' && item.est === 'Aprobada' && user.role !== 'Administrador');
     
     return `
         <div class="actions">
-            ${!isLockedHour ? `<button class="b-edit" onclick="prepEdit('${mod}','${item.id}')">✏️ Editar</button>` : ''}
+            ${!isLockedHour && !isLockedPed ? `<button class="b-edit" onclick="prepEdit('${mod}','${item.id}')">✏️ Editar</button>` : ''}
             <button class="b-note" onclick="openNota('${mod}','${item.id}')">📝 Notas</button>
             <button class="b-hist" onclick="openHist('${item.id}')">📜 Historial</button>
             <button class="b-file" onclick="openFiles('${mod}','${item.id}')">📁 Anexos (${item.files ? item.files.length : 0})</button>
@@ -965,13 +1028,19 @@ async function deleteFile(index) {
     refreshFileList();
 }
 
-function handleFileUpload(e) {
+async function handleFileUpload(e) {
     const files = e.target.files;
     if(!files || files.length === 0) return;
 
+    document.getElementById('upload-progress').style.display = 'block';
+
+    let total = files.length;
+    let done = 0;
+
     for(let f of files) {
         const reader = new FileReader();
-        reader.onload = async (e) => {
+
+        reader.onload = async (ev) => {
             // Aquí usamos comillas invertidas para el nombre del archivo
             const fileData = { n: `${Date.now()}_${f.name}`, d: e.target.result, t: f.type };
             
@@ -989,7 +1058,19 @@ function handleFileUpload(e) {
                 currentFiles.push(fileData);
                 await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(currentFiles);
             }
-            renderAll();
+            done++;
+			let percent = Math.round((done / total) * 100);
+			document.getElementById('upload-bar').style.width = percent + "%";
+			document.getElementById('upload-text').innerText = `Subindo ${done}/${total} ficheiros`;
+
+			if(done === total){
+   				document.getElementById('upload-text').innerText = "Upload completo";
+    			setTimeout(()=> {
+       				document.getElementById('upload-progress').style.display = 'none';
+   				}, 1500);
+			}
+
+			renderAll();
         };
         reader.readAsDataURL(f);
     }
@@ -1025,7 +1106,7 @@ function exportarExcel(mod) {
 function updateSelects() {
     const execObras = DB.obras.filter(o => o.est === 'Em Execução');
     const options = execObras.map(o => `<option value="${o.id}">${o.num} - ${o.nom}</option>`).join('');
-    ['h-obr', 'obs-obr', 'ne-obr', 'ped-obr', 'tar-obr'].forEach(id => {
+    ['h-obr', 'obs-obr', 'ne-obr', 'ped-obr', 'tar-obr','filt-h-obr','filt-obs-obr','filt-tar-obr','filt-ne-obr','filt-ped-obr'].forEach(id => {
         if(document.getElementById(id)) document.getElementById(id).innerHTML = options || '<option>Sem Obras Ativas</option>';
     });
 
