@@ -253,17 +253,31 @@
 				<input type="text" id="filt-ped-ne" placeholder="Nº NE" oninput="renderPed()">
 				<input type="text" id="filt-ped-guia" placeholder="Guia" oninput="renderPed()">
 
-				<select id="filt-ped-est" onchange="renderPed()">
-				<option value="">Todos</option>
-				<option>Por Solicitar</option>
-				<option>Enviado ao Fornecedor</option>
-				<option>Entregue pelo Fornecedor</option>
-				<option>Sem Efeito</option>
-				</select> onchange="renderPed()"><option value="">Todos os Estados</option><option>Por Solicitar</option><option>Entregue pelo Fornecedor</option></select>
+								<select id="filt-ped-est" onchange="renderPed()">
+				    <option value="">Todos os Estados</option>
+				    <option>Por Solicitar</option>
+				    <option>Enviado ao Fornecedor</option>
+				    <option>Entregue pelo Fornecedor</option>
+				    <option>Sem Efeito</option>
+				</select>
+                <select id="filt-ped-mes" onchange="renderPed()" style="border: 2px solid var(--acc);">
+                    <option value="">Todos os Meses (Data Est.)</option>
+                    <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+                    <option value="03">Março</option><option value="04">Abril</option>
+                    <option value="05">Maio</option><option value="06">Junho</option>
+                    <option value="07">Julho</option><option value="08">Agosto</option>
+                    <option value="09">Setembro</option><option value="10">Outubro</option>
+                    <option value="11">Novembro</option><option value="12">Dezembro</option>
+                </select>
             </div>
             <div id="mass-ped" class="mass-panel">
                 <button onclick="openMassUpload('ped')" class="actions b-file">📁 Anexar aos Selecionados</button>
                 <button onclick="downloadMassFiles('ped')" class="actions b-hist">⬇️ Descarregar Documentação Simultânea</button>
+                <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #fdba74;">
+                    <label style="display:inline-block; font-size:11px;"><b>📅 Aplicar Data Estimada Massivamente:</b></label>
+                    <input type="date" id="mass-ped-data" style="width:130px; display:inline-block;">
+                    <button onclick="setMassPedData()" class="actions b-note" style="padding:6px; background:var(--acc)">Aplicar Data aos Selecionados</button>
+                </div>
             </div>
             <div id="list-ped"></div>
         </section>
