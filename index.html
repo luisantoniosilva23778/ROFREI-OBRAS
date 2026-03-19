@@ -739,56 +739,60 @@ async function saveNE() {
     const doc = new jsPDF();
     const emp = DB.empresa || {}; // <--- AÑADIR ESTA LÍNEA AQUÍ
     
-    // VALIDACIÓN DE LOGO PARA EVITAR ERROR PNG
-    if (DB.empresa && DB.empresa.logo && DB.empresa.logo.length > 50) {
+    // --- NUEVO ENCABEZADO UNIFICADO ---
+    let logoWidth = 45; 
+    let logoHeight = 20; 
+    let currentY = 10; 
+
+    // 1. Logo a la derecha (Margen derecho 195)
+    if (emp.logo && emp.logo.length > 50) {
         try {
-            doc.addImage(DB.empresa.logo, 'PNG', 10, 10, 40, 20);
-        } catch (e) {
-            console.error("Erro ao carregar logo no PDF:", e);
-        }
+            const imgProps = doc.getImageProperties(emp.logo);
+            logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+            doc.addImage(emp.logo, 'PNG', 195 - logoWidth, 10, logoWidth, logoHeight);
+            currentY = 10 + logoHeight + 4; 
+        } catch (e) { console.warn("Erro logo:", e); }
     }
 
-	doc.setFontSize(10);
-	doc.text(emp.nome || '', 140, 12);
-	doc.text(`NIF: ${emp.nif || ''}`, 140, 18);
-	doc.text(emp.morada || '', 140, 24);
+    // 2. Datos Empresa debajo del logo (Tamaño pequeño 8)
+    doc.setFontSize(8);
+    doc.text(emp.nome || '', 195, currentY, { align: 'right' });
+    doc.text(`NIF: ${emp.nif || ''}`, 195, currentY + 4, { align: 'right' });
+    doc.text(emp.morada || '', 195, currentY + 8, { align: 'right' });
 
-	doc.setFontSize(14);
-	doc.text(`Nota de Encomenda: ${nombreReferencia}`, 10, 12);
-	doc.text(emp.nome || '', 140, 12);
-	doc.text(`NIF: ${emp.nif || ''}`, 140, 18);
-	doc.text(emp.morada || '', 140, 24);
+    // 3. Título y Obra a la izquierda
+    doc.setFontSize(14);
+    doc.text(`Nota de Encomenda: ${nombreReferencia}`, 10, 15);
     doc.setFontSize(10);
-    doc.text(`Obra: ${data.obrNom}`, 10, 20);
+    doc.text(`Obra: ${data.obrNom}`, 10, 22);
     
+    // 4. Datos del Proveedor
     doc.setFont("helvetica", "bold");
-    doc.text(`DADOS DO FORNECEDOR:`, 10, 28);
+    doc.text(`DADOS DO FORNECEDOR:`, 10, 32);
     doc.setFont("helvetica", "normal");
-    doc.text(`Nome: ${provNome}`, 10, 34);
+    doc.text(`Nome: ${provNome}`, 10, 38);
     
     if(fData.id) {
-        doc.text(`NIF: ${fData.nif || '---'}`, 10, 40);
-        doc.text(`Morada: ${fData.morada || '---'}`, 10, 46);
-        // RECUPERADO: Teléfonos separados y E-mail
-        doc.text(`Tel: ${fData.tel || '---'} | Telm: ${fData.telm || '---'}`, 10, 52);
-        doc.text(`E-mail: ${fData.email || '---'}`, 10, 58);
+        doc.text(`NIF: ${fData.nif || '---'}`, 10, 44);
+        doc.text(`Morada: ${fData.morada || '---'}`, 10, 50);
+        doc.text(`Tel: ${fData.tel || '---'} | Telm: ${fData.telm || '---'}`, 10, 56);
+        doc.text(`E-mail: ${fData.email || '---'}`, 10, 62);
     } else {
-        doc.text(`(Fornecedor não registado na base de dados)`, 10, 40);
+        doc.text(`(Fornecedor não registado)`, 10, 44);
     }
     
-    doc.text(`Criado por: ${data.u_crea} | Data: ${data.d_crea}`, 10, 66);
+    doc.setFontSize(9);
+    doc.text(`Criado por: ${data.u_crea} | Data: ${data.d_crea}`, 10, 70);
 
-	if(emp.logo){
-    	doc.addImage(emp.logo, 'PNG', 140, 30, 50, 20);
-	}
     const splitCond = doc.splitTextToSize(`Condições: ${condText || 'N/A'}`, 190);
-    doc.text(splitCond, 10, 72);
+    doc.text(splitCond, 10, 76);
+    // --- FIN DEL ENCABEZADO ---
 
     const tableData = items.map(i => [i.q, i.u, i.p, `€ ${Number(i.pr).toFixed(2)}`, `€ ${Number(i.t).toFixed(2)}`]);
     doc.autoTable({ 
         head: [['Qtd','Un','Produto','Preço Un.','Total']], 
         body: tableData, 
-        startY: 76 + (splitCond.length * 4) 
+        startY: 80 + (splitCond.length * 4) 
     });
 
 	const pageCount = doc.internal.getNumberOfPages();
