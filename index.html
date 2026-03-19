@@ -647,22 +647,22 @@ async function saveNE() {
     doc.autoTable({ head: [['Qtd','Un','Produto','Preço','Total']], body: tableData, startY: 40 });
     const pdfBase64 = doc.output('datauristring');
     
-    let version = 1;
-
-	if(old && old.files){
-    	const pdfs = old.files.filter(f => f.n.includes('.pdf'));
-    	if(pdfs.length > 0){
-        	const last = pdfs[pdfs.length - 1].n;
-        	const match = last.match(/V(\d+)/);
-        	if(match){
-            	version = parseInt(match[1]) + 1;
-        	}
-    	}	
-	}
+        let version = 1;
+    if(old && old.files) {
+        const versionesExistentes = old.files
+            .filter(f => f.n.startsWith(`NE${num}.V`) && f.n.endsWith('.pdf'))
+            .map(f => {
+                const match = f.n.match(/V(\d+)/);
+                return match ? parseInt(match[1]) : 0;
+            });
+        if(versionesExistentes.length > 0) version = Math.max(...versionesExistentes) + 1;
+    }
+    
+    const nombreReferencia = `NE${num}.V${version}`;
     const pdfFile = { 
-    	n: `NE${num}.V${version}.pdf`, 
-    	d: pdfBase64 
-	};
+        n: `${nombreReferencia}.pdf`, 
+        d: pdfBase64 
+    };
 
     data.files = old && old.files ? [...old.files] : [];
     data.files.push(pdfFile);
@@ -671,18 +671,18 @@ async function saveNE() {
     const log = generateDiff(old, data);
     await db.ref(`ne/${id}`).set(data);
     if(log) await db.ref(`hist/${id}`).push({ 
-    u: user.u || user.n, 
-    ts: data.d_edit, 
-    log,
-    before: old || {},
-    after: data
-	});
+        u: user.u || user.n, 
+        ts: data.d_edit, 
+        log,
+        before: old || {},
+        after: data
+    });
 
     // Sincronizar Pedidos
     for(let it of items) {
         const pedId = `PED_NE_${id}_${Math.random().toString(36).substr(2, 5)}`;
         await db.ref(`ped/${pedId}`).set({
-            id: pedId, obrId: data.obrId, obrNom: data.obrNom, neId: id, neNum: num,
+            id: pedId, obrId: data.obrId, obrNom: data.obrNom, neId: id, neNum: nombreReferencia,
             prov: data.prov, mat: it.p, qtd: it.q, est: 'Enviado ao Fornecedor', 
             d_crea: data.d_edit, u_crea: user.u || user.n
         });
