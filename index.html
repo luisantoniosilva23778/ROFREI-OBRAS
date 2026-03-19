@@ -1290,11 +1290,17 @@ async function markSelectedRead() {
 
 
 async function deleteRecord(mod, id) {
+    // Validación de seguridad para que solo el Admin pueda ejecutar la acción de borrado
+    if(!user || user.role !== 'Administrador') {
+        return alert("Acesso negado: Apenas utilizadores com credencial de Administrador podem eliminar registos.");
+    }
+    
     if(confirm("Tem a certeza que deseja eliminar este registo permanentemente?")) {
         await db.ref(`${mod}/${id}`).remove();
-        alert("Registo eliminado.");
+        alert("Registo eliminado com sucesso.");
     }
 }
+
 
 // --- FUNCIONES FECHA ESTIMADA PEDIDOS ---
 async function updateSinglePedData(id, value) {
