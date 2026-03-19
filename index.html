@@ -188,12 +188,14 @@
                 <h3>📄 Notas de Encomenda</h3>
                 <div class="grid">
                     <div><label>Nº Encomenda</label><input type="text" id="ne-num" readonly style="background:#f1f5f9"></div>
-                    <div><label>Obra (Apenas Em Execução)</label><select id="ne-obr"></select></div>
+                                        <div><label>Obra (Apenas Em Execução)</label><select id="ne-obr"></select></div>
                     <div><label>Fornecedor</label><input type="text" id="ne-prov"></div>
                     <div><label>Estado</label><select id="ne-est"><option>Emitida</option><option>Enviada ao Fornecedor</option><option>Sem Efeito</option></select></div>
+                    <div class="full-w"><label>Condições de Entrega (Local, Data Estimada, etc.)</label><textarea id="ne-cond" rows="2"></textarea></div>
                 </div>
                 
                 <table class="ne-table">
+
                     <thead><tr><th>Qtd</th><th>Unid</th><th>Produto / Material</th><th>Preço Un.</th><th>Total</th><th>Ação</th></tr></thead>
                     <tbody id="ne-body"></tbody>
                 </table>
