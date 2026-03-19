@@ -575,12 +575,15 @@ async function saveRecord(mod) {
     await db.ref(`${mod}/${id}`).set(data);
     if(log) await db.ref(`hist/${id}`).push({ u: user.u, ts: data.d_edit, log, d_crea: data.d_crea });
     
-    // Crear Notificación si es nuevo
-    if(isNew) createNotif(mod, `Novo registo criado em ${mod.toUpperCase()}: ${data.num || data.id}`);
+        // Crear Notificación para creaciones y alteraciones (con nombre descriptivo)
+    const nomeIdentificador = data.num || data.obrNom || data.mat || data.id;
+    const acaoTexto = isNew ? "criado" : "alterado";
+    createNotif(mod, `Registo ${acaoTexto} em ${mod.toUpperCase()}: ${nomeIdentificador}`);
 
     alert("Guardado com sucesso!");
     cancelarEdit(mod);
 }
+
 
 function generateDiff(oldData, newData) {
     if(!oldData) return "<b>Criação inicial do registo.</b>";
