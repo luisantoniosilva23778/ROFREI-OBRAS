@@ -361,7 +361,7 @@
                     <div><label>Telemóvel</label><input type="text" id="forn-telm"></div>
                     <div><label>E-mail</label><input type="email" id="forn-email"></div>
 					<div class="full-w"><label>Morada</label><input type="text" id="forn-morada"></div>
-<					div><label>Atividade</label><input type="text" id="forn-ativ"></div>
+					<div><label>Atividade</label><input type="text" id="forn-ativ"></div>
                 </div>
                 <div class="btn-row-form">
                     <button class="btn-main" onclick="saveForn()">Gravar Fornecedor</button>
@@ -529,19 +529,25 @@ function sync() {
 }
 
 function showMod(mod) {
-    currentMod = mod; 
+    currentMod = mod;
     massMode = false;
-    document.querySelectorAll('.mod-sec').forEach(s => { 
-        s.style.display = 'none'; 
-        s.classList.remove('mass-mode'); 
+    
+    document.querySelectorAll('.mod-sec').forEach(s => {
+        s.style.display = 'none';
+        s.classList.remove('mass-mode');
     });
+    
     document.querySelectorAll('.mass-panel').forEach(p => p.style.display = 'none');
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    
-    document.getElementById(`mod-${mod}`).style.display = 'block';
-    document.getElementById(`nav-${mod}`).classList.add('active');
-    
-    // REQUISITO: Limpiar campos al cambiar de módulo
+
+    // 1. Mostrar la sección si existe
+    const section = document.getElementById(`mod-${mod}`);
+    if (section) section.style.display = 'block';
+
+    // 2. Activar botón de nav solo si tiene el ID correspondiente
+    const navBtn = document.getElementById(`nav-${mod}`);
+    if (navBtn) navBtn.classList.add('active');
+
     cancelarEdit(mod);
 }
 
@@ -731,11 +737,15 @@ async function saveNE() {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-	const emp = DB.empresa || {};
-
-	if(emp.logo) {
-    	doc.addImage(emp.logo, 'PNG', 140, 30, 50, 20);
-	}
+    
+    // VALIDACIÓN DE LOGO PARA EVITAR ERROR PNG
+    if (DB.empresa && DB.empresa.logo && DB.empresa.logo.length > 50) {
+        try {
+            doc.addImage(DB.empresa.logo, 'PNG', 10, 10, 40, 20);
+        } catch (e) {
+            console.error("Erro ao carregar logo no PDF:", e);
+        }
+    }
 
 	doc.setFontSize(10);
 	doc.text(emp.nome || '', 140, 12);
@@ -1459,11 +1469,16 @@ async function saveEmpresa() {
         nif: document.getElementById('emp-nif').value,
         morada: document.getElementById('emp-morada').value,
         web: document.getElementById('emp-web').value,
-        logo: document.getElementById('emp-logo').value
+        logo: document.getElementById('emp-logo').value // Asegúrate que el base64 no sea excesivo
     };
 
-    await db.ref('empresa').set(data);
-    alert("Dados da empresa guardados!");
+    try {
+        await db.ref('empresa').set(data);
+        alert("Dados da empresa guardados!");
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao guardar dados.");
+    }
 }
 
 	
