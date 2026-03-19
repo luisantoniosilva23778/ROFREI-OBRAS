@@ -818,7 +818,7 @@ async function saveNE() {
         const pedId = `PED_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         await db.ref(`ped/${pedId}`).set({
             id: pedId, obrId: data.obrId, obrNom: data.obrNom, prov: data.prov,
-            mat: it.p, qtd: it.q, neNum: num, neId: id,
+            mat: it.p, qtd: it.q, neNum: numWithVersion, neId: id,
             est: 'Enviado ao Fornecedor', u_crea: data.u_crea, d_crea: data.d_crea, notas: condText
         });
     }
