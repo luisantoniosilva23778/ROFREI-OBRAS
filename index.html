@@ -1242,13 +1242,23 @@ function openFiles(mod, id) {
 }
 
 function refreshFileList() {
-    const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
     const list = document.getElementById('file-list');
-    list.innerHTML = item.files && item.files.length > 0 ? 
-        item.files.map((f, i) => `<div style="display:flex; justify-content:space-between; padding:8px; background:#f8fafc; margin-bottom:5px; border-radius:4px;">
-            <span>📄 ${f.n}</span>
-            <button onclick="deleteFile(${i})" style="color:var(--err); border:none; background:none; cursor:pointer; font-weight:bold;">Eliminar</button>
-        </div>`).join('') : 'Nenhum ficheiro anexado.';
+    const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
+    list.innerHTML = item.files && item.files.length > 0 ? item.files.map((f, i) => `<div style="display:flex; justify-content:space-between; padding:8px; background:#f8fafc; margin-bottom:5px; border-radius:4px;"> <span>📄 ${f.n}</span> <div style="display:flex; gap:10px;"><button onclick="downloadSingleFile(${i})" style="color:var(--acc); border:none; background:none; cursor:pointer; font-weight:bold;">Descarregar</button><button onclick="deleteFile(${i})" style="color:var(--err); border:none; background:none; cursor:pointer; font-weight:bold;">Eliminar</button></div> </div>`).join('') : 'Nenhum ficheiro anexado.';
+}
+
+function downloadSingleFile(idx) {
+    const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
+    const f = item.files[idx];
+    const byteString = atob(f.d.split(',')[1]);
+    const mimeString = f.d.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], {type: mimeString});
+    saveAs(blob, f.n);
 }
 
 async function deleteFile(index) {
