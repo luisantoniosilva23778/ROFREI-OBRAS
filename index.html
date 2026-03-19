@@ -120,6 +120,7 @@
                 <b>Ações para os selecionados:</b>
                 <button onclick="openMassUpload('obras')" class="actions b-file" style="padding:8px">📁 Anexar aos Selecionados</button>
                 <button onclick="downloadMassFiles('obras')" class="actions b-hist" style="padding:8px">⬇️ Descarregar Documentação Simultânea (ZIP)</button>
+                <button onclick="deleteMassRecords('obras')" class="actions b-del" style="padding:8px">🗑️ Eliminar Selecionados</button>
             </div>
 
             <div id="list-obras"></div>
@@ -155,6 +156,7 @@
                  <b>Ações para os selecionados:</b>
                 <button onclick="openMassUpload('horas')" class="actions b-file" style="padding:8px">📁 Anexar aos Selecionados</button>
                 <button onclick="downloadMassFiles('horas')" class="actions b-hist" style="padding:8px">⬇️ Descarregar Documentação Simultânea (ZIP)</button>
+                <button onclick="deleteMassRecords('horas')" class="actions b-del" style="padding:8px">🗑️ Eliminar Selecionados</button>
             </div>
             <div id="list-horas"></div>
         </section>
@@ -181,6 +183,7 @@
             <div id="mass-obs" class="mass-panel">
                 <button onclick="openMassUpload('obs')" class="actions b-file">📁 Anexar aos Selecionados</button>
                 <button onclick="downloadMassFiles('obs')" class="actions b-hist">⬇️ Descarregar Documentação Simultânea</button>
+                <button onclick="deleteMassRecords('obs')" class="actions b-del">🗑️ Eliminar Selecionados</button>
             </div>
             <div id="list-obs"></div>
         </section>
@@ -226,6 +229,7 @@
             <div id="mass-ne" class="mass-panel">
                 <button onclick="openMassUpload('ne')" class="actions b-file">📁 Anexar aos Selecionados</button>
                 <button onclick="downloadMassFiles('ne')" class="actions b-hist">⬇️ Descarregar Documentação Simultânea</button>
+                <button onclick="deleteMassRecords('ne')" class="actions b-del">🗑️ Eliminar Selecionados</button>
             </div>
             <div id="list-ne"></div>
         </section>
@@ -276,6 +280,7 @@
             <div id="mass-ped" class="mass-panel">
                 <button onclick="openMassUpload('ped')" class="actions b-file">📁 Anexar aos Selecionados</button>
                 <button onclick="downloadMassFiles('ped')" class="actions b-hist">⬇️ Descarregar Documentação Simultânea</button>
+                <button onclick="deleteMassRecords('ped')" class="actions b-del">🗑️ Eliminar Selecionados</button>
                 <div style="margin-top:10px; padding-top:10px; border-top:1px dashed #fdba74;">
                     <label style="display:inline-block; font-size:11px;"><b>📅 Aplicar Data Estimada Massivamente:</b></label>
                     <input type="date" id="mass-ped-data" style="width:130px; display:inline-block;">
@@ -308,6 +313,7 @@
             <div id="mass-tar" class="mass-panel">
                 <button onclick="openMassUpload('tar')" class="actions b-file">📁 Anexar aos Selecionados</button>
                 <button onclick="downloadMassFiles('tar')" class="actions b-hist">⬇️ Descarregar Documentação Simultânea</button>
+                <button onclick="deleteMassRecords('tar')" class="actions b-del">🗑️ Eliminar Selecionados</button>
             </div>
             <div id="list-tar"></div>
         </section>
@@ -319,6 +325,7 @@
             </div>
             <div class="filter-bar">
                 <button onclick="markSelectedRead()" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">✔️ Marcar Selecionadas como Lidas</button>
+                <button onclick="deleteMassRecords('notif')" style="background:var(--err); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">🗑️ Eliminar Selecionadas</button>
                 <select id="filt-notif-mod" onchange="renderNotif()">
                     <option value="">Todos os Módulos</option>
                     <option value="obras">Obras</option>
@@ -812,7 +819,7 @@ async function saveNE() {
         await db.ref(`ped/${pedId}`).set({
             id: pedId, obrId: data.obrId, obrNom: data.obrNom, prov: data.prov,
             mat: it.p, qtd: it.q, neNum: num, neId: id,
-            est: 'Enviado ao Fornecedor', u_crea: data.u_crea, d_crea: data.d_crea
+            est: 'Enviado ao Fornecedor', u_crea: data.u_crea, d_crea: data.d_crea, notas: condText
         });
     }
 
@@ -1421,6 +1428,21 @@ async function deleteRecord(mod, id) {
     if(confirm("Tem a certeza que deseja eliminar este registo permanentemente?")) {
         await db.ref(`${mod}/${id}`).remove();
         alert("Registo eliminado com sucesso.");
+    }
+}
+
+async function deleteMassRecords(mod) {
+    if(!user || user.role !== 'Administrador') {
+        return alert("Acesso negado: Apenas utilizadores com credencial de Administrador podem eliminar registos.");
+    }
+    const selected = Array.from(document.querySelectorAll(`#mod-${mod} .chk-mass:checked`)).map(cb => cb.value);
+    if(selected.length === 0) return alert("Selecione pelo menos um registo para eliminar.");
+    
+    if(confirm(`Tem a certeza que deseja eliminar ${selected.length} registos permanentemente?`)) {
+        for(let id of selected) {
+            await db.ref(`${mod}/${id}`).remove();
+        }
+        alert("Registos eliminados com sucesso.");
     }
 }
 
