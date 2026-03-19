@@ -316,7 +316,16 @@
             </div>
             <div class="filter-bar">
                 <button onclick="markSelectedRead()" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">✔️ Marcar Selecionadas como Lidas</button>
-                <select id="filt-notif-mod" onchange="renderNotif()"><option value="">Todos os Módulos</option><option value="obras">Obras</option><option value="horas">Horas</option><option value="ne">N.E.</option></select>
+                <select id="filt-notif-mod" onchange="renderNotif()">
+                    <option value="">Todos os Módulos</option>
+                    <option value="obras">Obras</option>
+                    <option value="horas">Horas</option>
+                    <option value="obs">Observações</option>
+                    <option value="ne">N.E.</option>
+                    <option value="ped">Pedidos</option>
+                    <option value="tar">Tarefas</option>
+                    <option value="users">Utilizadores</option>
+                </select>
                 <select id="filt-notif-est" onchange="renderNotif()"><option value="">Todas</option><option value="Pendente" selected>Pendentes</option><option value="Lida">Lidas</option></select>
             </div>
             <div id="list-notif"></div>
