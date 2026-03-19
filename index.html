@@ -1267,6 +1267,31 @@ async function deleteRecord(mod, id) {
     }
 }
 
+// --- FUNCIONES FECHA ESTIMADA PEDIDOS ---
+async function updateSinglePedData(id, value) {
+    await db.ref(`ped/${id}/dataEst`).set(value);
+    // No hace falta renderizar completo, Firebase lo sincroniza y muestra.
+}
+
+async function setMassPedData() {
+    const selected = Array.from(document.querySelectorAll(`#mod-ped .chk-mass:checked`)).map(cb => cb.value);
+    const dataVal = document.getElementById('mass-ped-data').value;
+    
+    if(selected.length === 0) return alert("Selecione pelo menos um pedido no check-list.");
+    if(!dataVal) return alert("Por favor, selecione uma data no calendário massivo para aplicar.");
+    
+    for(let id of selected) {
+        await db.ref(`ped/${id}/dataEst`).set(dataVal);
+    }
+    
+    alert("Data estimada aplicada aos itens selecionados!");
+    
+    // Desmarcar checkboxes después de la acción
+    document.querySelectorAll(`#mod-ped .chk-mass:checked`).forEach(cb => cb.checked = false);
+}
+	
+
+
 // --- MODALES Y NOTAS ---
 function openNota(mod, id) { 
     activeNotaId = {mod, id}; 
