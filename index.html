@@ -746,84 +746,144 @@ async function saveNE() {
 
     // 1. Logo a la derecha (Margen derecho 195)
     if (emp.logo && emp.logo.length > 50) {
-        try {
-            const imgProps = doc.getImageProperties(emp.logo);
-            logoHeight = (imgProps.height * logoWidth) / imgProps.width;
-            doc.addImage(emp.logo, 'PNG', 195 - logoWidth, 10, logoWidth, logoHeight);
-            currentY = 10 + logoHeight + 4; 
-        } catch (e) { console.warn("Erro logo:", e); }
+async function saveNE() {
+    const id = editingId || `NE_${Date.now()}`;
+    const num = document.getElementById('ne-num').value;
+    const obrSel = document.getElementById('ne-obr');
+    const provNome = document.getElementById('ne-prov').value;
+    const fData = DB.forn.find(f => f.nome.toLowerCase() === provNome.toLowerCase()) || {};
+    const old = DB.ne.find(x => x.id === id);
+    const nombreReferencia = `NE${num}.${fData.nome || provNome}`;
+
+    // Lógica original: Sem Efeito para pedidos anteriores
+    const oldPeds = DB.ped.filter(p => p.neId === id);
+    for(let op of oldPeds) {
+        await db.ref(`ped/${op.id}/est`).set('Sem Efeito');
     }
 
-    // 2. Datos Empresa debajo del logo (Tamaño pequeño 8)
-    doc.setFontSize(8);
-    doc.text(emp.nome || '', 195, currentY, { align: 'right' });
-    doc.text(`NIF: ${emp.nif || ''}`, 195, currentY + 4, { align: 'right' });
-    doc.text(emp.morada || '', 195, currentY + 8, { align: 'right' });
-
-    // 3. Título y Obra a la izquierda
-    doc.setFontSize(14);
-    doc.text(`Nota de Encomenda: ${nombreReferencia}`, 10, 15);
-    doc.setFontSize(10);
-    doc.text(`Obra: ${data.obrNom}`, 10, 22);
-    
-    // 4. Datos del Proveedor
-    doc.setFont("helvetica", "bold");
-    doc.text(`DADOS DO FORNECEDOR:`, 10, 32);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Nome: ${provNome}`, 10, 38);
-    
-    if(fData.id) {
-        doc.text(`NIF: ${fData.nif || '---'}`, 10, 44);
-        doc.text(`Morada: ${fData.morada || '---'}`, 10, 50);
-        doc.text(`Tel: ${fData.tel || '---'} | Telm: ${fData.telm || '---'}`, 10, 56);
-        doc.text(`E-mail: ${fData.email || '---'}`, 10, 62);
-    } else {
-        doc.text(`(Fornecedor não registado)`, 10, 44);
-    }
-    
-    doc.setFontSize(9);
-    doc.text(`Criado por: ${data.u_crea} | Data: ${data.d_crea}`, 10, 70);
-
-    const splitCond = doc.splitTextToSize(`Condições: ${condText || 'N/A'}`, 190);
-    doc.text(splitCond, 10, 76);
-    // --- FIN DEL ENCABEZADO ---
-
-    const tableData = items.map(i => [i.q, i.u, i.p, `€ ${Number(i.pr).toFixed(2)}`, `€ ${Number(i.t).toFixed(2)}`]);
-    doc.autoTable({ 
-        head: [['Qtd','Un','Produto','Preço Un.','Total']], 
-        body: tableData, 
-        startY: 80 + (splitCond.length * 4) 
+    let items = [];
+    document.querySelectorAll('#ne-body tr').forEach(tr => {
+        const q = tr.querySelector('.ne-q').value;
+        const p = tr.querySelector('.ne-p').value;
+        if(q && p) {
+            items.push({
+                q: q,
+                u: tr.querySelector('.ne-u').value,
+                p: p,
+                pr: tr.querySelector('.ne-pr').value,
+                t: tr.querySelector('.ne-t').value
+            });
+        }
     });
 
-	const pageCount = doc.internal.getNumberOfPages();
-	for(let i = 1; i <= pageCount; i++) {
-    	doc.setPage(i);
-    	doc.setFontSize(8);
-    	doc.text(emp.web || '', 10, 290);
-	}
+    const condText = document.getElementById('ne-cond').value;
+    const data = {
+        id, num, obrId: obrSel.value,
+        obrNom: obrSel.options[obrSel.selectedIndex].text,
+        prov: provNome, fornId: fData.id || null,
+        est: document.getElementById('ne-est').value,
+        cond: condText, notas: condText, items,
+        u_edit: user.u || user.n, d_edit: new Date().toLocaleString(),
+        d_crea: old ? old.d_crea : new Date().toLocaleString(),
+        u_crea: old ? old.u_crea : (user.u || user.n)
+    };
 
-	const pdfBase64 = doc.output('datauristring');
+    // --- GENERACIÓN DEL PDF MEJORADO ---
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const emp = DB.empresa || {};
+
+    // Encabezado
+    if (emp.logo) { try { doc.addImage(emp.logo, 'PNG', 10, 10, 40, 15); } catch (e) {} }
+    doc.setFontSize(14).setFont(undefined, 'bold').text("NOTA DE ENCOMENDA", 105, 15, { align: "center" });
+    doc.setFontSize(10).setFont(undefined, 'normal').text(`Nº: ${num}`, 105, 20, { align: "center" });
+
+    // 1. Datos del Fornecedor (REQUERIMIENTO 1: Tamaño más pequeño)
+    if (fData.nome) {
+        doc.setFontSize(8).setFont(undefined, 'bold').text("DADOS DO FORNECEDOR:", 10, 38);
+        doc.setFontSize(8).setFont(undefined, 'normal'); // Tamaño 8 para todos los datos
+        doc.text(`Nome: ${fData.nome}`, 10, 43);
+        doc.text(`NIF: ${fData.nif || '---'}`, 10, 48);
+        doc.text(`Morada: ${fData.morada || '---'}`, 10, 53);
+        doc.text(`Tel: ${fData.tel || '---'} / Telm: ${fData.telm || '---'}`, 100, 48);
+        doc.text(`E-mail: ${fData.email || '---'}`, 100, 53);
+    } else {
+        doc.setFontSize(8).text(`Nome: ${provNome} (Fornecedor não registado)`, 10, 43);
+    }
+
+    doc.setFontSize(10).setFont(undefined, 'bold').text(`OBRA: ${data.obrNom}`, 10, 65);
+
+    // 4. Calcular Total de la columna (REQUERIMIENTO 4)
+    const totalSuma = items.reduce((acc, item) => acc + Number(item.t || 0), 0);
+    const tableData = items.map(i => [i.q, i.u, i.p, `€ ${Number(i.pr).toFixed(2)}`, `€ ${Number(i.t).toFixed(2)}`]);
+
+    doc.autoTable({
+        head: [['Qtd','Un','Produto / Material','Preço Un.','Total']],
+        body: tableData,
+        startY: 70,
+        theme: 'striped',
+        headStyles: { fillGray: [15, 23, 42] },
+        columnStyles: { 4: { halign: 'right' } },
+        didDrawPage: function (d) {
+            let finalY = d.cursor.y;
+
+            // REQUERIMIENTO 4: Línea, total moneda, negrita y texto IVA
+            doc.setDrawColor(0).setLineWidth(0.5);
+            doc.line(160, finalY + 2, 200, finalY + 2); // Línea sobre el total
+            doc.setFontSize(10).setFont(undefined, 'bold');
+            doc.text(`TOTAL: € ${totalSuma.toLocaleString('pt-PT', {minimumFractionDigits: 2})}`, 200, finalY + 8, { align: 'right' });
+            
+            doc.setFontSize(8).setFont(undefined, 'italic');
+            doc.text("Aos valores indicados deve-se acrescentar o IVA à taxa em vigor.", 200, finalY + 13, { align: 'right' });
+
+            // REQUERIMIENTO 5: Línea horizontal de separación
+            doc.setDrawColor(200).setLineWidth(0.1);
+            doc.line(10, finalY + 18, 200, finalY + 18);
+
+            // REQUERIMIENTO 2: Condiciones de entrega debajo de la tabla con tamaño mayor
+            doc.setFontSize(11).setFont(undefined, 'bold').setTextColor(0);
+            doc.text("CONDIÇÕES DE ENTREGA:", 10, finalY + 25);
+            doc.setFontSize(10).setFont(undefined, 'normal');
+            const splitCond = doc.splitTextToSize(condText || 'N/A', 180);
+            doc.text(splitCond, 10, finalY + 31);
+        }
+    });
+
+    // REQUERIMIENTO 3: Datos de quien generó al rodapié
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        const footerY = 285;
+        doc.setFontSize(8).setFont(undefined, 'normal').setTextColor(100);
+        doc.text(`Documento gerado por: ${data.u_crea} em ${data.d_crea}`, 105, footerY - 5, { align: "center" });
+        doc.setFontSize(9).setFont(undefined, 'bold').setTextColor(37, 99, 235);
+        doc.text(emp.web || '', 105, footerY, { align: "center" });
+    }
+
+    // Lógica original: Guardar PDF y Registro
+    const pdfBase64 = doc.output('datauristring');
     const pdfFile = { n: `${nombreReferencia}.pdf`, d: pdfBase64 };
     data.files = old && old.files ? [...old.files] : [];
     data.files.push(pdfFile);
-
-    const log = generateDiff(old, data);
+    
     await db.ref(`ne/${id}`).set(data);
     createNotif('ne', `N.E. ${old ? 'alterada' : 'criada'}: ${nombreReferencia}`);
-    if(log) await db.ref(`hist/${id}`).push({ u: user.u || user.n, ts: data.d_edit, log, before: old || {}, after: data });
-
+    
+    // Crear pedidos individuales
     for(let it of items) {
-        const pedId = `PED_NE_${id}_${Math.random().toString(36).substr(2, 5)}`;
+        const pedId = `PED_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         await db.ref(`ped/${pedId}`).set({
-            id: pedId, obrId: data.obrId, obrNom: data.obrNom, neId: id, neNum: nombreReferencia,
-            prov: data.prov, mat: it.p, qtd: it.q, est: 'Enviado ao Fornecedor', 
-            notas: condText, d_crea: data.d_edit, u_crea: user.u || user.n
+            id: pedId, obrId: data.obrId, obrNom: data.obrNom, prov: data.prov,
+            mat: it.p, qtd: it.q, neNum: num, neId: id,
+            est: 'Enviado ao Fornecedor', u_crea: data.u_crea, d_crea: data.d_crea
         });
     }
 
-    alert("Nota de Encomenda guardada!");
+    alert("N.E. Guardada e PDF Gerado!");
     cancelarEdit('ne');
+    renderNE();
 }
+
 function populateObraFilter(selectId) {
     const sel = document.getElementById(selectId);
     if (!sel) return;
