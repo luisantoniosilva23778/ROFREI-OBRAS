@@ -629,12 +629,15 @@ async function saveNE() {
         }
     });
 
+        const condText = document.getElementById('ne-cond').value;
     const data = {
         id, num, 
         obrId: obrSel.value, 
         obrNom: obrSel.options[obrSel.selectedIndex].text,
         prov: document.getElementById('ne-prov').value,
         est: document.getElementById('ne-est').value,
+        cond: condText,
+        notas: condText, // Se guarda automáticamente en el botón de Notas de la NE
         items,
         u_edit: user.u || user.n, d_edit: new Date().toLocaleString(),
         d_crea: old ? old.d_crea : new Date().toLocaleString(),
@@ -645,9 +648,17 @@ async function saveNE() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.text(`Nota de Encomenda: ${num}`, 10, 10);
+    
+    // Inyectar Usuario, Fecha y Condiciones de Entrega en el PDF
+    doc.setFontSize(10);
+    doc.text(`Criado por: ${data.u_crea} | Data: ${data.d_crea}`, 10, 16);
+    const splitCond = doc.splitTextToSize(`Condicoes de Entrega: ${condText || 'N/A'}`, 190);
+    doc.text(splitCond, 10, 22);
+
     const tableData = items.map(i => [i.q, i.u, i.p, i.pr, i.t]);
-    doc.autoTable({ head: [['Qtd','Un','Produto','Preço','Total']], body: tableData, startY: 40 });
+    doc.autoTable({ head: [['Qtd','Un','Produto','Preço','Total']], body: tableData, startY: 26 + (splitCond.length * 4) });
     const pdfBase64 = doc.output('datauristring');
+
     
         let version = 1;
     if(old && old.files) {
