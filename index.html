@@ -359,7 +359,8 @@
                     <div><label>Telefone</label><input type="text" id="forn-tel"></div>
                     <div><label>Telemóvel</label><input type="text" id="forn-telm"></div>
                     <div><label>E-mail</label><input type="email" id="forn-email"></div>
-                    <div class="full-w"><label>Morada</label><input type="text" id="forn-morada"></div>
+					<div class="full-w"><label>Morada</label><input type="text" id="forn-morada"></div>
+<					div><label>Atividade</label><input type="text" id="forn-ativ"></div>
                 </div>
                 <div class="btn-row-form">
                     <button class="btn-main" onclick="saveForn()">Gravar Fornecedor</button>
@@ -369,6 +370,7 @@
             <div class="filter-bar">
                 <button onclick="exportarExcel('forn')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Exportar Excel</button>
                 <input type="text" id="filt-forn-nome" placeholder="🔍 Pesquisar por Nome..." oninput="renderForn()">
+				<input type="text" id="filt-forn-ativ" placeholder="🔍 Pesquisar por Atividade..." oninput="renderForn()">
             </div>
             <div id="list-forn"></div>
         </section>
@@ -433,7 +435,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // VARIABLES GLOBALES
-let DB = { obras:[], horas:[], ne:[], ped:[], tar:[], obs:[], users:[], notif:[], hist:{}, forn:[] };
+let DB = { obras:[], horas:[], ne:[], ped:[], tar:[], obs:[], users:[], notif:[], hist:{}, forn:[], empresa:{} };
 let user = null; 
 let currentMod = 'obras'; 
 let editingId = null; 
@@ -714,8 +716,12 @@ async function saveNE() {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+	const emp = DB.empresa || {};
     doc.setFontSize(14);
     doc.text(`Nota de Encomenda: ${nombreReferencia}`, 10, 12);
+	doc.text(emp.nome || '', 140, 12);
+	doc.text(`NIF: ${emp.nif || ''}`, 140, 18);
+	doc.text(emp.morada || '', 140, 24);
     doc.setFontSize(10);
     doc.text(`Obra: ${data.obrNom}`, 10, 20);
     
@@ -735,6 +741,10 @@ async function saveNE() {
     }
     
     doc.text(`Criado por: ${data.u_crea} | Data: ${data.d_crea}`, 10, 66);
+
+	if(emp.logo){
+    	doc.addImage(emp.logo, 'PNG', 140, 30, 50, 20);
+	}
     const splitCond = doc.splitTextToSize(`Condições: ${condText || 'N/A'}`, 190);
     doc.text(splitCond, 10, 72);
 
@@ -745,7 +755,14 @@ async function saveNE() {
         startY: 76 + (splitCond.length * 4) 
     });
     
-    const pdfBase64 = doc.output('datauristring');
+    const pageCount = doc.internal.getNumberOfPages();
+	for(let i=1;i<=pageCount;i++){
+    	doc.setPage(i);
+    	doc.setFontSize(8);
+    	doc.text(emp.web || '', 10, 290);
+	}
+
+	const pdfBase64 = doc.output('datauristring');
     const pdfFile = { n: `${nombreReferencia}.pdf`, d: pdfBase64 };
     data.files = old && old.files ? [...old.files] : [];
     data.files.push(pdfFile);
@@ -1099,12 +1116,19 @@ function prepEdit(mod, id) {
         document.getElementById('forn-tel').value = item.tel || '';
         document.getElementById('forn-telm').value = item.telm || '';
         document.getElementById('forn-email').value = item.email || '';
-        document.getElementById('forn-morada').value = item.morada || '';
+		document.getElementById('forn-morada').value = item.morada || '';
+		document.getElementById('forn-ativ').value = item.atividade || '';
     }
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function cancelarEdit(mod) {
+    if(mod === 'ped'){
+        document.getElementById('ped-obr').disabled = false;
+        document.getElementById('ped-prov').disabled = false;
+        document.getElementById('ped-mat').disabled = false;
+        document.getElementById('ped-qtd').disabled = false;
+    }
     editingId = null;
     const pre = getPrefix(mod);
     const form = document.querySelector(`#mod-${mod} .form-box`);
@@ -1380,7 +1404,8 @@ async function saveForn() {
         tel: document.getElementById('forn-tel').value,
         telm: document.getElementById('forn-telm').value,
         email: document.getElementById('forn-email').value,
-        morada: document.getElementById('forn-morada').value,
+		morada: document.getElementById('forn-morada').value,
+		atividade: document.getElementById('forn-ativ').value,
         notas: old ? old.notas || '' : '',
         files: old ? old.files || [] : [],
         d_crea: isNew ? new Date().toLocaleString() : old.d_crea,
@@ -1409,8 +1434,12 @@ function renderForn() {
     if(!list) return;
     list.innerHTML = '';
     const fNome = document.getElementById('filt-forn-nome').value.toLowerCase();
+	const fAtiv = document.getElementById('filt-forn-ativ') ? document.getElementById('filt-forn-ativ').value.toLowerCase() : '';
 
-    let data = DB.forn.filter(f => !fNome || (f.nome && f.nome.toLowerCase().includes(fNome)));
+    let data = DB.forn.filter(f => 
+    	(!fNome || (f.nome && f.nome.toLowerCase().includes(fNome))) &&
+    	(!fAtiv || (f.atividade || '').toLowerCase().includes(fAtiv))
+	);
 
     data.reverse().forEach(f => {
         list.innerHTML += `
@@ -1422,6 +1451,7 @@ function renderForn() {
                     <div><b>Telemóvel:</b> ${f.telm || '---'}</div>
                     <div class="full-w"><b>E-mail:</b> ${f.email || '---'}</div>
                     <div class="full-w"><b>Morada:</b> ${f.morada || '---'}</div>
+					<div class="full-w"><b>Atividade:</b> ${f.atividade || '---'}</div>
                 </div>
                 ${getCardButtons('forn', f)}
             </div>`;
