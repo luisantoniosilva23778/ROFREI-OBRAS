@@ -1212,15 +1212,20 @@ function exportarExcel(mod) {
 
 // --- FUNCIONES DE SOPORTE ADICIONALES ---
 function updateSelects() {
+    // 1. Obras solo en ejecución PARA LOS FORMULARIOS de creación/edición
     const execObras = DB.obras.filter(o => o.est === 'Em Execução');
     const options = execObras.map(o => `<option value="${o.id}">${o.num} - ${o.nom}</option>`).join('');
-    ['h-obr', 'obs-obr', 'ne-obr', 'ped-obr', 'tar-obr','filt-h-obr','filt-obs-obr','filt-tar-obr','filt-ne-obr','filt-ped-obr'].forEach(id => {
-        if(document.getElementById(id)) document.getElementById(id).innerHTML = options || '<option>Sem Obras Ativas</option>';
+    
+    // Retiramos los 'filt-x-obr' de este array para que no rompan los filtros generales,
+    // que son alimentados por la función populateObraFilter() con TODAS las obras históricas.
+    ['h-obr', 'obs-obr', 'ne-obr', 'ped-obr', 'tar-obr'].forEach(id => {
+        if(document.getElementById(id)) document.getElementById(id).innerHTML = options || '<option value="">Sem Obras Ativas</option>';
     });
 
     const userOpts = DB.users.map(u => `<option value="${u.u}">${u.u} (${u.role})</option>`).join('');
     if(document.getElementById('tar-users')) document.getElementById('tar-users').innerHTML = userOpts;
 }
+
 
 function autoNumNE() {
     if(!editingId) {
