@@ -652,7 +652,7 @@ async function saveNE() {
         }
     });
 
-        const condText = document.getElementById('ne-cond').value;
+            const condText = document.getElementById('ne-cond').value;
     const data = {
         id, num, 
         obrId: obrSel.value, 
@@ -660,30 +660,15 @@ async function saveNE() {
         prov: document.getElementById('ne-prov').value,
         est: document.getElementById('ne-est').value,
         cond: condText,
-        notas: condText, // Se guarda automáticamente en el botón de Notas de la NE
+        notas: condText,
         items,
         u_edit: user.u || user.n, d_edit: new Date().toLocaleString(),
         d_crea: old ? old.d_crea : new Date().toLocaleString(),
         u_crea: old ? old.u_crea : (user.u || user.n)
     };
 
-    // Generar PDF Automático
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text(`Nota de Encomenda: ${num}`, 10, 10);
-    
-    // Inyectar Usuario, Fecha y Condiciones de Entrega en el PDF
-    doc.setFontSize(10);
-    doc.text(`Criado por: ${data.u_crea} | Data: ${data.d_crea}`, 10, 16);
-    const splitCond = doc.splitTextToSize(`Condicoes de Entrega: ${condText || 'N/A'}`, 190);
-    doc.text(splitCond, 10, 22);
-
-    const tableData = items.map(i => [i.q, i.u, i.p, i.pr, i.t]);
-    doc.autoTable({ head: [['Qtd','Un','Produto','Preço','Total']], body: tableData, startY: 26 + (splitCond.length * 4) });
-    const pdfBase64 = doc.output('datauristring');
-
-    
-        let version = 1;
+    // 1. Calcular versión PRIMERO para usarla en el nombre del PDF
+    let version = 1;
     if(old && old.files) {
         const versionesExistentes = old.files
             .filter(f => f.n.startsWith(`NE${num}.V`) && f.n.endsWith('.pdf'))
@@ -693,26 +678,53 @@ async function saveNE() {
             });
         if(versionesExistentes.length > 0) version = Math.max(...versionesExistentes) + 1;
     }
-    
     const nombreReferencia = `NE${num}.V${version}`;
-    const pdfFile = { 
-        n: `${nombreReferencia}.pdf`, 
-        d: pdfBase64 
-    };
+
+    // 2. Generar PDF Automático con todos los datos
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFontSize(14);
+    doc.text(`Nota de Encomenda: ${nombreReferencia}`, 10, 12);
+    
+    doc.setFontSize(10);
+    doc.text(`Obra: ${data.obrNom}`, 10, 20);
+    doc.text(`Fornecedor: ${data.prov || 'N/A'}`, 10, 26);
+    doc.text(`Criado por: ${data.u_crea} | Data: ${data.d_crea}`, 10, 32);
+    
+    const splitCond = doc.splitTextToSize(`Condições de Entrega: ${condText || 'N/A'}`, 190);
+    doc.text(splitCond, 10, 38);
+
+    // Formatear la tabla a Euros
+    const tableData = items.map(i => [
+        i.q, i.u, i.p, 
+        `€ ${Number(i.pr).toFixed(2)}`, 
+        `€ ${Number(i.t).toFixed(2)}`
+    ]);
+    
+    doc.autoTable({ 
+        head: [['Qtd','Un','Produto','Preço Un.','Total']], 
+        body: tableData, 
+        startY: 42 + (splitCond.length * 4) 
+    });
+    
+    const pdfBase64 = doc.output('datauristring');
+    const pdfFile = { n: `${nombreReferencia}.pdf`, d: pdfBase64 };
 
     data.files = old && old.files ? [...old.files] : [];
     data.files.push(pdfFile);
 
-    // Guardar Historial
+    // Guardar BD e Historial
     const log = generateDiff(old, data);
     await db.ref(`ne/${id}`).set(data);
+    
+    // Notificación en N.E. al crear o modificar
+    createNotif('ne', `N.E. ${old ? 'alterada' : 'criada'}: ${nombreReferencia}`);
+
     if(log) await db.ref(`hist/${id}`).push({ 
-        u: user.u || user.n, 
-        ts: data.d_edit, 
-        log,
-        before: old || {},
-        after: data
+        u: user.u || user.n, ts: data.d_edit, log, before: old || {}, after: data
     });
+
 
         // Sincronizar Pedidos
     for(let it of items) {
