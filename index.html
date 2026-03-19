@@ -779,13 +779,6 @@ async function saveNE() {
         body: tableData, 
         startY: 76 + (splitCond.length * 4) 
     });
-    
-    const pageCount = doc.internal.getNumberOfPages();
-	for(let i=1;i<=pageCount;i++){
-    	doc.setPage(i);
-    	doc.setFontSize(8);
-    	doc.text(emp.web || '', 10, 290);
-	}
 
 	const pageCount = doc.internal.getNumberOfPages();
 	for(let i = 1; i <= pageCount; i++) {
