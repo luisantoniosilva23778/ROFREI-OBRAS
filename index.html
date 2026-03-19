@@ -737,6 +737,7 @@ async function saveNE() {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    const emp = DB.empresa || {}; // <--- AÑADIR ESTA LÍNEA AQUÍ
     
     // VALIDACIÓN DE LOGO PARA EVITAR ERROR PNG
     if (DB.empresa && DB.empresa.logo && DB.empresa.logo.length > 50) {
@@ -837,6 +838,17 @@ function populateObraFilter(selectId) {
 // --- MOTOR DE RENDERIZADO GENERAL ---
 function renderAll() {
     if(!user) return;
+    
+    // CARGAR LOS DADOS DA EMPRESA VISUALMENTE
+    try { 
+        const emp = DB.empresa || {};
+        if(document.getElementById('emp-nome')) document.getElementById('emp-nome').value = emp.nome || '';
+        if(document.getElementById('emp-nif')) document.getElementById('emp-nif').value = emp.nif || '';
+        if(document.getElementById('emp-morada')) document.getElementById('emp-morada').value = emp.morada || '';
+        if(document.getElementById('emp-web')) document.getElementById('emp-web').value = emp.web || '';
+        if(document.getElementById('emp-logo')) document.getElementById('emp-logo').value = emp.logo || '';
+    } catch(e) { console.error("Erro Empresa:", e); }
+
     // Llenar filtros antes de renderizar las listas
     populateObraFilter('filt-h-obr');
     populateObraFilter('filt-obs-obr');
@@ -1160,6 +1172,7 @@ function prepEdit(mod, id) {
 }
 
 function cancelarEdit(mod) {
+    if(mod === 'empresa') return; // <--- AÑADIR ESTA LÍNEA (Evita que borre los datos visuales)
     if(mod === 'ped'){
         document.getElementById('ped-obr').disabled = false;
         document.getElementById('ped-prov').disabled = false;
