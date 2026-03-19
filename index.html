@@ -977,14 +977,15 @@ function prepEdit(mod, id) {
         document.getElementById('ne-est').value = item.est;
         document.getElementById('ne-body').innerHTML = '';
         if(item.items) item.items.forEach(it => addNERow(it));
-    } else if(mod === 'ped') {
+        } else if(mod === 'ped') {
         document.getElementById('ped-obr').value = item.obrId;
         document.getElementById('ped-prov').value = item.prov || '';
         document.getElementById('ped-mat').value = item.mat;
         document.getElementById('ped-qtd').value = item.qtd;
         document.getElementById('ped-est').value = item.est;
         document.getElementById('ped-guia').value = item.guia || '';
-    } else if(mod === 'tar') {
+        document.getElementById('ped-ne').value = item.neNum || '';
+        } else if(mod === 'tar') {
         document.getElementById('tar-txt').value = item.txt;
         document.getElementById('tar-obr').value = item.obrId;
         document.getElementById('tar-est').value = item.est;
