@@ -79,6 +79,7 @@
 
 <div id="app" style="display: none;">
     <nav>
+		<button onclick="showMod('empresa')">Empresa</button>
         <button id="nav-obras" onclick="showMod('obras')">🏗️ OBRAS</button>
         <button id="nav-horas" onclick="showMod('horas')">🕒 HORAS</button>
         <button id="nav-obs" onclick="showMod('obs')">📝 OBS</button>
@@ -376,6 +377,19 @@
         </section>
 
     </div>
+<div id="mod-empresa" class="mod-sec">
+    <div class="form-box">
+        <h3>Dados da Empresa</h3>
+        <div class="grid">
+            <div><label>Nome</label><input id="emp-nome"></div>
+            <div><label>NIF</label><input id="emp-nif"></div>
+            <div class="full-w"><label>Morada</label><input id="emp-morada"></div>
+            <div class="full-w"><label>Website</label><input id="emp-web"></div>
+            <div class="full-w"><label>Logo (Base64)</label><input id="emp-logo"></div>
+        </div>
+        <button class="btn-main" onclick="saveEmpresa()">Guardar</button>
+    </div>
+</div>
 </div>
 
 <div id="modal-hist" class="modal">
@@ -496,7 +510,8 @@ function sync() {
         DB.obs = val.obs ? Object.values(val.obs) : [];
 		DB.users = val.users ? Object.values(val.users) : [];
         DB.notif = val.notif ? Object.values(val.notif) : []; 
-        DB.forn = val.forn ? Object.values(val.forn) : []; 
+        DB.forn = val.forn ? Object.values(val.forn) : [];
+		DB.empresa = val.empresa || {}; 
         if(DB.users.length === 0) {
     		const adminId = 'ADMIN_DEFAULT';
     		db.ref(`users/${adminId}`).set({
@@ -717,8 +732,18 @@ async function saveNE() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 	const emp = DB.empresa || {};
-    doc.setFontSize(14);
-    doc.text(`Nota de Encomenda: ${nombreReferencia}`, 10, 12);
+
+	if(emp.logo) {
+    	doc.addImage(emp.logo, 'PNG', 140, 30, 50, 20);
+	}
+
+	doc.setFontSize(10);
+	doc.text(emp.nome || '', 140, 12);
+	doc.text(`NIF: ${emp.nif || ''}`, 140, 18);
+	doc.text(emp.morada || '', 140, 24);
+
+	doc.setFontSize(14);
+	doc.text(`Nota de Encomenda: ${nombreReferencia}`, 10, 12);
 	doc.text(emp.nome || '', 140, 12);
 	doc.text(`NIF: ${emp.nif || ''}`, 140, 18);
 	doc.text(emp.morada || '', 140, 24);
@@ -757,6 +782,13 @@ async function saveNE() {
     
     const pageCount = doc.internal.getNumberOfPages();
 	for(let i=1;i<=pageCount;i++){
+    	doc.setPage(i);
+    	doc.setFontSize(8);
+    	doc.text(emp.web || '', 10, 290);
+	}
+
+	const pageCount = doc.internal.getNumberOfPages();
+	for(let i = 1; i <= pageCount; i++) {
     	doc.setPage(i);
     	doc.setFontSize(8);
     	doc.text(emp.web || '', 10, 290);
@@ -816,7 +848,9 @@ function renderAll() {
     try { renderTar(); } catch(e) { console.error("Erro Tasks:", e); }
     try { renderNotif(); } catch(e) { console.error("Erro Notif:", e); }
 	try { renderUsers(); } catch(e) { console.error("Erro Users:", e); }
-    try { renderForn(); } catch(e) { console.error("Erro Forn:", e); }
+    if(currentMod === 'forn') {
+    	try { renderForn(); } catch(e) { console.error("Erro Forn:", e); }
+	}
 }
 
 
@@ -1426,6 +1460,20 @@ async function saveForn() {
     cancelarEdit('forn');
 }
 
+async function saveEmpresa() {
+    const data = {
+        nome: document.getElementById('emp-nome').value,
+        nif: document.getElementById('emp-nif').value,
+        morada: document.getElementById('emp-morada').value,
+        web: document.getElementById('emp-web').value,
+        logo: document.getElementById('emp-logo').value
+    };
+
+    await db.ref('empresa').set(data);
+    alert("Dados da empresa guardados!");
+}
+
+	
 function renderForn() {
     // AÑADIR ESTO: Actualiza las sugerencias para NE y Pedidos
     const dlist = document.getElementById('lista-forn-sug');
