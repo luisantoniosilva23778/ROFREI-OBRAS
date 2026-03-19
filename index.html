@@ -985,11 +985,12 @@ function prepEdit(mod, id) {
             document.getElementById('h-est').disabled = false;
             document.getElementById('h-est').value = item.est;
         }
-    } else if(mod === 'ne') {
+        } else if(mod === 'ne') {
         document.getElementById('ne-num').value = item.num;
         document.getElementById('ne-obr').value = item.obrId;
         document.getElementById('ne-prov').value = item.prov;
         document.getElementById('ne-est').value = item.est;
+        document.getElementById('ne-cond').value = item.cond || '';
         document.getElementById('ne-body').innerHTML = '';
         if(item.items) item.items.forEach(it => addNERow(it));
         } else if(mod === 'ped') {
