@@ -220,7 +220,8 @@
 				<option>Emitida</option>
 				<option>Enviada ao Fornecedor</option>
 				<option>Sem Efeito</option>
-				</select> placeholder="Filtrar Nº..." oninput="renderNE()"> <input type="text" id="filt-ne-all" placeholder="Pesquisa geral..." oninput="renderNE()">
+				</select>
+				<input type="number" id="filt-ne-ano" placeholder="Filtrar Ano..." oninput="renderNE()">
             </div>
             <div id="mass-ne" class="mass-panel">
                 <button onclick="openMassUpload('ne')" class="actions b-file">📁 Anexar aos Selecionados</button>
@@ -687,7 +688,9 @@ async function saveNE() {
 
     const fData = DB.forn.find(f => f.nome.toLowerCase() === provNome.toLowerCase()) || {};
     const old = DB.ne.find(x => x.id === id);
-    const nombreReferencia = `NE${num}.${fData.nome || provNome}`;
+    const version = old && old.version !== undefined ? old.version + 1 : 0;
+    const numWithVersion = `${num}.V${version}`;
+    const nombreReferencia = `${numWithVersion}.${fData.nome || provNome}`;
 
     // Marcar pedidos antiguos como Sem Efeito
     const oldPeds = DB.ped.filter(p => p.neId === id);
@@ -712,7 +715,7 @@ async function saveNE() {
 
     const condText = document.getElementById('ne-cond').value;
     const data = {
-        id, num, obrId: obrSel.value,
+        id, num, version, obrId: obrSel.value,
         obrNom: obrSel.options[obrSel.selectedIndex].text,
         prov: provNome, fornId: fData.id || null,
         est: document.getElementById('ne-est').value,
@@ -730,7 +733,7 @@ async function saveNE() {
     // Encabezado básico
     if (emp.logo) { try { doc.addImage(emp.logo, 'PNG', 10, 10, 40, 15); } catch (e) {} }
     doc.setFontSize(14).setFont(undefined, 'bold').text("NOTA DE ENCOMENDA", 105, 15, { align: "center" });
-    doc.setFontSize(10).setFont(undefined, 'normal').text(`Nº: ${num}`, 105, 20, { align: "center" });
+    doc.setFontSize(10).setFont(undefined, 'normal').text(`Nº: ${numWithVersion}`, 105, 20, { align: "center" });
 
     // 1. Datos del Fornecedor (REQUERIMIENTO 1: Tamaño más pequeño)
     doc.setFontSize(8); 
@@ -980,11 +983,14 @@ function renderNE() {
     const fObr = document.getElementById('filt-ne-obr')?.value || '';
 	const fProv = document.getElementById('filt-ne-prov')?.value.toLowerCase() || '';
 	const fEst = document.getElementById('filt-ne-est')?.value || '';
+	const fAno = document.getElementById('filt-ne-ano')?.value || '';
 
 	let data = DB.ne.filter(n =>
     	(!fObr || n.obrNom === fObr) &&
     	(!fProv || (n.prov || '').toLowerCase().includes(fProv)) &&
-    	(!fEst || n.est === fEst) && n.num && n.num.toLowerCase().includes(fNum));
+    	(!fEst || n.est === fEst) && 
+        (!fAno || (n.num && n.num.includes(fAno))) && 
+        n.num && n.num.toLowerCase().includes(fNum));
 
     data.reverse().forEach(n => {
         list.innerHTML += `
@@ -1337,8 +1343,17 @@ function updateSelects() {
 
 function autoNumNE() {
     if(!editingId) {
-        const last = DB.ne.length > 0 ? Math.max(...DB.ne.map(n => parseInt(n.num) || 0)) : 0;
-        document.getElementById('ne-num').value = String(last + 1).padStart(3, '0');
+        const currentYear = new Date().getFullYear().toString();
+        const nesThisYear = DB.ne.filter(n => n.num && n.num.includes('.' + currentYear));
+        let maxNum = 0;
+        nesThisYear.forEach(n => {
+            const parts = n.num.split('.');
+            if(parts.length > 0) {
+                const numPart = parseInt(parts[0].replace('NE', ''), 10);
+                if(!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+            }
+        });
+        document.getElementById('ne-num').value = `NE${String(maxNum + 1).padStart(3, '0')}.${currentYear}`;
     }
 }
 
