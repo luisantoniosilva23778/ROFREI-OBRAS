@@ -827,18 +827,23 @@ function renderPed() {
 	const fProv = document.getElementById('filt-ped-prov')?.value.toLowerCase() || '';
 	const fNE = document.getElementById('filt-ped-ne')?.value || '';
 	const fGuia = document.getElementById('filt-ped-guia')?.value || '';
+    const fMes = document.getElementById('filt-ped-mes')?.value || '';
 
-	let data = DB.ped.filter(p =>
-    	(!fObr || p.obrNom === fObr) &&
-    	(!fProv || (p.prov || '').toLowerCase().includes(fProv)) &&
-    	(!fNE || (p.neNum || '').includes(fNE)) &&
-    	(!fGuia || (p.guia || '').includes(fGuia)) && (!fEst || p.est === fEst));
+	let data = DB.ped.filter(p => {
+        const mesData = p.dataEst ? p.dataEst.split('-')[1] : '';
+        return (!fObr || p.obrNom === fObr) &&
+               (!fProv || (p.prov || '').toLowerCase().includes(fProv)) &&
+               (!fNE || (p.neNum || '').includes(fNE)) &&
+               (!fGuia || (p.guia || '').includes(fGuia)) && 
+               (!fEst || p.est === fEst) &&
+               (!fMes || mesData === fMes);
+    });
 
     data.reverse().forEach(p => {
         list.innerHTML += `
             <div class="card" style="border-left-color: ${p.est === 'Entregue pelo Fornecedor' ? 'var(--ok)' : 'var(--warn)'}">
                 <input type="checkbox" class="chk-mass" value="${p.id}">
-                <div class="card-grid">
+                <div class="card-grid" style="align-items: center;">
                     <div><b>Obra:</b> ${p.obrNom}</div>
                     <div><b>Material:</b> ${p.mat}</div>
                     <div><b>Qtd:</b> ${p.qtd}</div>
@@ -846,11 +851,16 @@ function renderPed() {
 					<div><b>Nº NE:</b> ${p.neNum || '---'}</div>
                     <div><b>Guia:</b> ${p.guia || 'Pendente'}</div>
                     <div><b>Estado:</b> ${p.est}</div>
+                    <div style="background:#f1f5f9; padding:5px; border-radius:4px; border:1px solid #cbd5e1;">
+                        <b style="color:var(--acc); display:block; margin-bottom:2px; font-size:10px;">📅 Data Estimada:</b>
+                        <input type="date" value="${p.dataEst || ''}" onchange="updateSinglePedData('${p.id}', this.value)" style="padding:4px; border:1px solid #ccc; border-radius:3px; font-size:10px; width:90%">
+                    </div>
                 </div>
                 ${getCardButtons('ped', p)}
             </div>`;
     });
 }
+
 
 function renderNE() {
     const list = document.getElementById('list-ne'); list.innerHTML = '';
