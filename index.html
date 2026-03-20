@@ -746,18 +746,18 @@ async function saveNE() {
     // 1. Datos del Fornecedor (REQUERIMIENTO 1: Tamaño más pequeño)
     doc.setFontSize(8); 
     if (fData.nome) {
-        doc.setFont(undefined, 'bold').text("FORNECEDOR | EMPREITEIRO:", 10, 38);
+        doc.setFont(undefined, 'bold').text("FORNECEDOR | EMPREITEIRO:", 10, 53);
         doc.setFont(undefined, 'normal');
-        doc.text(`Nome: ${fData.nome}`, 10, 43);
-        doc.text(`NIF: ${fData.nif || '---'}`, 10, 48);
-        doc.text(`Morada: ${fData.morada || '---'}`, 10, 53);
-        doc.text(`Tel: ${fData.tel || '---'} / Telm: ${fData.telm || '---'}`, 100, 48);
-        doc.text(`E-mail: ${fData.email || '---'}`, 100, 53);
+        doc.text(`Nome: ${fData.nome}`, 10, 58);
+        doc.text(`NIF: ${fData.nif || '---'}`, 10, 63);
+        doc.text(`Morada: ${fData.morada || '---'}`, 10, 68);
+        doc.text(`Tel: ${fData.tel || '---'} / Telm: ${fData.telm || '---'}`, 100, 63);
+        doc.text(`E-mail: ${fData.email || '---'}`, 100, 68);
     } else {
-        doc.text(`Nome: ${provNome} (Fornecedor não registado)`, 10, 43);
+        doc.text(`Nome: ${provNome} (Fornecedor não registado)`, 10, 58);
     }
 
-    doc.setFontSize(10).setFont(undefined, 'bold').text(`OBRA: ${data.obrNom}`, 10, 65);
+    doc.setFontSize(10).setFont(undefined, 'bold').text(`OBRA: ${data.obrNom}`, 10, 38);
 
     // Cálculos de Tabla
     const totalSuma = items.reduce((acc, item) => acc + Number(item.t || 0), 0);
