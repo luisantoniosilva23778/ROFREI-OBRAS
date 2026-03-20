@@ -693,8 +693,26 @@ async function saveNE() {
     
     if(!obrSel.value || !provNome) return alert("Obra e Fornecedor são obrigatórios!");
 
-    const fData = DB.forn.find(f => f.nome.toLowerCase() === provNome.toLowerCase()) || {};
     const old = DB.ne.find(x => x.id === id);
+    const novoEst = document.getElementById('ne-est').value;
+    
+    if (old && old.est !== novoEst) {
+        if (!confirm("Atenção: A alteração de estado desta nota de encomienda modificará automaticamente o estado dos pedidos de materiais vigentes associados (excluindo os anulados por retificação). Deseja continuar?")) return;
+    }
+
+    let fData = DB.forn.find(f => f.nome.toLowerCase() === provNome.toLowerCase());
+    if(!fData) {
+        alert(`O fornecedor "${provNome}" não existe na base de dados. Por favor, insira os dados em falta.`);
+        const nif = prompt("NIF:") || "";
+        const morada = prompt("Morada:") || "";
+        const tel = prompt("Telefone:") || "";
+        const telm = prompt("Telemóvel:") || "";
+        const email = prompt("E-mail:") || "";
+        const fornId = `FORN_${Date.now()}_${Math.random().toString(36).substr(2,5)}`;
+        fData = { id: fornId, nome: provNome, nif, morada, tel, telm, email, atividade: "", d_crea: new Date().toLocaleString(), u_crea: user.u || user.n, d_edit: new Date().toLocaleString(), u_edit: user.u || user.n };
+        await db.ref(`forn/${fornId}`).set(fData);
+    }
+    const contatoNome = prompt("Nome da pessoa de contacto que representa o fornecedor:") || "---";
     const version = old && old.version !== undefined ? old.version + 1 : 0;
     const numWithVersion = `${num}.V${version}`;
     const nombreReferencia = `${numWithVersion}.${fData.nome || provNome}`;
@@ -751,10 +769,12 @@ async function saveNE() {
         doc.text(`Nome: ${fData.nome}`, 10, 53);
         doc.text(`NIF: ${fData.nif || '---'}`, 10, 58);
         doc.text(`Morada: ${fData.morada || '---'}`, 10, 63);
+        doc.text(`Contacto: ${contatoNome}`, 100, 53);
         doc.text(`Tel: ${fData.tel || '---'} / Telm: ${fData.telm || '---'}`, 100, 58);
         doc.text(`E-mail: ${fData.email || '---'}`, 100, 63);
     } else {
         doc.text(`Nome: ${provNome}`, 10, 53);
+        doc.text(`Contacto: ${contatoNome}`, 100, 53);
     }
 	
 	// Datos de la obra
@@ -820,12 +840,16 @@ async function saveNE() {
     await db.ref(`ne/${id}`).set(data);
     createNotif('ne', `N.E. ${old ? 'alterada' : 'criada'}: ${nombreReferencia}`);
     
+    let novoPedEst = 'Por Solicitar';
+    if (data.est === 'Enviada ao Fornecedor') novoPedEst = 'Enviado ao Fornecedor';
+    if (data.est === 'Sem Efeito') novoPedEst = 'Sem Efeito';
+
     for(let it of items) {
         const pedId = `PED_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         await db.ref(`ped/${pedId}`).set({
             id: pedId, obrId: data.obrId, obrNom: data.obrNom, prov: data.prov,
             mat: it.p, qtd: it.q, neNum: numWithVersion, neId: id,
-            est: 'Enviado ao Fornecedor', u_crea: data.u_crea, d_crea: data.d_crea, notas: condText
+            est: novoPedEst, u_crea: data.u_crea, d_crea: data.d_crea, notas: condText
         });
     }
 
@@ -1445,10 +1469,16 @@ async function deleteRecord(mod, id) {
         return alert("Acesso negado: Apenas utilizadores com credencial de Administrador podem eliminar registos.");
     }
     
-    if(confirm("Tem a certeza que deseja eliminar este registo permanentemente?")) {
-        await db.ref(`${mod}/${id}`).remove();
-        alert("Registo eliminado com sucesso.");
+    if(mod === 'ne') {
+        if(!confirm("Atenção: Eliminar esta Nota de Encomenda apagará permanentemente todos os Pedidos de Materiais associados (incluindo os que estão Sem Efeito). Deseja continuar?")) return;
+        const linkedPeds = DB.ped.filter(p => p.neId === id);
+        for(let p of linkedPeds) await db.ref(`ped/${p.id}`).remove();
+    } else {
+        if(!confirm("Tem a certeza que deseja eliminar este registo permanentemente?")) return;
     }
+
+    await db.ref(`${mod}/${id}`).remove();
+    alert("Registo eliminado com sucesso.");
 }
 
 async function deleteMassRecords(mod) {
@@ -1458,12 +1488,20 @@ async function deleteMassRecords(mod) {
     const selected = Array.from(document.querySelectorAll(`#mod-${mod} .chk-mass:checked`)).map(cb => cb.value);
     if(selected.length === 0) return alert("Selecione pelo menos um registo para eliminar.");
     
-    if(confirm(`Tem a certeza que deseja eliminar ${selected.length} registos permanentemente?`)) {
-        for(let id of selected) {
-            await db.ref(`${mod}/${id}`).remove();
-        }
-        alert("Registos eliminados com sucesso.");
+    if(mod === 'ne') {
+        if(!confirm(`Atenção: Eliminar estas ${selected.length} Notas de Encomenda apagará permanentemente todos os Pedidos de Materiais associados. Deseja continuar?`)) return;
+    } else {
+        if(!confirm(`Tem a certeza que deseja eliminar ${selected.length} registos permanentemente?`)) return;
     }
+
+    for(let id of selected) {
+        if(mod === 'ne') {
+            const linkedPeds = DB.ped.filter(p => p.neId === id);
+            for(let p of linkedPeds) await db.ref(`ped/${p.id}`).remove();
+        }
+        await db.ref(`${mod}/${id}`).remove();
+    }
+    alert("Registos eliminados com sucesso.");
 }
 
 
