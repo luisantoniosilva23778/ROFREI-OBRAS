@@ -1397,8 +1397,9 @@ async function handleFileUpload() {
             activeFileId.ids.forEach((id) => {
                 const item = DB[activeFileId.mod].find(x => x.id === id);
                 if (item) {
-                    const updatedFiles = [...(item.files || []), fileData];
-                    updates[`${activeFileId.mod}/${id}/files`] = updatedFiles;
+                    const key = `${activeFileId.mod}/${id}/files`;
+					const existingFiles = updates[key] || item.files || [];
+					updates[key] = [...existingFiles, fileData];
                 }
             });
 
@@ -1406,8 +1407,9 @@ async function handleFileUpload() {
 
             const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
             if (item) {
-                const updatedFiles = [...(item.files || []), fileData];
-                updates[`${activeFileId.mod}/${activeFileId.id}/files`] = updatedFiles;
+                const key = `${activeFileId.mod}/${activeFileId.id}/files`;
+				const existingFiles = updates[key] || item.files || [];
+				updates[key] = [...existingFiles, fileData];
             }
         }
 
