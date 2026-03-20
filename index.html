@@ -1360,26 +1360,19 @@ async function handleFileUpload() {
             return;
         }
 
-        const reader = new FileReader();
+        let base64;
 
-        const base64 = await new Promise((resolve) => {
-            reader.onload = async (e) => {
-
-                // 🔥 LIBERA EL HILO (MEJORA UI)
-                await new Promise(r => setTimeout(r, 0));
-
-                let result = e.target.result;
-
-                // 🔥 COMPRESIÓN SOLO PARA IMÁGENES
-                if (f.type.startsWith("image/")) {
-                    result = await compressImage(result);
-                }
-
-                resolve(result);
-            };
-
-            reader.readAsDataURL(f.slice(0, f.size));
-        });
+        if (f.type.startsWith("image/")) {
+            // 🔥 COMPRESIÓN EN WEB WORKER (NO BLOQUEA LA PANTALLA)
+            base64 = await compressImage(f);
+        } else {
+            // 🔥 LECTURA NORMAL PARA PDFs O DOCUMENTOS
+            const reader = new FileReader();
+            base64 = await new Promise((resolve) => {
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(f.slice(0, f.size));
+            });
+        }
 
         // 🔥 REDUCIR BASE64 (QUITAR PREFIJO)
         const cleanBase64 = base64.split(',')[1];
@@ -1721,26 +1714,54 @@ function openHist(id) {
 
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-async function compressImage(base64) {
-    return new Promise(resolve => {
-        const img = new Image();
-        img.src = base64;
-
-        img.onload = () => {
-            const canvas = document.createElement("canvas");
-
-            const MAX_WIDTH = 1024;
-            const scale = Math.min(1, MAX_WIDTH / img.width);
-
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            // 🔥 CALIDAD 0.7 EN WEBP = MENOS PESO Y MAYOR VELOCIDAD
-            resolve(canvas.toDataURL("image/webp", 0.7));
+async function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        // 🔥 WORKER EN LÍNEA: Se ejecuta en un hilo separado
+        const workerCode = `
+            self.onmessage = async function(e) {
+                try {
+                    const bmp = await createImageBitmap(e.data);
+                    const MAX_WIDTH = 1024;
+                    const scale = Math.min(1, MAX_WIDTH / bmp.width);
+                    
+                    // OffscreenCanvas funciona fuera del DOM
+                    const canvas = new OffscreenCanvas(bmp.width * scale, bmp.height * scale);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+                    
+                    const blob = await canvas.convertToBlob({ type: 'image/webp', quality: 0.7 });
+                    
+                    // FileReaderSync es exclusivo para Web Workers y súper veloz
+                    const reader = new FileReaderSync();
+                    self.postMessage({ success: true, base64: reader.readAsDataURL(blob) });
+                } catch (err) {
+                    self.postMessage({ success: false, error: err.message });
+                }
+            };
+        `;
+        
+        // Convertimos el código string a una URL temporal para instanciar el Worker
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        const worker = new Worker(URL.createObjectURL(blob));
+        
+        worker.onmessage = (e) => {
+            if (e.data.success) {
+                resolve(e.data.base64);
+            } else {
+                console.error("Erro na compressão:", e.data.error);
+                reject(e.data.error);
+            }
+            worker.terminate(); // 🔥 Fundamental para liberar RAM tras cada imagen
         };
+        
+        worker.onerror = (err) => {
+            console.error("Erro fatal no Worker:", err);
+            reject(err);
+            worker.terminate();
+        };
+        
+        // Enviamos el archivo original directamente al Worker
+        worker.postMessage(file);
     });
 }
 	
