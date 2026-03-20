@@ -712,7 +712,7 @@ async function saveNE() {
         fData = { id: fornId, nome: provNome, nif, morada, tel, telm, email, atividade: "", d_crea: new Date().toLocaleString(), u_crea: user.u || user.n, d_edit: new Date().toLocaleString(), u_edit: user.u || user.n };
         await db.ref(`forn/${fornId}`).set(fData);
     }
-    const contatoNome = prompt("Nome da pessoa de contacto que representa o fornecedor:") || "---";
+    const contatoNome = old?.contatoNome || prompt("Nome da pessoa de contacto que representa o fornecedor:") || "---";
 
     let items = [];
     document.querySelectorAll('#ne-body tr').forEach(tr => {
