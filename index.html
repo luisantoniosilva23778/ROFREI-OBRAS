@@ -1356,7 +1356,7 @@ async function handleFileUpload() {
     await Promise.all(Array.from(files).map(async (f) => {
 
         // 🔴 VALIDACIÓN DE TAMAÑO
-        if (f.size > 2 * 1024 * 1024) {
+        if (f.size > 10 * 1024 * 1024) {
             alert(`Ficheiro demasiado grande: ${f.name}`);
             processed++;
 
