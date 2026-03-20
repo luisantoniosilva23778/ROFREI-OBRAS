@@ -739,22 +739,22 @@ async function saveNE() {
 
     // Encabezado básico
     if (emp.logo) { try { const props = doc.getImageProperties(emp.logo); const ratio = props.width / props.height; let w = 80; let h = w / ratio; if(h > 40){ h = 40; w = h * ratio; } doc.addImage(emp.logo, 'PNG', 10, 10, w, h); } catch (e) {} }
-    doc.setFontSize(14).setFont(undefined, 'bold').text("NOTA DE ENCOMENDA", 400, 15, { align: "right" });
-    doc.setFontSize(10).setFont(undefined, 'normal').text(`Nº: ${numWithVersion}`, 400, 20, { align: "right" });
+    doc.setFontSize(14).setFont(undefined, 'bold').text("NOTA DE ENCOMENDA", 200, 15, { align: "right" });
+    doc.setFontSize(10).setFont(undefined, 'normal').text(`Nº: ${numWithVersion}`, 200, 20, { align: "right" });
 
 
     // 1. Datos del Fornecedor (REQUERIMIENTO 1: Tamaño más pequeño)
     doc.setFontSize(8); 
     if (fData.nome) {
-        doc.setFont(undefined, 'bold').text("FORNECEDOR | EMPREITEIRO:", 10, 53);
+        doc.setFont(undefined, 'bold').text("FORNECEDOR | EMPREITEIRO:", 10, 48);
         doc.setFont(undefined, 'normal');
-        doc.text(`Nome: ${fData.nome}`, 10, 58);
-        doc.text(`NIF: ${fData.nif || '---'}`, 10, 63);
-        doc.text(`Morada: ${fData.morada || '---'}`, 10, 68);
-        doc.text(`Tel: ${fData.tel || '---'} / Telm: ${fData.telm || '---'}`, 100, 63);
-        doc.text(`E-mail: ${fData.email || '---'}`, 100, 68);
+        doc.text(`Nome: ${fData.nome}`, 10, 53);
+        doc.text(`NIF: ${fData.nif || '---'}`, 10, 58);
+        doc.text(`Morada: ${fData.morada || '---'}`, 10, 63);
+        doc.text(`Tel: ${fData.tel || '---'} / Telm: ${fData.telm || '---'}`, 100, 58);
+        doc.text(`E-mail: ${fData.email || '---'}`, 100, 63);
     } else {
-        doc.text(`Nome: ${provNome} (Fornecedor não registado)`, 10, 58);
+        doc.text(`Nome: ${provNome} (Fornecedor não registado)`, 10, 53);
     }
 
     doc.setFontSize(10).setFont(undefined, 'bold').text(`OBRA: ${data.obrNom}`, 10, 38);
