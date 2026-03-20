@@ -1339,7 +1339,6 @@ async function deleteFile(index) {
 }
 
 async function handleFileUpload() {
-async function handleFileUpload() {
     const fileInput = document.getElementById('file-input');
     const files = fileInput.files;
 
@@ -1386,7 +1385,7 @@ async function handleFileUpload() {
         const cleanBase64 = base64.split(',')[1];
 
         const fileData = {
-            n: `(${prefix})_${f.name}`,
+            n: `${f.name}`,
             d: cleanBase64,
             t: f.type
         };
@@ -1730,7 +1729,7 @@ async function compressImage(base64) {
         img.onload = () => {
             const canvas = document.createElement("canvas");
 
-            const MAX_WIDTH = 1200;
+            const MAX_WIDTH = 1024;
             const scale = Math.min(1, MAX_WIDTH / img.width);
 
             canvas.width = img.width * scale;
@@ -1739,8 +1738,8 @@ async function compressImage(base64) {
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-            // 🔥 CALIDAD 0.7 = GRAN REDUCCIÓN
-            resolve(canvas.toDataURL("image/jpeg", 0.7));
+            // 🔥 CALIDAD 0.7 EN WEBP = MENOS PESO Y MAYOR VELOCIDAD
+            resolve(canvas.toDataURL("image/webp", 0.7));
         };
     });
 }
