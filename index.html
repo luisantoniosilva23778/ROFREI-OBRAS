@@ -854,10 +854,13 @@ if (oldItemsStr !== newItemsStr || oldCond !== newCond) {
     }
 
     // Guardar en Firebase
-    const pdfBase64 = doc.output('datauristring');
-    const pdfFile = { n: `${nombreReferencia}.pdf`, d: pdfBase64 };
     data.files = old && old.files ? [...old.files] : [];
-    data.files.push(pdfFile);
+
+	if (!old || incrementaVersion) {
+    	const pdfBase64 = doc.output('datauristring');
+    	const pdfFile = { n: `${nombreReferencia}.pdf`, d: pdfBase64 };
+    	data.files.push(pdfFile);
+	}
     
     await db.ref(`ne/${id}`).set(data);
     createNotif('ne', `N.E. ${old ? 'alterada' : 'criada'}: ${nombreReferencia}`);
@@ -1339,6 +1342,15 @@ async function handleFileUpload() {
     const fileInput = document.getElementById('file-input');
     const files = fileInput.files;
     if (!files || files.length === 0) return;
+	const progressDiv = document.getElementById('upload-progress');
+	const progressBar = document.getElementById('upload-bar');
+	const progressText = document.getElementById('upload-text');
+
+	progressDiv.style.display = 'block';
+	progressBar.style.width = "0%";
+
+	let total = files.length;
+	let count = 0;
 
     for (let f of files) {
         const reader = new FileReader();
@@ -1356,7 +1368,7 @@ async function handleFileUpload() {
                         await db.ref(`${activeFileId.mod}/${id}/files`).set(updatedFiles);
                     }
                 }
-                alert("Ficheiro anexado aos registos selecionados!");
+                
                 renderAll(); // Refrescamos la vista principal
                 
               } else {
@@ -1367,17 +1379,36 @@ async function handleFileUpload() {
                         const updatedFiles = [...(item.files || []), fileData];
                         await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
                     }
-                    alert("Ficheiro anexado com sucesso!");
+
                     // Refrescar visualmente la lista de archivos del modal
                     openFiles(activeFileId.mod, activeFileId.id);
                 } catch (error) {
                     alert("Erro ao anexar o ficheiro: " + error.message);
                 }
             }
+			count++;
+			let percent = Math.round((count / total) * 100);
+
+			progressBar.style.width = percent + "%";
+			progressText.innerText = `Carregado ${count} de ${total} ficheiros (${percent}%)`;
+
+			if (count === total) {
+    			setTimeout(() => {
+        			progressDiv.style.display = 'none';
+        			progressBar.style.width = "0%";
+    			}, 1000);
+			}
         };
         reader.readAsDataURL(f);
     }
-    
+
+	setTimeout(() => {
+    	if (activeFileId.isMass) {
+        	alert("Todos os ficheiros foram anexados com sucesso aos registos selecionados!");
+    	} else {
+        	alert("Todos os ficheiros foram anexados com sucesso!");
+    	}
+	}, 1100);
     // MUY IMPORTANTE: Limpiar el input para permitir subir el mismo archivo otra vez sin bloqueo del navegador
     fileInput.value = "";
 }
