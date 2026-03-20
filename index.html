@@ -799,9 +799,9 @@ async function saveNE() {
     for(let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         const footerY = 285;
-        doc.setFontSize(8).setFont(undefined, 'normal').setTextColor(100);
-        doc.text(`Documento gerado por: ${data.u_crea} em ${data.d_crea}`, 105, footerY - 5, { align: "center" });
         doc.setFontSize(9).setFont(undefined, 'bold').setTextColor(37, 99, 235);
+        doc.text(`Documento gerado por: ${data.u_crea} em ${data.d_crea}`, 105, footerY - 5, { align: "center" });
+        doc.setFontSize(8).setFont(undefined, 'normal').setTextColor(100);
         doc.text(emp.web || '', 105, footerY, { align: "center" });
     }
 
