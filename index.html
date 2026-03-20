@@ -756,8 +756,13 @@ async function saveNE() {
     } else {
         doc.text(`Nome: ${provNome} (Fornecedor não registado)`, 10, 53);
     }
-
+	
+	// Datos de la obra
     doc.setFontSize(10).setFont(undefined, 'bold').text(`OBRA: ${data.obrNom}`, 10, 38);
+
+	// Línea horizontal de separación Bajo los datos de la obra
+            doc.setDrawColor(200).setLineWidth(0.1);
+            doc.line(10, 43, 200, 43);
 
     // Cálculos de Tabla
     const totalSuma = items.reduce((acc, item) => acc + Number(item.t || 0), 0);
