@@ -1343,9 +1343,11 @@ async function handleFileUpload() {
     const files = fileInput.files;
 
     if (!files.length) return;
+	const progressContainer = document.getElementById('upload-progress');
+	if (progressContainer) progressContainer.style.display = 'block';
 
-    const progressBar = document.getElementById('progress-bar');
-    progressBar.style.width = "0%";
+    const progressBar = document.getElementById('upload-bar');
+    if (progressBar) progressBar.style.width = "0%";
 
     let updates = {};
     let total = files.length;
@@ -1357,7 +1359,13 @@ async function handleFileUpload() {
         if (f.size > 2 * 1024 * 1024) {
             alert(`Ficheiro demasiado grande: ${f.name}`);
             processed++;
-            return;
+
+			if (progressBar) {
+    			const percent = Math.round((processed / total) * 100);
+    			progressBar.style.width = `${percent}%`;
+			}
+
+			return;
         }
 
         let base64;
@@ -1405,17 +1413,21 @@ async function handleFileUpload() {
 
         // 🔥 ACTUALIZAR PROGRESO
         processed++;
-        const percent = Math.round((processed / total) * 100);
-        progressBar.style.width = `${percent}%`;
+
+		if (progressBar) {
+    		const percent = Math.round((processed / total) * 100);
+    		progressBar.style.width = `${percent}%`;
+		}
 
     }));
 
     // 🔥 UNA SOLA ESCRITURA A FIREBASE
     await db.ref().update(updates);
+	if (progressContainer) progressContainer.style.display = 'none';
 
     // RESET
     fileInput.value = "";
-    progressBar.style.width = "100%";
+    if (progressBar) progressBar.style.width = "100%";
 }
 async function downloadCurrentFiles() {
     const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
