@@ -1293,15 +1293,20 @@ async function handleFileUpload() {
                 alert("Ficheiro anexado aos registos selecionados!");
                 renderAll(); // Refrescamos la vista principal
                 
-            } else {
+              } else {
                 // LÓGICA DE CARGA INDIVIDUAL
-                const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
-                if (item) {
-                    const updatedFiles = [...(item.files || []), fileData];
-                    await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
+                try {
+                    const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
+                    if (item) {
+                        const updatedFiles = [...(item.files || []), fileData];
+                        await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
+                    }
+                    alert("Ficheiro anexado com sucesso!");
+                    // Refrescar visualmente la lista de archivos del modal
+                    openFiles(activeFileId.mod, activeFileId.id);
+                } catch (error) {
+                    alert("Erro ao anexar o ficheiro: " + error.message);
                 }
-                // Refrescar visualmente la lista de archivos del modal
-                openFiles(activeFileId.mod, activeFileId.id);
             }
         };
         reader.readAsDataURL(f);
