@@ -732,8 +732,21 @@ async function saveNE() {
 
     let incrementaVersion = false;
     if (old) {
-        const oldItemsStr = JSON.stringify(old.items || []);
-        const newItemsStr = JSON.stringify(items);
+        function normalizarItems(arr) {
+    return (arr || []).map(i => ({
+        q: Number(i.q),
+        u: (i.u || '').trim(),
+        p: (i.p || '').trim(),
+        pr: Number(i.pr),
+        t: Number(i.t)
+    }));
+}
+
+const oldItemsNorm = normalizarItems(old.items);
+const newItemsNorm = normalizarItems(items);
+
+const oldItemsStr = JSON.stringify(oldItemsNorm);
+const newItemsStr = JSON.stringify(newItemsNorm);
         const oldCond = old.cond || '';
         if (oldItemsStr !== newItemsStr || oldCond !== condText) {
             incrementaVersion = true;
