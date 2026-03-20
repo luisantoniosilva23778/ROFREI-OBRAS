@@ -738,7 +738,7 @@ async function saveNE() {
     const emp = DB.empresa || {};
 
     // Encabezado básico
-    if (emp.logo) { try { doc.addImage(emp.logo, 'PNG', 10, 10, 40, 15); } catch (e) {} }
+    if (emp.logo) { try { const props = doc.getImageProperties(emp.logo); const ratio = props.width / props.height; let w = 40; let h = w / ratio; if(h > 20){ h = 20; w = h * ratio; } doc.addImage(emp.logo, 'PNG', 10, 10, w, h); } catch (e) {} }
     doc.setFontSize(14).setFont(undefined, 'bold').text("NOTA DE ENCOMENDA", 105, 15, { align: "center" });
     doc.setFontSize(10).setFont(undefined, 'normal').text(`Nº: ${numWithVersion}`, 105, 20, { align: "center" });
 
