@@ -1339,78 +1339,91 @@ async function deleteFile(index) {
 }
 
 async function handleFileUpload() {
+async function handleFileUpload() {
     const fileInput = document.getElementById('file-input');
     const files = fileInput.files;
-    if (!files || files.length === 0) return;
-	const progressDiv = document.getElementById('upload-progress');
-	const progressBar = document.getElementById('upload-bar');
-	const progressText = document.getElementById('upload-text');
 
-	progressDiv.style.display = 'block';
-	progressBar.style.width = "0%";
+    if (!files.length) return;
 
-	let total = files.length;
-	let count = 0;
+    const progressBar = document.getElementById('progress-bar');
+    progressBar.style.width = "0%";
 
-    for (let f of files) {
+    let updates = {};
+    let total = files.length;
+    let processed = 0;
+
+    await Promise.all(Array.from(files).map(async (f) => {
+
+        // 🔴 VALIDACIÓN DE TAMAÑO
+        if (f.size > 2 * 1024 * 1024) {
+            alert(`Ficheiro demasiado grande: ${f.name}`);
+            processed++;
+            return;
+        }
+
         const reader = new FileReader();
-        reader.onload = async (e) => {
-            // Añadimos un número aleatorio al inicio del nombre para que JAMÁS se duplique en base de datos
-            const prefix = Math.floor(Math.random() * 1000000);
-            const fileData = { n: `(${prefix})_${f.name}`, d: e.target.result, t: f.type };
 
-            if (activeFileId.isMass) {
-                // LÓGICA DE CARGA MASIVA
-                for (let id of activeFileId.ids) {
-                    const item = DB[activeFileId.mod].find(x => x.id === id);
-                    if (item) {
-                        const updatedFiles = [...(item.files || []), fileData];
-                        await db.ref(`${activeFileId.mod}/${id}/files`).set(updatedFiles);
-                    }
+        const base64 = await new Promise((resolve) => {
+            reader.onload = async (e) => {
+
+                // 🔥 LIBERA EL HILO (MEJORA UI)
+                await new Promise(r => setTimeout(r, 0));
+
+                let result = e.target.result;
+
+                // 🔥 COMPRESIÓN SOLO PARA IMÁGENES
+                if (f.type.startsWith("image/")) {
+                    result = await compressImage(result);
                 }
-                
-                renderAll(); // Refrescamos la vista principal
-                
-              } else {
-                // LÓGICA DE CARGA INDIVIDUAL
-                try {
-                    const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
-                    if (item) {
-                        const updatedFiles = [...(item.files || []), fileData];
-                        await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
-                    }
 
-                    // Refrescar visualmente la lista de archivos del modal
-                    openFiles(activeFileId.mod, activeFileId.id);
-                } catch (error) {
-                    alert("Erro ao anexar o ficheiro: " + error.message);
-                }
-            }
-			count++;
-			let percent = Math.round((count / total) * 100);
+                resolve(result);
+            };
 
-			progressBar.style.width = percent + "%";
-			progressText.innerText = `Carregado ${count} de ${total} ficheiros (${percent}%)`;
+            reader.readAsDataURL(f.slice(0, f.size));
+        });
 
-			if (count === total) {
-    			setTimeout(() => {
-        			progressDiv.style.display = 'none';
-        			progressBar.style.width = "0%";
-    			}, 1000);
-			}
+        // 🔥 REDUCIR BASE64 (QUITAR PREFIJO)
+        const cleanBase64 = base64.split(',')[1];
+
+        const fileData = {
+            n: `(${prefix})_${f.name}`,
+            d: cleanBase64,
+            t: f.type
         };
-        reader.readAsDataURL(f);
-    }
 
-	setTimeout(() => {
-    	if (activeFileId.isMass) {
-        	alert("Todos os ficheiros foram anexados com sucesso aos registos selecionados!");
-    	} else {
-        	alert("Todos os ficheiros foram anexados com sucesso!");
-    	}
-	}, 1100);
-    // MUY IMPORTANTE: Limpiar el input para permitir subir el mismo archivo otra vez sin bloqueo del navegador
+        // 🔥 CASO MASIVO (PARALELO)
+        if (activeFileId.ids) {
+
+            activeFileId.ids.forEach((id) => {
+                const item = DB[activeFileId.mod].find(x => x.id === id);
+                if (item) {
+                    const updatedFiles = [...(item.files || []), fileData];
+                    updates[`${activeFileId.mod}/${id}/files`] = updatedFiles;
+                }
+            });
+
+        } else {
+
+            const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
+            if (item) {
+                const updatedFiles = [...(item.files || []), fileData];
+                updates[`${activeFileId.mod}/${activeFileId.id}/files`] = updatedFiles;
+            }
+        }
+
+        // 🔥 ACTUALIZAR PROGRESO
+        processed++;
+        const percent = Math.round((processed / total) * 100);
+        progressBar.style.width = `${percent}%`;
+
+    }));
+
+    // 🔥 UNA SOLA ESCRITURA A FIREBASE
+    await db.ref().update(updates);
+
+    // RESET
     fileInput.value = "";
+    progressBar.style.width = "100%";
 }
 async function downloadCurrentFiles() {
     const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
