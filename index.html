@@ -747,10 +747,12 @@ const newItemsNorm = normalizarItems(items);
 
 const oldItemsStr = JSON.stringify(oldItemsNorm);
 const newItemsStr = JSON.stringify(newItemsNorm);
-        const oldCond = old.cond || '';
-        if (oldItemsStr !== newItemsStr || oldCond !== condText) {
-            incrementaVersion = true;
-        }
+        const oldCond = (old.cond || '').trim();
+const newCond = (condText || '').trim();
+
+if (oldItemsStr !== newItemsStr || oldCond !== newCond) {
+    incrementaVersion = true;
+}
     }
 
     const version = old && old.version !== undefined ? (incrementaVersion ? old.version + 1 : old.version) : 0;
