@@ -871,10 +871,9 @@ function renderAll() {
     try { renderTar(); } catch(e) { console.error("Erro Tasks:", e); }
     try { renderNotif(); } catch(e) { console.error("Erro Notif:", e); }
 	try { renderUsers(); } catch(e) { console.error("Erro Users:", e); }
-    if(currentMod === 'forn') {
-    	try { renderForn(); } catch(e) { console.error("Erro Forn:", e); }
-	}
+    try { renderForn(); } catch(e) { console.error("Erro Forn:", e); }
 }
+
 
 
 // Ejemplo: Render Obras con Filtro por Celda (Requisito)
