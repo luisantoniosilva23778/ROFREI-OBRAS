@@ -5,6 +5,7 @@
     <title>ROFREICRC v18.0 - ERP COMPLETO</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-storage-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -455,6 +456,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const storage = firebase.storage();
 
 // VARIABLES GLOBALES
 let DB = { obras:[], horas:[], ne:[], ped:[], tar:[], obs:[], users:[], notif:[], hist:{}, forn:[], empresa:{} };
@@ -857,8 +859,14 @@ if (oldItemsStr !== newItemsStr || oldCond !== newCond) {
     data.files = old && old.files ? [...old.files] : [];
 
 	if (!old || incrementaVersion) {
-    	const pdfBase64 = doc.output('datauristring');
-    	const pdfFile = { n: `${nombreReferencia}.pdf`, d: pdfBase64 };
+        const pdfBlob = doc.output('blob');
+        const fileName = `${nombreReferencia}_${Date.now()}.pdf`;
+        const storageRef = storage.ref(`anexos/${fileName}`);
+        
+        const snapshot = await storageRef.put(pdfBlob);
+        const downloadURL = await snapshot.ref.getDownloadURL();
+        
+    	const pdfFile = { n: fileName, url: downloadURL, refPath: `anexos/${fileName}`, t: 'application/pdf' };
     	data.files.push(pdfFile);
 	}
     
@@ -1319,20 +1327,35 @@ function refreshFileList() {
 function downloadSingleFile(idx) {
     const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
     const f = item.files[idx];
-    const byteString = atob(f.d.split(',')[1]);
-    const mimeString = f.d.split(',')[0].split(':')[1].split(';')[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
+    
+    if (f.url) {
+        window.open(f.url, '_blank');
+    } else if (f.d) {
+        const byteString = atob(f.d.split(',')[1]);
+        const mimeString = f.d.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([ab], {type: mimeString});
+        saveAs(blob, f.n);
     }
-    const blob = new Blob([ab], {type: mimeString});
-    saveAs(blob, f.n);
 }
 
 async function deleteFile(index) {
     if(!confirm("Tem a certeza que deseja eliminar este ficheiro?")) return;
     const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
+    const f = item.files[index];
+    
+    if (f.refPath) {
+        try {
+            await storage.ref(f.refPath).delete();
+        } catch (err) {
+            console.error("Ficheiro não encontrado no Storage, apagando apenas referência.", err);
+        }
+    }
+
     item.files.splice(index, 1);
     await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(item.files);
     refreshFileList();
@@ -1353,14 +1376,18 @@ async function handleFileUpload() {
 	let count = 0;
 
     for (let f of files) {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            // Añadimos un número aleatorio al inicio del nombre para que JAMÁS se duplique en base de datos
-            const prefix = Math.floor(Math.random() * 1000000);
-            const fileData = { n: `(${prefix})_${f.name}`, d: e.target.result, t: f.type };
+        const prefix = Math.floor(Math.random() * 1000000);
+        const fileName = `(${prefix})_${f.name}`;
+        const storageRef = storage.ref(`anexos/${fileName}`);
+        
+        try {
+            // Subimos el archivo directamente a Storage (mucho más rápido que Base64)
+            const snapshot = await storageRef.put(f);
+            const downloadURL = await snapshot.ref.getDownloadURL();
+            
+            const fileData = { n: fileName, url: downloadURL, refPath: `anexos/${fileName}`, t: f.type };
 
             if (activeFileId.isMass) {
-                // LÓGICA DE CARGA MASIVA
                 for (let id of activeFileId.ids) {
                     const item = DB[activeFileId.mod].find(x => x.id === id);
                     if (item) {
@@ -1368,38 +1395,31 @@ async function handleFileUpload() {
                         await db.ref(`${activeFileId.mod}/${id}/files`).set(updatedFiles);
                     }
                 }
-                
-                renderAll(); // Refrescamos la vista principal
-                
-              } else {
-                // LÓGICA DE CARGA INDIVIDUAL
-                try {
-                    const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
-                    if (item) {
-                        const updatedFiles = [...(item.files || []), fileData];
-                        await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
-                    }
-
-                    // Refrescar visualmente la lista de archivos del modal
-                    openFiles(activeFileId.mod, activeFileId.id);
-                } catch (error) {
-                    alert("Erro ao anexar o ficheiro: " + error.message);
+                renderAll();
+            } else {
+                const item = DB[activeFileId.mod].find(x => x.id === activeFileId.id);
+                if (item) {
+                    const updatedFiles = [...(item.files || []), fileData];
+                    await db.ref(`${activeFileId.mod}/${activeFileId.id}/files`).set(updatedFiles);
                 }
+                openFiles(activeFileId.mod, activeFileId.id);
             }
-			count++;
-			let percent = Math.round((count / total) * 100);
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao anexar o ficheiro: " + error.message);
+        }
 
-			progressBar.style.width = percent + "%";
-			progressText.innerText = `Carregado ${count} de ${total} ficheiros (${percent}%)`;
+        count++;
+        let percent = Math.round((count / total) * 100);
+        progressBar.style.width = percent + "%";
+        progressText.innerText = `Carregado ${count} de ${total} ficheiros (${percent}%)`;
 
-			if (count === total) {
-    			setTimeout(() => {
-        			progressDiv.style.display = 'none';
-        			progressBar.style.width = "0%";
-    			}, 1000);
-			}
-        };
-        reader.readAsDataURL(f);
+        if (count === total) {
+            setTimeout(() => {
+                progressDiv.style.display = 'none';
+                progressBar.style.width = "0%";
+            }, 1000);
+        }
     }
 
 	setTimeout(() => {
@@ -1417,10 +1437,21 @@ async function downloadCurrentFiles() {
     if (!item.files || !item.files.length) return alert("Não existem ficheiros.");
     
     const zip = new JSZip();
-    item.files.forEach(f => {
-        const base64Data = f.d.split(',')[1];
-        zip.file(f.n, base64Data, {base64: true});
-    });
+    
+    for (let f of item.files) {
+        if (f.url) {
+            try {
+                const response = await fetch(f.url);
+                const blob = await response.blob();
+                zip.file(f.n, blob);
+            } catch (err) {
+                console.error("Erro no fetch:", err);
+            }
+        } else if (f.d) {
+            const base64Data = f.d.split(',')[1];
+            zip.file(f.n, base64Data, {base64: true});
+        }
+    }
     
     const content = await zip.generateAsync({type:"blob"});
     saveAs(content, `Doc_${item.num || item.id}.zip`);
@@ -1499,19 +1530,27 @@ async function downloadMassFiles(mod) {
     const zip = new JSZip();
     let hasFiles = false;
 
-    selected.forEach(id => {
+    for (let id of selected) {
         const item = DB[mod].find(x => x.id === id);
         if(item && item.files && item.files.length > 0) {
             hasFiles = true;
-            item.files.forEach(f => {
-                // Extraemos la base64 quitando el prefijo de data URI
-                const base64Data = f.d.split(',')[1];
-                // Creamos una carpeta por cada registro dentro del ZIP para que no se mezclen
-                const folderName = item.num || item.id;
-                zip.file(`${folderName}/${f.n}`, base64Data, {base64: true});
-            });
+            const folderName = item.num || item.id;
+            for (let f of item.files) {
+                if (f.url) {
+                    try {
+                        const response = await fetch(f.url);
+                        const blob = await response.blob();
+                        zip.file(`${folderName}/${f.n}`, blob);
+                    } catch (err) {
+                        console.error("Erro no fetch:", err);
+                    }
+                } else if (f.d) {
+                    const base64Data = f.d.split(',')[1];
+                    zip.file(`${folderName}/${f.n}`, base64Data, {base64: true});
+                }
+            }
         }
-    });
+    }
 
     if(!hasFiles) return alert("Os registos selecionados não possuem ficheiros para descargar.");
 
