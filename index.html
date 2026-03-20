@@ -71,9 +71,9 @@
 <div id="login-sec" style="max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
     <h2 style="text-align: center; color: var(--p); margin-top:0;">Acesso ao Sistema</h2>
     <label>Utilizador</label>
-    <input type="text" id="log-u" style="margin-bottom: 15px;">
+    <input type="text" id="log-u" style="margin-bottom: 15px;" onkeydown="if(event.key === 'Enter') doLogin()">
     <label>Senha</label>
-    <input type="password" id="log-p" style="margin-bottom: 20px;">
+    <input type="password" id="log-p" style="margin-bottom: 20px;" onkeydown="if(event.key === 'Enter') doLogin()">
     <button class="btn-main" style="width:100%" onclick="doLogin()">ENTRAR</button>
 </div>
 
