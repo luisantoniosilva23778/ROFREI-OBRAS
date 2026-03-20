@@ -196,7 +196,7 @@
                                         <div><label>Obra (Apenas Em Execução)</label><select id="ne-obr"></select></div>
                     <div><label>Seleccionar Fornecedor *</label><input type="text" id="ne-prov" list="lista-forn-sug" placeholder="Escreva ou selecione..."></div>
                     <div><label>Estado</label><select id="ne-est"><option>Emitida</option><option>Enviada ao Fornecedor</option><option>Sem Efeito</option></select></div>
-                    <div class="full-w"><label>Condições de Fornecimento|Execução (Local, Data Estimada, etc.)</label><textarea id="ne-cond" rows="2"></textarea></div>
+                    <div class="full-w"><label>Condições de Fornecimento | Execução (Local, Data Estimada, etc.)</label><textarea id="ne-cond" rows="2"></textarea></div>
                 </div>
                 
                 <table class="ne-table">
@@ -793,7 +793,7 @@ async function saveNE() {
 
             // REQUERIMIENTO 2: Condiciones de entrega debajo de la tabla (Tamaño mayor)
             doc.setFontSize(11).setFont(undefined, 'bold');
-            doc.text("CONDIÇÕES DE FORNECIMENTO|EXECUÇÃO:", 10, finalY + 25);
+            doc.text("CONDIÇÕES DE FORNECIMENTO | EXECUÇÃO:", 10, finalY + 25);
             doc.setFontSize(10).setFont(undefined, 'normal');
             const splitCond = doc.splitTextToSize(condText || 'N/A', 180);
             doc.text(splitCond, 10, finalY + 31);
