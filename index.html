@@ -713,16 +713,8 @@ async function saveNE() {
         await db.ref(`forn/${fornId}`).set(fData);
     }
     const contatoNome = prompt("Nome da pessoa de contacto que representa o fornecedor:") || "---";
-    const version = old && old.version !== undefined ? old.version + 1 : 0;
-    const numWithVersion = `${num}.V${version}`;
-    const nombreReferencia = `${numWithVersion}.${fData.nome || provNome}`;
 
-    // Marcar pedidos antiguos como Sem Efeito
-    const oldPeds = DB.ped.filter(p => p.neId === id);
-    for(let op of oldPeds) {
-        await db.ref(`ped/${op.id}/est`).set('Sem Efeito');
-    }
-
+    // 1. Extraemos los items y las condiciones del formulario primero
     let items = [];
     document.querySelectorAll('#ne-body tr').forEach(tr => {
         const q = tr.querySelector('.ne-q').value;
@@ -737,8 +729,26 @@ async function saveNE() {
             });
         }
     });
-
     const condText = document.getElementById('ne-cond').value;
+
+    // 2. Evaluamos si hubo cambios en los materiales o textos
+    let incrementaVersion = true;
+    if (old) {
+        const oldItemsStr = JSON.stringify(old.items || []);
+        const newItemsStr = JSON.stringify(items);
+        const oldCond = old.cond || '';
+        
+        // Si el estado cambió, pero los materiales y condiciones siguen idénticos, NO subimos versión
+        if (old.est !== novoEst && oldItemsStr === newItemsStr && oldCond === condText) {
+            incrementaVersion = false;
+        }
+    }
+
+    const version = old && old.version !== undefined ? (incrementaVersion ? old.version + 1 : old.version) : 0;
+    const numWithVersion = `${num}.V${version}`;
+    const nombreReferencia = `${numWithVersion}.${fData.nome || provNome}`;
+
+    // La actualización de estado de los pedidos se hará más abajo
     const data = {
         id, num, version, obrId: obrSel.value,
         obrNom: obrSel.options[obrSel.selectedIndex].text,
@@ -844,13 +854,20 @@ async function saveNE() {
     if (data.est === 'Enviada ao Fornecedor') novoPedEst = 'Enviado ao Fornecedor';
     if (data.est === 'Sem Efeito') novoPedEst = 'Sem Efeito';
 
-    for(let it of items) {
-        const pedId = `PED_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        await db.ref(`ped/${pedId}`).set({
-            id: pedId, obrId: data.obrId, obrNom: data.obrNom, prov: data.prov,
-            mat: it.p, qtd: it.q, neNum: numWithVersion, neId: id,
-            est: novoPedEst, u_crea: data.u_crea, d_crea: data.d_crea, notas: condText
-        });
+    if (!old) {
+        for(let it of items) {
+            const pedId = `PED_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+            await db.ref(`ped/${pedId}`).set({
+                id: pedId, obrId: data.obrId, obrNom: data.obrNom, prov: data.prov,
+                mat: it.p, qtd: it.q, neNum: numWithVersion, neId: id,
+                est: novoPedEst, u_crea: data.u_crea, d_crea: data.d_crea, notas: condText
+            });
+        }
+    } else {
+        const pedsAtivos = DB.ped.filter(p => p.neId === id && p.est !== 'Sem Efeito');
+        for(let p of pedsAtivos) {
+            await db.ref(`ped/${p.id}/est`).set(novoPedEst);
+        }
     }
 
     alert("N.E. Guardada e PDF Gerado!");
