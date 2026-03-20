@@ -739,8 +739,9 @@ async function saveNE() {
 
     // Encabezado básico
     if (emp.logo) { try { const props = doc.getImageProperties(emp.logo); const ratio = props.width / props.height; let w = 80; let h = w / ratio; if(h > 40){ h = 40; w = h * ratio; } doc.addImage(emp.logo, 'PNG', 10, 10, w, h); } catch (e) {} }
-    doc.setFontSize(14).setFont(undefined, 'bold').text("NOTA DE ENCOMENDA", 105, 15, { align: "center" });
-    doc.setFontSize(10).setFont(undefined, 'normal').text(`Nº: ${numWithVersion}`, 105, 20, { align: "center" });
+    doc.setFontSize(14).setFont(undefined, 'bold').text("NOTA DE ENCOMENDA", 200, 15, { align: "right" });
+    doc.setFontSize(10).setFont(undefined, 'normal').text(`Nº: ${numWithVersion}`, 200, 20, { align: "right" });
+
 
     // 1. Datos del Fornecedor (REQUERIMIENTO 1: Tamaño más pequeño)
     doc.setFontSize(8); 
