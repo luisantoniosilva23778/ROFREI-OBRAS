@@ -761,7 +761,8 @@ if (oldItemsStr !== newItemsStr || oldCond !== newCond) {
 
     // La actualización de estado de los pedidos se hará más abajo
     const data = {
-        id, num, version, obrId: obrSel.value,
+    id, num, version, obrId: obrSel.value,
+    contatoNome,
         obrNom: obrSel.options[obrSel.selectedIndex].text,
         prov: provNome, fornId: fData.id || null,
         est: document.getElementById('ne-est').value,
