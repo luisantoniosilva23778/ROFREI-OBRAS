@@ -536,9 +536,7 @@ function sync() {
         });
     });
 
-    // Histórico tratado de forma granular para não pesar
-    db.ref('hist').on('child_added', snap => { DB.hist[snap.key] = snap.val(); });
-    db.ref('hist').on('child_changed', snap => { DB.hist[snap.key] = snap.val(); });
+    // El histórico ya no se sincroniza aquí para ahorrar ancho de banda
 
     // Empresa é um objeto único, mantemos on('value')
     db.ref('empresa').on('value', snap => {
