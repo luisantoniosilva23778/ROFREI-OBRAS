@@ -633,9 +633,17 @@ async function saveRecord(mod) {
     if(log) await db.ref(`hist/${id}`).push({ u: user.u, ts: data.d_edit, log, d_crea: data.d_crea });
     
         // Crear Notificación para creaciones y alteraciones (con nombre descriptivo)
-    const nomeIdentificador = data.num || data.obrNom || data.mat || data.id;
-    const acaoTexto = isNew ? "criado" : "alterado";
-    createNotif(mod, `Registo ${acaoTexto} em ${mod.toUpperCase()}: ${nomeIdentificador}`);
+    let detalhesNotif = "";
+    if(mod === 'obras') detalhesNotif = `Obra Nº: ${data.num} | Nome: ${data.nom} | Estado: ${data.est}`;
+    else if(mod === 'horas') detalhesNotif = `Obra: ${data.obrNom} | Data: ${data.dat} | Tarefa: ${data.task} | Horário: ${data.ini} - ${data.fim}`;
+    else if(mod === 'obs') detalhesNotif = `Obra: ${data.obrNom} | Obs: ${data.txt} | Estado: ${data.est}`;
+    else if(mod === 'ped') detalhesNotif = `Obra: ${data.obrNom} | Mat: ${data.mat} | Qtd: ${data.qtd} | Fornecedor: ${data.prov || 'N/A'}`;
+    else if(mod === 'tar') detalhesNotif = `Obra: ${data.obrNom} | Tarefa: ${data.txt} | Atribuído a: ${(data.assigned || []).join(', ')} | Estado: ${data.est}`;
+    else if(mod === 'users') detalhesNotif = `Utilizador: ${data.u} | Perfil: ${data.role} | Estado: ${data.st}`;
+    else detalhesNotif = data.num || data.obrNom || data.mat || data.id;
+
+    const acaoTexto = isNew ? "Criado" : "Alterado";
+    createNotif(mod, `[${mod.toUpperCase()} - ${acaoTexto}] ${detalhesNotif}`);
 
     alert("Guardado com sucesso!");
     cancelarEdit(mod);
@@ -863,7 +871,7 @@ if (oldItemsStr !== newItemsStr || oldCond !== newCond) {
 	}
     
     await db.ref(`ne/${id}`).set(data);
-    createNotif('ne', `N.E. ${old ? 'alterada' : 'criada'}: ${nombreReferencia}`);
+    createNotif('ne', `[NE - ${old ? 'Alterada' : 'Criada'}] Nº: ${numWithVersion} | Obra: ${data.obrNom} | Forn: ${data.prov} | Total Itens: ${items.length} | Est: ${data.est}`);
     
     let novoPedEst = 'Por Solicitar';
     if (data.est === 'Enviada ao Fornecedor') novoPedEst = 'Enviado ao Fornecedor';
@@ -1657,7 +1665,7 @@ async function saveForn() {
         u: user.u || user.n, ts: data.d_edit, log, d_crea: data.d_crea 
     });
 
-    if(isNew) createNotif('forn', `Novo fornecedor criado: ${nome}`);
+    if(isNew) createNotif('forn', `[FORN - Criado] Nome: ${nome} | NIF: ${document.getElementById('forn-nif').value || 'N/A'} | Tel: ${document.getElementById('forn-tel').value || 'N/A'}`);
     alert("Fornecedor guardado com sucesso!");
     cancelarEdit('forn');
 }
