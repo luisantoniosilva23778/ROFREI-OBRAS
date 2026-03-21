@@ -1424,7 +1424,13 @@ async function handleFileUpload() {
     }));
 
     // 🔥 UNA SOLA ESCRITURA A FIREBASE
-    await db.ref().update(updates);
+    try {
+    	await db.ref().update(updates);
+    	alert("Archivos anexados correctamente");
+	} catch (error) {
+    	console.error(error);
+    	alert("Error al subir archivos");
+	}
 	if (progressContainer) progressContainer.style.display = 'none';
 
     // RESET
