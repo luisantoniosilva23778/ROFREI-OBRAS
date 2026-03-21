@@ -65,6 +65,7 @@
         .ne-table th, .ne-table td { border: 1px solid #cbd5e1; padding: 6px; }
         .ne-table th { background: #f1f5f9; text-align: left; }
     </style>
+	<link rel="icon" href="data:,">
 </head>
 <body>
 <header>ROFREICRC v18.0 - GESTÃO INTEGRAL</header>
@@ -530,6 +531,9 @@ function sync() {
             if (index !== -1) DB[mod][index] = snap.val();
             triggerRender();
         });
+		db.ref('files').on('child_added', snap => {
+    	console.log("Files cargados para ID:", snap.key);
+		});
         db.ref(mod).on('child_removed', snap => {
             DB[mod] = DB[mod].filter(x => x.id !== snap.key);
             triggerRender();
@@ -591,8 +595,7 @@ async function saveRecord(mod) {
         d_crea: isNew ? new Date().toLocaleString() : old.d_crea,
         u_edit: user.u,
         d_edit: new Date().toLocaleString(),
-        notas: old ? old.notas || '' : '',
-        files: old ? old.files || [] : []
+        notas: old ? old.notas || '' : ''
     };
 
     // Mapeo dinámico según el módulo
@@ -648,7 +651,13 @@ async function saveRecord(mod) {
     // Generar Historial de Cambios (Auditoría)
     const log = generateDiff(old, data);
     
-    await db.ref(`${mod}/${id}`).set(data);
+    await db.ref(`${mod}/${id}`).set(data)
+	.catch(err => console.error("Firebase error:", err));
+
+	// GUARDAR FILES EN NODO SEPARADO
+	if(data.files && data.files.length){
+    	await db.ref(`files/${id}`).set(data.files);
+	}
     if(log) await db.ref(`hist/${id}`).push({ u: user.u, ts: data.d_edit, log, d_crea: data.d_crea });
     
         // Crear Notificación para creaciones y alteraciones (con nombre descriptivo)
