@@ -1426,10 +1426,10 @@ async function handleFileUpload() {
     // 🔥 UNA SOLA ESCRITURA A FIREBASE
     try {
     	await db.ref().update(updates);
-    	alert("Archivos anexados correctamente");
+    	alert("Arquivos anexados com sucesso");
 	} catch (error) {
     	console.error(error);
-    	alert("Error al subir archivos");
+    	alert("Erro ao carregar ficheiros");
 	}
 	if (progressContainer) progressContainer.style.display = 'none';
 
