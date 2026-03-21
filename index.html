@@ -1426,7 +1426,7 @@ async function handleFileUpload() {
     // 🔥 UNA SOLA ESCRITURA A FIREBASE
     try {
     	await db.ref().update(updates);
-    	alert("Arquivos anexados com sucesso");
+    	alert("Ficheiros anexados com sucesso");
 	} catch (error) {
     	console.error(error);
     	alert("Erro ao carregar ficheiros");
