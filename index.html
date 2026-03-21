@@ -1753,10 +1753,14 @@ async function saveNota() {
     closeModal('modal-notas'); 
 }
 
-function openHist(id) { 
-    const h = DB.hist[id]; 
-    document.getElementById('hist-body').innerHTML = h ? Object.values(h).reverse().map(x => `<div style="margin-bottom:8px; border-bottom:1px solid #eee;"><b>[${x.ts}] ${x.u}:</b><br>${x.log}</div>`).join('') : 'Sem histórico disponível.'; 
+async function openHist(id) { 
+    document.getElementById('hist-body').innerHTML = '<p style="text-align:center; padding:10px;">A carregar histórico da base de dados...</p>'; 
     document.getElementById('modal-hist').style.display = 'block'; 
+    
+    const snap = await db.ref(`hist/${id}`).once('value');
+    const h = snap.val();
+    
+    document.getElementById('hist-body').innerHTML = h ? Object.values(h).reverse().map(x => `<div style="margin-bottom:8px; border-bottom:1px solid #eee;"><b>[${x.ts}] ${x.u}:</b><br>${x.log}</div>`).join('') : 'Sem histórico disponível.'; 
 }
 
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
