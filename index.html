@@ -506,36 +506,57 @@ async function doLogin() {
     }
 }
 
-// Sincronización en Tiempo Real
-function sync() {
-    db.ref('/').on('value', snap => {
-        const val = snap.val() || {};
-        DB.obras = val.obras ? Object.values(val.obras) : [];
-        DB.horas = val.horas ? Object.values(val.horas) : [];
-        DB.ne = val.ne ? Object.values(val.ne) : [];
-        DB.ped = val.ped ? Object.values(val.ped) : [];
-        DB.tar = val.tar ? Object.values(val.tar) : [];
-        DB.obs = val.obs ? Object.values(val.obs) : [];
-		DB.users = val.users ? Object.values(val.users) : [];
-        DB.notif = val.notif ? Object.values(val.notif) : []; 
-        DB.forn = val.forn ? Object.values(val.forn) : [];
-		DB.empresa = val.empresa || {}; 
-        if(DB.users.length === 0) {
-    		const adminId = 'ADMIN_DEFAULT';
-    		db.ref(`users/${adminId}`).set({
-        		id: adminId,
-        		u: 'admin',
-        		p: '23778478',
-        		role: 'Administrador',
-        		st: 'Ativo'
-    		});
-		}
-        DB.hist = val.hist || {};
+// Optimização de Renderização para evitar bloqueios ao carregar
+let syncTimeout;
+function triggerRender() {
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(() => {
         updateSelects();
-        if(user) renderAll();
-    });
+        if (user) renderAll();
+    }, 300);
 }
 
+// Sincronización en Tiempo Real (Optimizada para Base64 e Bandwidth)
+function sync() {
+    const modules = ['obras', 'horas', 'ne', 'ped', 'tar', 'obs', 'users', 'notif', 'forn'];
+    
+    modules.forEach(mod => {
+        db.ref(mod).on('child_added', snap => {
+            if (!DB[mod].find(x => x.id === snap.key)) DB[mod].push(snap.val());
+            triggerRender();
+        });
+        db.ref(mod).on('child_changed', snap => {
+            const index = DB[mod].findIndex(x => x.id === snap.key);
+            if (index !== -1) DB[mod][index] = snap.val();
+            triggerRender();
+        });
+        db.ref(mod).on('child_removed', snap => {
+            DB[mod] = DB[mod].filter(x => x.id !== snap.key);
+            triggerRender();
+        });
+    });
+
+    // Histórico tratado de forma granular para não pesar
+    db.ref('hist').on('child_added', snap => { DB.hist[snap.key] = snap.val(); });
+    db.ref('hist').on('child_changed', snap => { DB.hist[snap.key] = snap.val(); });
+
+    // Empresa é um objeto único, mantemos on('value')
+    db.ref('empresa').on('value', snap => {
+        DB.empresa = snap.val() || {};
+        triggerRender();
+    });
+
+    // Verificação do Admin corre apenas uma vez ('once') na inicialização
+    db.ref('users').once('value', snap => {
+        if (!snap.exists() || Object.keys(snap.val() || {}).length === 0) {
+            const adminId = 'ADMIN_DEFAULT';
+            db.ref(`users/${adminId}`).set({
+                id: adminId, u: 'admin', p: '23778478', role: 'Administrador', st: 'Ativo'
+            });
+        }
+    });
+}
+	
 function showMod(mod) {
     currentMod = mod;
     massMode = false;
