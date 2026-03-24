@@ -756,83 +756,87 @@ async function saveNE() {
 
     let fData = DB.forn.find(f => f.nome.toLowerCase() === provNome.toLowerCase());
 
-	// 🔥 NUEVO: reutilizar proveedor si ya existe el registro y solo cambia estado
-	if(!fData && old) {
-    	fData = {
-        	nome: old.prov,
-        	nif: old.nif,
-        	morada: old.morada,
-        	tel: old.tel,
-        	telm: old.telm,
-        	email: old.email
-    	};
-	}
+	let items = [];
+        document.querySelectorAll('#ne-body tr').forEach(tr => {
+            const q = tr.querySelector('.ne-q').value;
+            const p = tr.querySelector('.ne-p').value;
+            if(q && p) {
+                items.push({
+                    q: q,
+                    u: tr.querySelector('.ne-u').value,
+                    p: p,
+                    pr: tr.querySelector('.ne-pr').value,
+                    t: tr.querySelector('.ne-t').value
+                });
+            }
+        });
+        const condText = document.getElementById('ne-cond').value;
 
-	if(!fData) {
+        let incrementaVersion = false;
+        if (old) {
+            function normalizarItems(arr) {
+                return (arr || []).map(i => ({
+                    q: Number(i.q),
+                    u: (i.u || '').trim(),
+                    p: (i.p || '').trim(),
+                    pr: Number(i.pr),
+                    t: Number(i.t)
+                }));
+            }
+            const oldItemsNorm = normalizarItems(old.items);
+            const newItemsNorm = normalizarItems(items);
+            const oldItemsStr = JSON.stringify(oldItemsNorm);
+            const newItemsStr = JSON.stringify(newItemsNorm);
+            const oldCond = (old.cond || '').trim();
+            const newCond = (condText || '').trim();
 
-    	const confirmar = confirm(`O fornecedor "${provNome}" não existe. Deseja registrá-lo na base de dados?`);
-
-    	if(!confirmar){
-    		const nif = prompt("NIF:") || "";
-    		const morada = prompt("Morada:") || "";
-    		const tel = prompt("Telefone:") || "";
-    		const telm = prompt("Telemóvel:") || "";
-    		const email = prompt("E-mail:") || "";
-
-    		fData = { nome: provNome, nif, morada, tel, telm, email };
-		} else {
-        const nif = prompt("NIF:") || "";
-        const morada = prompt("Morada:") || "";
-        const tel = prompt("Telefone:") || "";
-        const telm = prompt("Telemóvel:") || "";
-        const email = prompt("E-mail:") || "";
-        const fornId = `FORN_${Date.now()}_${Math.random().toString(36).substr(2,5)}`;
-        fData = { id: fornId, nome: provNome, nif, morada, tel, telm, email, atividade: "", d_crea: new Date().toLocaleString(), u_crea: user.u || user.n, d_edit: new Date().toLocaleString(), u_edit: user.u || user.n };
-        await db.ref(`forn/${fornId}`).set(fData);
-    		}
-		}
-    const contatoNome = old?.contatoNome || (fData && fData.nome ? fData.nome : prompt("Nome da pessoa de contacto que representa o fornecedor:")) || "---";
-
-    let items = [];
-    document.querySelectorAll('#ne-body tr').forEach(tr => {
-        const q = tr.querySelector('.ne-q').value;
-        const p = tr.querySelector('.ne-p').value;
-        if(q && p) {
-            items.push({
-                q: q,
-                u: tr.querySelector('.ne-u').value,
-                p: p,
-                pr: tr.querySelector('.ne-pr').value,
-                t: tr.querySelector('.ne-t').value
-            });
+            if (oldItemsStr !== newItemsStr || oldCond !== newCond || old.prov !== provNome || old.obrId !== obrSel.value) {
+                incrementaVersion = true;
+            }
         }
-    });
-    const condText = document.getElementById('ne-cond').value;
 
-    let incrementaVersion = false;
-    if (old) {
-        function normalizarItems(arr) {
-    return (arr || []).map(i => ({
-        q: Number(i.q),
-        u: (i.u || '').trim(),
-        p: (i.p || '').trim(),
-        pr: Number(i.pr),
-        t: Number(i.t)
-    }));
-}
+        const skipPrompts = (old && !incrementaVersion);
 
-const oldItemsNorm = normalizarItems(old.items);
-const newItemsNorm = normalizarItems(items);
+    	// 🔥 NUEVO: Reutilizar proveedor si ya existe el registro y solo cambia estado
+    	if(!fData && skipPrompts) {
+        	fData = {
+            	nome: old.prov,
+            	nif: old.nif,
+            	morada: old.morada,
+            	tel: old.tel,
+            	telm: old.telm,
+            	email: old.email
+        	};
+    	}
 
-const oldItemsStr = JSON.stringify(oldItemsNorm);
-const newItemsStr = JSON.stringify(newItemsNorm);
-        const oldCond = (old.cond || '').trim();
-const newCond = (condText || '').trim();
+    	if(!fData && !skipPrompts) {
+        	const confirmar = confirm(`O fornecedor "${provNome}" não existe. Deseja registrá-lo na base de dados?`);
 
-if (oldItemsStr !== newItemsStr || oldCond !== newCond) {
-    incrementaVersion = true;
-}
-    }
+        	if(!confirmar){
+        		const nif = prompt("NIF:") || "";
+        		const morada = prompt("Morada:") || "";
+        		const tel = prompt("Telefone:") || "";
+        		const telm = prompt("Telemóvel:") || "";
+        		const email = prompt("E-mail:") || "";
+        		fData = { nome: provNome, nif, morada, tel, telm, email };
+    		} else {
+                const nif = prompt("NIF:") || "";
+                const morada = prompt("Morada:") || "";
+                const tel = prompt("Telefone:") || "";
+                const telm = prompt("Telemóvel:") || "";
+                const email = prompt("E-mail:") || "";
+                const fornId = `FORN_${Date.now()}_${Math.random().toString(36).substr(2,5)}`;
+                fData = { id: fornId, nome: provNome, nif, morada, tel, telm, email, atividade: "", d_crea: new Date().toLocaleString(), u_crea: user.u || user.n, d_edit: new Date().toLocaleString(), u_edit: user.u || user.n };
+                await db.ref(`forn/${fornId}`).set(fData);
+    		}
+    	}
+
+        let contatoNome = "---";
+        if (skipPrompts) {
+            contatoNome = old.contatoNome || "---";
+        } else {
+            contatoNome = prompt("Nome da pessoa de contacto que representa o fornecedor:") || "---";
+        }
 
     const version = old && old.version !== undefined ? (incrementaVersion ? old.version + 1 : old.version) : 0;
     const numWithVersion = `${num}.V${version}`;
