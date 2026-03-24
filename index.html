@@ -557,7 +557,12 @@ function sync() {
             });
         }
     });
+
+	db.ref('hist').on('child_added', snap => {
+    DB.hist[snap.key] = snap.val();
+});
 }
+	
 	
 function showMod(mod) {
     currentMod = mod;
@@ -755,8 +760,14 @@ async function saveNE() {
     	const confirmar = confirm(`O fornecedor "${provNome}" não existe. Deseja registrá-lo na base de dados?`);
 
     	if(!confirmar){
-        	fData = { nome: provNome };
-    	} else {
+    		const nif = prompt("NIF:") || "";
+    		const morada = prompt("Morada:") || "";
+    		const tel = prompt("Telefone:") || "";
+    		const telm = prompt("Telemóvel:") || "";
+    		const email = prompt("E-mail:") || "";
+
+    		fData = { nome: provNome, nif, morada, tel, telm, email };
+		} else {
         const nif = prompt("NIF:") || "";
         const morada = prompt("Morada:") || "";
         const tel = prompt("Telefone:") || "";
@@ -1061,7 +1072,7 @@ function renderHoras() {
     Object.values(grouped).forEach(g => {
         list.innerHTML += `<div class="group-header" style="background:#e2e8f0; padding:8px; margin:10px 0; font-weight:bold; border-radius:4px;">📅 ${g.dat} - 👤 ${g.u} | Total: ${g.tot.toFixed(2)}h</div>`;
         g.items.forEach(h => {
-            list.innerHTML += `<div class="card"><input type="checkbox" class="chk-mass" value="${h.id}"><div class="card-grid"><div><b>Obra:</b> ${h.obrNom}</div><div><b>Tarefa:</b> ${h.task || '-'}</div><div><b>Horas:</b> ${h.horas || '0.00'}h (${h.ini}-${h.fim})</div></div>${getCardButtons('horas', h)}</div>`;
+            list.innerHTML += `<div class="card"><input type="checkbox" class="chk-mass" value="${h.id}"><div class="card-grid"><div><b>Obra:</b> ${h.obrNom}</div><div><b>Tarefa:</b> ${h.task || '-'}</div><div><b>Horas:</b> ${h.horas || '0.00'}h (${h.ini}-${h.fim})</div><div><b>Estado:</b> ${h.est}</div></div>${getCardButtons('horas', h)}</div>`;
         });
     });
 }
@@ -1530,10 +1541,50 @@ async function downloadCurrentFiles() {
 // --- EXPORTACIÓN A EXCEL (Requisito) ---
 function exportarExcel(mod) {
     let dataToExport = JSON.parse(JSON.stringify(DB[mod]));
+
+	dataToExport = dataToExport.map(d => {
+    	// NOTAS
+    	d.notas_detalle = d.notas || '';
+
+    	// HISTÓRICO
+    	const hist = DB.hist[d.id];
+	    if(hist){
+        	d.historial = Object.values(hist)
+            	.map(h => `[${h.ts}] ${h.u}: ${h.log}`)
+            	.join(' | ');
+    	} else {
+        	d.historial = '';
+    	}
+
+    	return d;
+	});
     // Limpieza de datos técnicos para el Excel
-    dataToExport.forEach(d => { delete d.files; delete d.notas; });
+    dataToExport.forEach(d => { delete d.files; });
     
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const headersMap = {
+    	num: "Nº",
+    	nom: "Nombre",
+    	est: "Estado",
+    	dat: "Data",
+    	obrNom: "Obra",
+    	task: "Tarefa",
+    	horas: "Horas",
+    	prov: "Fornecedor",
+    	mat: "Material",
+    	qtd: "Quantidade",
+    	notas_detalle: "Notas",
+    	historial: "Histórico de Alterações"
+	};
+
+	const dataFormatted = dataToExport.map(d => {
+    	let obj = {};
+    	Object.keys(d).forEach(k => {
+        	obj[headersMap[k] || k] = d[k];
+    	});
+    	return obj;
+	});
+
+	const ws = XLSX.utils.json_to_sheet(dataFormatted);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, mod.toUpperCase());
     XLSX.writeFile(wb, `Reporte_${mod}_${new Date().toLocaleDateString()}.xlsx`);
