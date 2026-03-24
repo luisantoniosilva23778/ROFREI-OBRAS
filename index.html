@@ -755,7 +755,20 @@ async function saveNE() {
     }
 
     let fData = DB.forn.find(f => f.nome.toLowerCase() === provNome.toLowerCase());
-    if(!fData) {
+
+	// 🔥 NUEVO: reutilizar proveedor si ya existe el registro y solo cambia estado
+	if(!fData && old) {
+    	fData = {
+        	nome: old.prov,
+        	nif: old.nif,
+        	morada: old.morada,
+        	tel: old.tel,
+        	telm: old.telm,
+        	email: old.email
+    	};
+	}
+
+	if(!fData) {
 
     	const confirmar = confirm(`O fornecedor "${provNome}" não existe. Deseja registrá-lo na base de dados?`);
 
@@ -778,7 +791,7 @@ async function saveNE() {
         await db.ref(`forn/${fornId}`).set(fData);
     		}
 		}
-    const contatoNome = old?.contatoNome || prompt("Nome da pessoa de contacto que representa o fornecedor:") || "---";
+    const contatoNome = old?.contatoNome || (fData && fData.nome ? fData.nome : prompt("Nome da pessoa de contacto que representa o fornecedor:")) || "---";
 
     let items = [];
     document.querySelectorAll('#ne-body tr').forEach(tr => {
@@ -827,10 +840,17 @@ if (oldItemsStr !== newItemsStr || oldCond !== newCond) {
 
     // La actualización de estado de los pedidos se hará más abajo
     const data = {
-    id, num, version, obrId: obrSel.value,
-    contatoNome,
-        obrNom: obrSel.options[obrSel.selectedIndex].text,
-        prov: provNome, fornId: fData.id || null,
+    	id, num, version, obrId: obrSel.value,
+    	contatoNome,
+    	obrNom: obrSel.options[obrSel.selectedIndex].text,
+    	prov: provNome, fornId: fData.id || null,
+
+    	// 🔥 NUEVO: guardar datos del proveedor
+    	nif: fData.nif || '',
+    	morada: fData.morada || '',
+    	tel: fData.tel || '',
+    	telm: fData.telm || '',
+    	email: fData.email || '',
         est: document.getElementById('ne-est').value,
         cond: condText, notas: condText, items,
         u_edit: user.u || user.n, d_edit: new Date().toLocaleString(),
