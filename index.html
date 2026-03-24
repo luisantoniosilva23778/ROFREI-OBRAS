@@ -610,8 +610,21 @@ async function saveRecord(mod) {
         data.obrNom = sel.options[sel.selectedIndex].text;
         data.ini = document.getElementById('h-ini').value;
         data.fim = document.getElementById('h-fim').value;
-        data.task = document.getElementById('h-task').value;
-        data.est = isNew ? 'Por Aprobar' : document.getElementById('h-est').value;
+		data.task = document.getElementById('h-task').value;
+
+		// NUEVO
+		const ini = document.getElementById('h-ini').value;
+		const fim = document.getElementById('h-fim').value;
+
+		if(ini && fim){
+    		const hIni = new Date(`1970-01-01T${ini}`);
+    		const hFim = new Date(`1970-01-01T${fim}`);
+    		data.horas = ((hFim - hIni) / (1000 * 60 * 60)).toFixed(2);
+		} else {
+    		data.horas = "0.00";
+		}
+
+		data.est = isNew ? 'Por Aprovar' : document.getElementById('h-est').value;
     } else if(mod === 'obs') {
         const sel = document.getElementById('obs-obr');
         data.obrId = sel.value;
@@ -738,7 +751,12 @@ async function saveNE() {
 
     let fData = DB.forn.find(f => f.nome.toLowerCase() === provNome.toLowerCase());
     if(!fData) {
-        alert(`O fornecedor "${provNome}" não existe na base de dados. Por favor, insira os dados em falta.`);
+
+    	const confirmar = confirm(`O fornecedor "${provNome}" não existe. Deseja registrá-lo na base de dados?`);
+
+    	if(!confirmar){
+        	fData = { nome: provNome };
+    	} else {
         const nif = prompt("NIF:") || "";
         const morada = prompt("Morada:") || "";
         const tel = prompt("Telefone:") || "";
@@ -747,7 +765,8 @@ async function saveNE() {
         const fornId = `FORN_${Date.now()}_${Math.random().toString(36).substr(2,5)}`;
         fData = { id: fornId, nome: provNome, nif, morada, tel, telm, email, atividade: "", d_crea: new Date().toLocaleString(), u_crea: user.u || user.n, d_edit: new Date().toLocaleString(), u_edit: user.u || user.n };
         await db.ref(`forn/${fornId}`).set(fData);
-    }
+    		}
+		}
     const contatoNome = old?.contatoNome || prompt("Nome da pessoa de contacto que representa o fornecedor:") || "---";
 
     let items = [];
@@ -1042,7 +1061,7 @@ function renderHoras() {
     Object.values(grouped).forEach(g => {
         list.innerHTML += `<div class="group-header" style="background:#e2e8f0; padding:8px; margin:10px 0; font-weight:bold; border-radius:4px;">📅 ${g.dat} - 👤 ${g.u} | Total: ${g.tot.toFixed(2)}h</div>`;
         g.items.forEach(h => {
-            list.innerHTML += `<div class="card"><input type="checkbox" class="chk-mass" value="${h.id}"><div class="card-grid"><div><b>Obra:</b> ${h.obrNom}</div><div><b>Horas:</b> ${h.ini}-${h.fim}</div></div>${getCardButtons('horas', h)}</div>`;
+            list.innerHTML += `<div class="card"><input type="checkbox" class="chk-mass" value="${h.id}"><div class="card-grid"><div><b>Obra:</b> ${h.obrNom}</div><div><b>Tarefa:</b> ${h.task || '-'}</div><div><b>Horas:</b> ${h.horas || '0.00'}h (${h.ini}-${h.fim})</div></div>${getCardButtons('horas', h)}</div>`;
         });
     });
 }
@@ -1151,7 +1170,17 @@ function renderObs() {
 	let data = DB.obs.filter(o =>
     	(!fObr || o.obrNom === fObr) && (!fEst || o.est === fEst));
 
-    data.forEach(o => {
+    const agrupado = {};
+
+	data.forEach(o => {
+    	if(!agrupado[o.obrNom]) agrupado[o.obrNom] = [];
+    	agrupado[o.obrNom].push(o);
+	});
+
+	Object.keys(agrupado).forEach(obra => {
+		list.innerHTML += `<div class="group-header">${obra}</div>`;
+		agrupado[obra].forEach(o => {
+		
         list.innerHTML += `
             <div class="card" style="border-left-color: ${o.est === 'Realizada' ? 'var(--ok)' : 'var(--err)'}">
                 <input type="checkbox" class="chk-mass" value="${o.id}">
@@ -1162,7 +1191,8 @@ function renderObs() {
                 </div>
                 ${getCardButtons('obs', o)}
             </div>`;
-    });
+    	});
+});
 }
 
 function renderNotif() {
@@ -1378,7 +1408,10 @@ async function handleFileUpload() {
     const fileInput = document.getElementById('file-input');
     const files = fileInput.files;
 
-    if (!files.length) return;
+    if (!files.length) {
+    	alert("Nenhum ficheiro selecionado");
+    	return;
+	}
 	const progressContainer = document.getElementById('upload-progress');
 	if (progressContainer) progressContainer.style.display = 'block';
 
@@ -1461,8 +1494,15 @@ async function handleFileUpload() {
 
     // 🔥 UNA SOLA ESCRITURA A FIREBASE
     try {
+
+    	if (Object.keys(updates).length === 0) {
+        	alert("Nenhum ficheiro válido foi anexado");
+        	return;
+    	}
+
     	await db.ref().update(updates);
     	alert("Ficheiros anexados com sucesso");
+
 	} catch (error) {
     	console.error(error);
     	alert("Erro ao carregar ficheiros");
