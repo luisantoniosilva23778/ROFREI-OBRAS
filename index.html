@@ -1430,7 +1430,7 @@ function prepEdit(mod, id) {
         document.getElementById('h-task').value = item.task;
         if(document.getElementById('h-est')) {
             document.getElementById('h-est').disabled = false;
-            document.getElementById('h-est').value = item.est;
+            document.getElementById('h-est').value = item.est || 'Por Aprobar';
         }
         } else if(mod === 'ne') {
         document.getElementById('ne-num').value = item.num;
@@ -1481,8 +1481,8 @@ function prepEdit(mod, id) {
         document.getElementById('r-obr').value = item.obrId;
         document.getElementById('r-ini').value = item.ini;
         document.getElementById('r-fim').value = item.fim;
-        document.getElementById('r-task').value = item.task;
-    	document.getElementById('r-est').value = item.est;
+       	document.getElementById('r-task').value = item.task;
+    	document.getElementById('r-est').value = item.est || 'Por Aprobar';
     	document.getElementById('r-est').disabled = (user.role !== 'Administrador');
 	}
 
