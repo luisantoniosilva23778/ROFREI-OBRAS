@@ -1108,6 +1108,7 @@ function renderAll() {
     populateObraFilter('filt-ped-obr');
     populateObraFilter('filt-tar-obr');
     try { renderObras(); } catch(e) { console.error("Erro Obras:", e); }
+	try { renderRend(); } catch(e) { console.error("Erro Rend:", e); }
     try { renderHoras(); } catch(e) { console.error("Erro Horas:", e); }
     try { renderObs(); } catch(e) { console.error("Erro Obs:", e); }
     try { renderNE(); } catch(e) { console.error("Erro NE:", e); }
@@ -1480,6 +1481,17 @@ function prepEdit(mod, id) {
 		document.getElementById('forn-morada').value = item.morada || '';
 		document.getElementById('forn-ativ').value = item.atividade || '';
     }
+
+	} else if(mod === 'rend') {
+    document.getElementById('r-dat').value = item.dat;
+    document.getElementById('r-obr').value = item.obrId;
+    document.getElementById('r-ini').value = item.ini;
+    document.getElementById('r-fim').value = item.fim;
+    document.getElementById('r-task').value = item.task;
+    document.getElementById('r-est').value = item.est;
+	}
+
+	
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -1504,7 +1516,7 @@ function cancelarEdit(mod) {
 }
 
 function getPrefix(mod) {
-    const map = { obras:'o', horas:'h', obs:'obs', ne:'ne', ped:'ped', tar:'tar', users:'u', forn:'forn' };
+    const map = { obras:'o', rend:'r', horas:'h', obs:'obs', ne:'ne', ped:'ped', tar:'tar', users:'u', forn:'forn' };
     return map[mod] || '';
 }
 
