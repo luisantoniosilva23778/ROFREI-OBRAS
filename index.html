@@ -170,7 +170,9 @@
 			                <button onclick="exportarExcel('rend')" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">📊 Excel</button>
 			                <select id="filt-r-obr" onchange="renderRend()"><option value="">Todas as Obras</option></select>
 							<select id="filt-r-mes" onchange="renderRend()"><option value="">Filtrar Mês...</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
-			                <input type="number" id="filt-r-ano" placeholder="Ano" oninput="renderRend()"> <input type="text" id="filt-r-user" placeholder="Filtrar Utilizador..." oninput="renderRend()">
+			                <input type="number" id="filt-r-ano" placeholder="Ano" oninput="renderRend()"> 
+							<input type="text" id="filt-r-user" placeholder="Filtrar Utilizador..." oninput="renderRend()">
+							<input type="text" id="filt-r-task" list="lista-task-sug" placeholder="Filtrar Tarefa..." oninput="renderRend()">
 			                <select id="filt-r-est" onchange="renderRend()"><option value="">Todos os Estados</option><option>Por Aprovar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select>
 			            </div>
 			            
@@ -187,8 +189,9 @@
                 <h3>🕒 Registo de Horas</h3>
                 <div class="grid">
                     <div><label>Data</label><input type="date" id="h-dat"></div>
-                    <div><label>Obra</label><select id="h-obr"></select></div>
-                    <div><label>Início</label><input type="time" id="h-ini"></div>
+					<div><label>Obra</label><select id="h-obr"></select></div>
+					<div><label>Atribuído a</label><select id="h-user"></select></div>
+					<div><label>Início</label><input type="time" id="h-ini"></div>
                     <div><label>Fim</label><input type="time" id="h-fim"></div>
                     <div class="full-w"><label>Tarefa</label><textarea id="h-task" rows="2"></textarea></div>
                     <div><label>Estado</label><select id="h-est" disabled><option>Por Aprovar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select></div>
@@ -725,6 +728,7 @@ async function saveRecord(mod) {
         data.ini = document.getElementById('h-ini').value;
         data.fim = document.getElementById('h-fim').value;
 		data.task = document.getElementById('h-task').value;
+		data.assigned = document.getElementById('h-user').value;
 
 		// NUEVO
 		const ini = document.getElementById('h-ini').value;
@@ -1218,7 +1222,7 @@ function renderHoras() {
     const fObr = document.getElementById('filt-h-obr')?.value || '';
 	let grouped = {};
     DB.horas.forEach(h => {
-        const hUser = h.u_crea || "Desconhecido";
+        const hUser = h.assigned || h.u_crea || "Desconhecido";
         const hDat = h.dat || "0000-00-00";
         const d = hDat.split('-');
 
@@ -1259,11 +1263,12 @@ function renderRend() {
 	const fEst = document.getElementById('filt-r-est')?.value;
 	const fUsr = (document.getElementById('filt-r-user')?.value || "").toLowerCase();
 	const fObr = document.getElementById('filt-r-obr')?.value || '';
+	const fTask = (document.getElementById('filt-r-task')?.value || "").toLowerCase();
 	
     let groupedByObra = {};
 
     DB.rend.forEach(r => {
-        if((!fObr || r.obrNom === fObr)) {
+        if((!fObr || r.obrNom === fObr) && (!fTask || (r.task || '').toLowerCase().includes(fTask))) {
             const validItems = (r.items || []).filter(i => {
                 const d = i.d ? i.d.split('-') : [];
                 const matchMes = (!fMes || d[1] === fMes);
@@ -1515,6 +1520,7 @@ function prepEdit(mod, id) {
     	document.getElementById('h-ini').value = item.ini;
     	document.getElementById('h-fim').value = item.fim;
     	document.getElementById('h-task').value = item.task;
+		if(document.getElementById('h-user')) document.getElementById('h-user').value = item.assigned || '';
     	if(document.getElementById('h-est')) {
         	document.getElementById('h-est').disabled = false;
         	document.getElementById('h-est').value = item.est || 'Por Aprovar';
@@ -1854,6 +1860,7 @@ function updateSelects() {
 
     const userOpts = DB.users.map(u => `<option value="${u.u}">${u.u} (${u.role})</option>`).join('');
     if(document.getElementById('tar-users')) document.getElementById('tar-users').innerHTML = userOpts;
+	if(document.getElementById('h-user')) document.getElementById('h-user').innerHTML = userOpts;
 
 	// Llenar select de proveedores en el módulo NE
     const fornOpts = DB.forn.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
