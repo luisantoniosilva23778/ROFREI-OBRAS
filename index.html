@@ -153,8 +153,10 @@
                             </table>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <button onclick="addRendRow()" style="padding:6px 10px; cursor:pointer; background:var(--s); color:white; border:none; border-radius:3px">+ Adicionar Registo</button>
-                                <div style="font-weight: bold; background: #f1f5f9; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
-                                    Total Horas: <span id="rend-tot-horas" style="color:var(--acc);">0.00</span> | Total Qtd: <span id="rend-tot-qtd" style="color:var(--ok);">0.00</span>
+                                <div style="font-weight: bold; background: #f1f5f9; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.9em;">
+                                    Horas: <span id="rend-tot-horas" style="color:var(--acc);">0.00</span> | 
+                                    Qtd: <span id="rend-tot-qtd" style="color:var(--ok);">0.00</span> | 
+                                    Rendimento: <span id="rend-ratio" style="color:var(--p);">0.00</span> <small>(Qtd/H)</small>
                                 </div>
                             </div>
 			                <div class="btn-row-form">
@@ -685,8 +687,13 @@ function calcRendTotals() {
     });
     const elH = document.getElementById('rend-tot-horas');
     const elQ = document.getElementById('rend-tot-qtd');
+    const elR = document.getElementById('rend-ratio');
     if(elH) elH.innerText = totH.toFixed(2);
     if(elQ) elQ.innerText = totQ.toFixed(2);
+    if(elR) {
+        const ratio = totH > 0 ? (totQ / totH) : 0;
+        elR.innerText = ratio.toFixed(2);
+    }
 }
 
 // --- MOTOR DE GUARDADO Y AUDITORÍA ---
@@ -757,6 +764,7 @@ async function saveRecord(mod) {
     data.items = items;
     data.totHoras = document.getElementById('rend-tot-horas').innerText;
     data.totQtd = document.getElementById('rend-tot-qtd').innerText;
+    data.ratio = document.getElementById('rend-ratio').innerText;
     data.est = "Registo Múltiplo"; 
 
 } else if(mod === 'obs') {
@@ -1237,9 +1245,12 @@ function renderRend() {
     if(!list) return;
     list.innerHTML = '';
     
+    // Actualizar datalist predictivo
     const taskList = document.getElementById('lista-task-sug');
     if(taskList) {
-        const uniqueTasks = [...new Set(DB.rend.map(r => r.task).filter(Boolean))];
+        const allTasks = [];
+        DB.rend.forEach(r => { if(r.task) allTasks.push(r.task); });
+        const uniqueTasks = [...new Set(allTasks)];
         taskList.innerHTML = uniqueTasks.map(t => `<option value="${t}">`).join('');
     }
 
@@ -1293,8 +1304,9 @@ function renderRend() {
                     <input type="checkbox" class="chk-mass" value="${r.id}">
                     <div class="card-grid" style="margin-bottom:5px; align-items: center;">
                         <div><b>Unidade:</b> ${r.unid || '-'}</div>
-                        <div><b style="color:var(--acc);">Total Horas Gasto:</b> ${r.totHoras || '0.00'}h</div>
-                        <div><b style="color:var(--ok);">Total Executado:</b> ${r.totQtd || '0.00'} ${r.unid || ''}</div>
+                        <div><b style="color:var(--acc);">Horas:</b> ${r.totHoras || '0.00'}h</div>
+                        <div><b style="color:var(--ok);">Qtd:</b> ${r.totQtd || '0.00'} ${r.unid || ''}</div>
+                        <div><b style="color:var(--p);">Rendimiento:</b> ${r.ratio || '0.00'} /h</div>
                     </div>
                     ${itemsHtml}
                     ${getCardButtons('rend', r)}
