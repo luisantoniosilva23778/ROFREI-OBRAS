@@ -136,7 +136,7 @@
 			                    <div><label>Início</label><input type="time" id="r-ini"></div>
 			                    <div><label>Fim</label><input type="time" id="r-fim"></div>
 			                    <div class="full-w"><label>Tarefa</label><textarea id="r-task" rows="2"></textarea></div>
-			                    <div><label>Estado</label><select id="r-est"><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select></div>
+			                    <div><label>Estado</label><select id="r-est"><option>Por </option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select></div>
 			                </div>
 			                <div class="btn-row-form">
 			                    <button class="btn-main" onclick="saveRecord('rend')">Gravar Rendimento</button>
@@ -150,7 +150,7 @@
 			                <select id="filt-r-obr" onchange="renderRend()"><option value="">Todas as Obras</option></select>
 							<select id="filt-r-mes" onchange="renderRend()"><option value="">Filtrar Mês...</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
 			                <input type="number" id="filt-r-ano" placeholder="Ano" oninput="renderRend()"> <input type="text" id="filt-r-user" placeholder="Filtrar Utilizador..." oninput="renderRend()">
-			                <select id="filt-r-est" onchange="renderRend()"><option value="">Todos os Estados</option><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select>
+			                <select id="filt-r-est" onchange="renderRend()"><option value="">Todos os Estados</option><option>Por </option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select>
 			            </div>
 			            
 			            <div id="mass-rend" class="mass-panel">
@@ -170,7 +170,7 @@
                     <div><label>Início</label><input type="time" id="h-ini"></div>
                     <div><label>Fim</label><input type="time" id="h-fim"></div>
                     <div class="full-w"><label>Tarefa</label><textarea id="h-task" rows="2"></textarea></div>
-                    <div><label>Estado</label><select id="h-est" disabled><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select></div>
+                    <div><label>Estado</label><select id="h-est" disabled><option>Por Aprovar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select></div>
                 </div>
                 <div class="btn-row-form">
                     <button class="btn-main" onclick="saveRecord('horas')">Gravar Horas</button>
@@ -184,7 +184,7 @@
                 <select id="filt-h-obr" onchange="renderHoras()"><option value="">Todas as Obras</option></select>
 				<select id="filt-h-mes" onchange="renderHoras()"><option value="">Filtrar Mês...</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select>
                 <input type="number" id="filt-h-ano" placeholder="Ano" oninput="renderHoras()"> <input type="text" id="filt-h-user" placeholder="Filtrar Utilizador..." oninput="renderHoras()">
-                <select id="filt-h-est" onchange="renderHoras()"><option value="">Todos os Estados</option><option>Por Aprobar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select>
+                <select id="filt-h-est" onchange="renderHoras()"><option value="">Todos os Estados</option><option>Por Aprovar</option><option>Aprobada</option><option>Requiere alteracion</option><option>Sem Efeito</option></select>
             </div>
             
             <div id="mass-horas" class="mass-panel">
@@ -1408,7 +1408,7 @@ function prepEdit(mod, id) {
     	document.getElementById('h-task').value = item.task;
     	if(document.getElementById('h-est')) {
         	document.getElementById('h-est').disabled = false;
-        	document.getElementById('h-est').value = item.est || 'Por Aprobar';
+        	document.getElementById('h-est').value = item.est || 'Por Aprovar';
     	}
 	} else if(mod === 'rend') {
     	document.getElementById('r-dat').value = item.dat;
@@ -1416,7 +1416,7 @@ function prepEdit(mod, id) {
     	document.getElementById('r-ini').value = item.ini;
     	document.getElementById('r-fim').value = item.fim;
     	document.getElementById('r-task').value = item.task;
-    	document.getElementById('r-est').value = item.est || 'Por Aprobar';
+    	document.getElementById('r-est').value = item.est || 'Por Aprovar';
     	document.getElementById('r-est').disabled = (user.role !== 'Administrador');
 	} else if(mod === 'ne') {
         document.getElementById('ne-num').value = item.num;
