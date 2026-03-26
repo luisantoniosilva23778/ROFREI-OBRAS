@@ -1410,7 +1410,6 @@ function prepEdit(mod, id) {
         	document.getElementById('h-est').disabled = false;
         	document.getElementById('h-est').value = item.est || 'Por Aprobar';
     	}
-
 	} else if(mod === 'rend') {
     	document.getElementById('r-dat').value = item.dat;
     	document.getElementById('r-obr').value = item.obrId;
@@ -1419,7 +1418,6 @@ function prepEdit(mod, id) {
     	document.getElementById('r-task').value = item.task;
     	document.getElementById('r-est').value = item.est || 'Por Aprobar';
     	document.getElementById('r-est').disabled = (user.role !== 'Administrador');
-
 	} else if(mod === 'ne') {
         document.getElementById('ne-num').value = item.num;
         document.getElementById('ne-obr').value = item.obrId;
@@ -1464,7 +1462,7 @@ function prepEdit(mod, id) {
         document.getElementById('forn-email').value = item.email || '';
 		document.getElementById('forn-morada').value = item.morada || '';
 		document.getElementById('forn-ativ').value = item.atividade || '';
-
+	}
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
