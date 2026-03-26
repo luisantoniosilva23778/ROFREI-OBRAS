@@ -708,10 +708,8 @@ async function saveRecord(mod) {
     } else {
         data.horas = "0.00";
     }
-
-    data.est = isNew ? 'Por Aprovar' : document.getElementById('r-est').value;
-}
-else if(mod === 'obs') {
+	data.est = isNew ? 'Por Aprovar' : document.getElementById('r-est').value;
+} else if(mod === 'obs') {
         const sel = document.getElementById('obs-obr');
         data.obrId = sel.value;
         data.obrNom = sel.options[sel.selectedIndex].text;
