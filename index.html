@@ -1195,12 +1195,11 @@ function renderRend() {
     if(!list) return;
     list.innerHTML = '';
     
-    const fMes = document.getElementById('filt-h-mes').value;
-    const fAno = document.getElementById('filt-h-ano').value;
-    const fEst = document.getElementById('filt-h-est').value;
-    const fUsr = (document.getElementById('filt-h-user')?.value || "").toLowerCase();
-    
-    const fObr = document.getElementById('filt-h-obr')?.value || '';
+    const fMes = document.getElementById('filt-r-mes')?.value;
+	const fAno = document.getElementById('filt-r-ano')?.value;
+	const fEst = document.getElementById('filt-r-est')?.value;
+	const fUsr = (document.getElementById('filt-r-user')?.value || "").toLowerCase();
+	const fObr = document.getElementById('filt-r-obr')?.value || '';
 	let grouped = {};
     DB.rend.forEach(h => {
         const hUser = h.u_crea || "Desconhecido";
@@ -1220,7 +1219,7 @@ function renderRend() {
     Object.values(grouped).forEach(g => {
         list.innerHTML += `<div class="group-header" style="background:#e2e8f0; padding:8px; margin:10px 0; font-weight:bold; border-radius:4px;">📅 ${g.dat} - 👤 ${g.u} | Total: ${g.tot.toFixed(2)}h</div>`;
         g.items.forEach(h => {
-            list.innerHTML += `<div class="card"><input type="checkbox" class="chk-mass" value="${h.id}"><div class="card-grid"><div><b>Obra:</b> ${h.obrNom}</div><div><b>Tarefa:</b> ${h.task || '-'}</div><div><b>Horas:</b> ${h.rend || '0.00'}h (${h.ini}-${h.fim})</div><div><b>Estado:</b> ${h.est}</div></div>${getCardButtons('rend', h)}</div>`;
+            list.innerHTML += `<div class="card"><input type="checkbox" class="chk-mass" value="${h.id}"><div class="card-grid"><div><b>Obra:</b> ${h.obrNom}</div><div><b>Tarefa:</b> ${h.task || '-'}</div><div><b>Horas:</b> ${h.horas || '0.00'}h (${h.ini}-${h.fim})</div><div><b>Estado:</b> ${h.est}</div></div>${getCardButtons('rend', h)}</div>`;
         });
     });
 }
