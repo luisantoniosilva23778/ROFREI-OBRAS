@@ -710,10 +710,8 @@ async function saveRecord(mod) {
     }
 
     data.est = isNew ? 'Por Aprovar' : document.getElementById('r-est').value;
-	
-	
-		
-    } else if(mod === 'obs') {
+}
+else if(mod === 'obs') {
         const sel = document.getElementById('obs-obr');
         data.obrId = sel.value;
         data.obrNom = sel.options[sel.selectedIndex].text;
