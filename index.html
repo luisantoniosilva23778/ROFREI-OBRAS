@@ -156,7 +156,7 @@
                                 <div style="font-weight: bold; background: #f1f5f9; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.9em;">
                                     Horas: <span id="rend-tot-horas" style="color:var(--acc);">0.00</span> | 
                                     Qtd: <span id="rend-tot-qtd" style="color:var(--ok);">0.00</span> | 
-                                    Rendimento: <span id="rend-ratio" style="color:var(--p);">0.00</span> <small>(Qtd/H)</small>
+                                    Rendimento: <span id="rend-ratio" style="color:var(--p);">0.00</span> <small>(H/Qtd)</small>
                                 </div>
                             </div>
 			                <div class="btn-row-form">
@@ -691,7 +691,7 @@ function calcRendTotals() {
     if(elH) elH.innerText = totH.toFixed(2);
     if(elQ) elQ.innerText = totQ.toFixed(2);
     if(elR) {
-        const ratio = totH > 0 ? (totQ / totH) : 0;
+        const ratio = totQ > 0 ? (totH / totQ) : 0;
         elR.innerText = ratio.toFixed(2);
     }
 }
