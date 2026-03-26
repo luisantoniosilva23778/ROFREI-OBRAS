@@ -1401,16 +1401,26 @@ function prepEdit(mod, id) {
         document.getElementById('o-nom').value = item.nom;
         document.getElementById('o-est').value = item.est;
     } else if(mod === 'horas') {
-        document.getElementById('h-dat').value = item.dat;
-        document.getElementById('h-obr').value = item.obrId;
-        document.getElementById('h-ini').value = item.ini;
-        document.getElementById('h-fim').value = item.fim;
-        document.getElementById('h-task').value = item.task;
-        if(document.getElementById('h-est')) {
-            document.getElementById('h-est').disabled = false;
-            document.getElementById('h-est').value = item.est || 'Por Aprobar';
-        }
-        } else if(mod === 'ne') {
+    	document.getElementById('h-dat').value = item.dat;
+    	document.getElementById('h-obr').value = item.obrId;
+    	document.getElementById('h-ini').value = item.ini;
+    	document.getElementById('h-fim').value = item.fim;
+    	document.getElementById('h-task').value = item.task;
+    	if(document.getElementById('h-est')) {
+        	document.getElementById('h-est').disabled = false;
+        	document.getElementById('h-est').value = item.est || 'Por Aprobar';
+    	}
+
+	} else if(mod === 'rend') {
+    	document.getElementById('r-dat').value = item.dat;
+    	document.getElementById('r-obr').value = item.obrId;
+    	document.getElementById('r-ini').value = item.ini;
+    	document.getElementById('r-fim').value = item.fim;
+    	document.getElementById('r-task').value = item.task;
+    	document.getElementById('r-est').value = item.est || 'Por Aprobar';
+    	document.getElementById('r-est').disabled = (user.role !== 'Administrador');
+
+	} else if(mod === 'ne') {
         document.getElementById('ne-num').value = item.num;
         document.getElementById('ne-obr').value = item.obrId;
         document.getElementById('ne-prov').value = item.prov || '';
@@ -1454,15 +1464,6 @@ function prepEdit(mod, id) {
         document.getElementById('forn-email').value = item.email || '';
 		document.getElementById('forn-morada').value = item.morada || '';
 		document.getElementById('forn-ativ').value = item.atividade || '';
-    } else if(mod === 'rend') {
-        document.getElementById('r-dat').value = item.dat;
-        document.getElementById('r-obr').value = item.obrId;
-        document.getElementById('r-ini').value = item.ini;
-        document.getElementById('r-fim').value = item.fim;
-       	document.getElementById('r-task').value = item.task;
-    	document.getElementById('r-est').value = item.est || 'Por Aprobar';
-    	document.getElementById('r-est').disabled = (user.role !== 'Administrador');
-	}
 
     window.scrollTo({top: 0, behavior: 'smooth'});
 }
