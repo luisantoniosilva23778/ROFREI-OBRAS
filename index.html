@@ -144,7 +144,7 @@
                                         <th>Fim</th>
                                         <th>Total Horas</th>
                                         <th>Qtd. Executada</th>
-                                        <th>Utilizadores (Ctrl/Cmd p/ vários)</th>
+                                        <th>Utilizador</th>
                                         <th>Estado</th>
                                         <th>Ação</th>
                                     </tr>
@@ -384,6 +384,7 @@
                 <p>Verifique as alterações e criações em todos os módulos.</p>
             </div>
             <div class="filter-bar">
+                <button onclick="toggleMass('notif')" style="background:var(--warn); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">☑️ Seleção Check-list</button>
                 <button onclick="markSelectedRead()" style="background:var(--ok); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">✔️ Marcar Selecionadas como Lidas</button>
                 <button onclick="deleteMassRecords('notif')" style="background:var(--err); color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer">🗑️ Eliminar Selecionadas</button>
                 <select id="filt-notif-mod" onchange="renderNotif()">
@@ -668,7 +669,7 @@ function addRendRow(val = { d:'', i:'', f:'', h:'0.00', q:'0.00', u:[], e:'Por A
         <td><input type="time" class="rr-fim" value="${val.f}" oninput="calcRendRow('${rid}')"></td>
         <td><input type="text" class="rr-hor" value="${val.h}" readonly style="background:#f1f5f9; width:60px;"></td>
         <td><input type="number" step="0.01" class="rr-qtd" value="${val.q}" oninput="calcRendTotals()" style="width:70px;"></td>
-        <td><select class="rr-usr" multiple style="height:45px;">${userOpts}</select></td>
+        <td><select class="rr-usr">${userOpts}</select></td>
         <td><select class="rr-est"><option ${val.e==='Por Aprovar'?'selected':''}>Por Aprovar</option><option ${val.e==='Aprobada'?'selected':''}>Aprobada</option><option ${val.e==='Requiere alteracion'?'selected':''}>Requiere alteracion</option><option ${val.e==='Sem Efeito'?'selected':''}>Sem Efeito</option></select></td>
         <td><button onclick="this.parentElement.parentElement.remove(); calcRendTotals();" style="color:red; border:none; background:none; cursor:pointer;">✖</button></td>`;
     tbody.appendChild(tr);
@@ -1155,16 +1156,26 @@ async function saveNE() {
     renderNE();
 }
 
-function populateObraFilter(selectId) {
+function populateObraFilter(selectId, modData) {
     const sel = document.getElementById(selectId);
     if (!sel) return;
     const currentVal = sel.value; 
     sel.innerHTML = '<option value="">Todas as Obras</option>'; 
+    
+    let obrasValidas = new Set();
+    if (modData && modData.length > 0) {
+        modData.forEach(item => {
+            if (item.obrNom) obrasValidas.add(item.obrNom);
+        });
+    }
+
     if (DB.obras) {
         let sortedObras = [...DB.obras].sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
         sortedObras.forEach(o => {
             const textoCompleto = `${o.num} - ${o.nom}`;
-            sel.innerHTML += `<option value="${textoCompleto}">${textoCompleto}</option>`;
+            if (!modData || obrasValidas.has(textoCompleto)) {
+                sel.innerHTML += `<option value="${textoCompleto}">${textoCompleto}</option>`;
+            }
         });
     }
     sel.value = currentVal; 
@@ -1185,11 +1196,12 @@ function renderAll() {
     } catch(e) { console.error("Erro Empresa:", e); }
 
     // Llenar filtros antes de renderizar las listas
-    populateObraFilter('filt-h-obr');
-    populateObraFilter('filt-obs-obr');
-    populateObraFilter('filt-ne-obr');
-    populateObraFilter('filt-ped-obr');
-    populateObraFilter('filt-tar-obr');
+    populateObraFilter('filt-h-obr', DB.horas);
+    populateObraFilter('filt-r-obr', DB.rend);
+    populateObraFilter('filt-obs-obr', DB.obs);
+    populateObraFilter('filt-ne-obr', DB.ne);
+    populateObraFilter('filt-ped-obr', DB.ped);
+    populateObraFilter('filt-tar-obr', DB.tar);
     try { renderObras(); } catch(e) { console.error("Erro Obras:", e); }
 	try { renderRend(); } catch(e) { console.error("Erro Rend:", e); }
     try { renderHoras(); } catch(e) { console.error("Erro Horas:", e); }
