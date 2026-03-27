@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <title>ROFREICRC v18.0 - ERP COMPLETO</title>
+    <title>ROFREICRC v1.0 - GESTÃO INTEGRAL</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -68,7 +68,7 @@
 	<link rel="icon" href="data:,">
 </head>
 <body>
-<header>ROFREICRC v18.0 - GESTÃO INTEGRAL</header>
+<header>ROFREICRC v1.0 - GESTÃO INTEGRAL</header>
 <div id="login-sec" style="max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
     <h2 style="text-align: center; color: var(--p); margin-top:0;">Acesso ao Sistema</h2>
     <label>Utilizador</label>
@@ -254,7 +254,7 @@
                     <div><label>Nº Encomenda</label><input type="text" id="ne-num" readonly style="background:#f1f5f9"></div>
                                         <div><label>Obra (Apenas Em Execução)</label><select id="ne-obr"></select></div>
                     <div><label>Seleccionar Fornecedor *</label><input type="text" id="ne-prov" list="lista-forn-sug" placeholder="Escreva ou selecione..."></div>
-                    <div><label>Estado</label><select id="ne-est"><option>Emitida</option><option>Enviada ao Fornecedor</option><option>Sem Efeito</option></select></div>
+                    <div><label>Estado</label><select id="ne-est"><option>Por Solicitar</option><option>Enviado ao Fornecedor</option><option>Entregue pelo Fornecedor</option><option>Sem Efeito</option></select></div>
                     <div class="full-w"><label>Condições de Fornecimento | Execução (Local, Data Estimada, etc.)</label><textarea id="ne-cond" rows="2"></textarea></div>
                 </div>
                 
@@ -279,8 +279,9 @@
 				<input type="text" id="filt-ne-prov" placeholder="Fornecedor" oninput="renderNE()">
 				<select id="filt-ne-est" onchange="renderNE()">
 				<option value="">Estado</option>
-				<option>Emitida</option>
-				<option>Enviada ao Fornecedor</option>
+				<option>Por Solicitar</option>
+				<option>Enviado ao Fornecedor</option>
+				<option>Entregue pelo Fornecedor</option>
 				<option>Sem Efeito</option>
 				</select>
 				<input type="number" id="filt-ne-ano" placeholder="Filtrar Ano..." oninput="renderNE()">
@@ -555,7 +556,13 @@ async function doLogin() {
         document.getElementById('login-sec').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         
-        // Actualizamos el nombre del usuario arriba
+        if (user.role !== 'Administrador') {
+            document.getElementById('nav-users').style.display = 'none';
+        } else {
+            document.getElementById('nav-users').style.display = 'block';
+        }
+        
+        // Actualizamos el nome do utilizador arriba
         const userInfo = document.getElementById('user-info');
 		if(userInfo) userInfo.innerText = `👤 ${user.n} (${user.role})`;
         
@@ -676,7 +683,9 @@ function calcRendRow(rowId) {
     if(ini && fim){
         const hIni = new Date(`1970-01-01T${ini}`);
         const hFim = new Date(`1970-01-01T${fim}`);
-        horas = ((hFim - hIni) / (1000 * 60 * 60)).toFixed(2);
+        let diff = (hFim - hIni) / (1000 * 60 * 60);
+        if(ini <= "12:00" && fim >= "13:00") diff -= 1;
+        horas = Math.max(0, diff).toFixed(2);
     }
     row.querySelector('.rr-hor').value = horas;
     calcRendTotals();
@@ -737,7 +746,9 @@ async function saveRecord(mod) {
 		if(ini && fim){
     		const hIni = new Date(`1970-01-01T${ini}`);
     		const hFim = new Date(`1970-01-01T${fim}`);
-    		data.horas = ((hFim - hIni) / (1000 * 60 * 60)).toFixed(2);
+    		let diff = (hFim - hIni) / (1000 * 60 * 60);
+    		if(ini <= "12:00" && fim >= "13:00") diff -= 1;
+    		data.horas = Math.max(0, diff).toFixed(2);
 		} else {
     		data.horas = "0.00";
 		}
@@ -883,9 +894,25 @@ function calcNETotal(rowId) {
 
 async function saveNE() {
     const id = editingId || `NE_${Date.now()}`;
-    const num = document.getElementById('ne-num').value;
+    let num = document.getElementById('ne-num').value;
     const obrSel = document.getElementById('ne-obr');
     const provNome = document.getElementById('ne-prov').value.trim();
+    
+    if(!editingId) {
+        const currentYear = new Date().getFullYear().toString();
+        const nesThisYear = DB.ne.filter(n => n.num && n.num.includes('.' + currentYear));
+        let maxNum = 0;
+        nesThisYear.forEach(n => {
+            const parts = n.num.split('.');
+            if(parts.length > 0) {
+                const numPart = parseInt(parts[0].replace('NE', ''), 10);
+                if(!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+            }
+        });
+        const novoNum = `NE${String(maxNum + 1).padStart(3, '0')}.${currentYear}`;
+        if(num !== novoNum) num = novoNum;
+        document.getElementById('ne-num').value = num;
+    }
     
     if(!obrSel.value || !provNome) return alert("Obra e Fornecedor são obrigatórios!");
 
@@ -1097,9 +1124,7 @@ async function saveNE() {
     await db.ref(`ne/${id}`).set(data);
     createNotif('ne', `[NE - ${old ? 'Alterada' : 'Criada'}] Nº: ${numWithVersion} | Obra: ${data.obrNom} | Forn: ${data.prov} | Total Itens: ${items.length} | Est: ${data.est}`);
     
-    let novoPedEst = 'Por Solicitar';
-    if (data.est === 'Enviada ao Fornecedor') novoPedEst = 'Enviado ao Fornecedor';
-    if (data.est === 'Sem Efeito') novoPedEst = 'Sem Efeito';
+    let novoPedEst = data.est;
 
     if (!old || incrementaVersion) {
         // Si es nueva o si hubo cambios en materiales, invalidamos lo anterior y creamos lo nuevo
@@ -1136,8 +1161,8 @@ function populateObraFilter(selectId) {
     const currentVal = sel.value; 
     sel.innerHTML = '<option value="">Todas as Obras</option>'; 
     if (DB.obras) {
-        DB.obras.forEach(o => {
-            // Se debe usar exactamente el mismo texto que se guarda en la base de datos
+        let sortedObras = [...DB.obras].sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+        sortedObras.forEach(o => {
             const textoCompleto = `${o.num} - ${o.nom}`;
             sel.innerHTML += `<option value="${textoCompleto}">${textoCompleto}</option>`;
         });
@@ -1187,8 +1212,8 @@ function renderObras() {
     const fEst = document.getElementById('filt-o-est').value;
 
     let data = DB.obras.filter(o => 
-        o.num.toLowerCase().includes(fNum) &&
-        o.nom.toLowerCase().includes(fNom) &&
+        (o.num || '').toString().toLowerCase().includes(fNum) &&
+        (o.nom || '').toString().toLowerCase().includes(fNom) &&
         (fEst === '' || o.est === fEst)
     );
 
@@ -1230,9 +1255,10 @@ function renderHoras() {
 		&& (!fObr || h.obrNom === fObr) && (!fAno || d[0]===fAno) && (!fEst || h.est===fEst) && (!fUsr || hUser.toLowerCase().includes(fUsr))) {
             const key = `${hDat}_${hUser}`;
             if(!grouped[key]) grouped[key] = { dat: hDat, u: hUser, items: [], tot: 0 };
-            const diff = (new Date(`1970-01-01T${h.fim}`) - new Date(`1970-01-01T${h.ini}`))/3600000;
+            let diff = (new Date(`1970-01-01T${h.fim}`) - new Date(`1970-01-01T${h.ini}`))/3600000;
+            if(h.ini <= "12:00" && h.fim >= "13:00") diff -= 1;
             grouped[key].items.push(h); 
-            grouped[key].tot += isNaN(diff) ? 0 : diff;
+            grouped[key].tot += isNaN(diff) ? 0 : Math.max(0, diff);
         }
     });
 
@@ -1616,6 +1642,17 @@ async function markRead(id) {
 async function createNotif(mod, msg) {
     const id = `NOT_${Date.now()}`;
     await db.ref(`notif/${id}`).set({ id, mod, msg, ts: new Date().toLocaleString(), est: 'Pendente' });
+    
+    db.ref('notif').once('value', snap => {
+        const notifs = snap.val();
+        if(notifs) {
+            const keys = Object.keys(notifs).sort();
+            if(keys.length > 50) {
+                const keysToDelete = keys.slice(0, keys.length - 50);
+                keysToDelete.forEach(k => db.ref(`notif/${k}`).remove());
+            }
+        }
+    });
 }
 
 // --- FIN DEL CÓDIGO A PEGAR PARA EL PASO 4 ---
@@ -1848,8 +1885,9 @@ function exportarExcel(mod) {
 
 // --- FUNCIONES DE SOPORTE ADICIONALES ---
 function updateSelects() {
-    // 1. Obras solo en ejecución PARA LOS FORMULARIOS de creación/edición
-    const execObras = DB.obras.filter(o => o.est === 'Em Execução');
+    // 1. Obras solo en ejecución PARA LOS FORMULARIOS de criação/edição
+    let execObras = DB.obras.filter(o => o.est === 'Em Execução');
+    execObras.sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
     const options = execObras.map(o => `<option value="${o.id}">${o.num} - ${o.nom}</option>`).join('');
     
     // Retiramos los 'filt-x-obr' de este array para que no rompan los filtros generales,
